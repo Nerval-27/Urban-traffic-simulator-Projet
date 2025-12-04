@@ -1,11 +1,10 @@
-open Type
+open Types
 
 let () =
   print_endline "=== Traffic Simulator ===";
 
+   let json_path = "../data/map_clean.json"
 
-  let json_path =
-    Filename.concat (Sys.getcwd ()) "data/map_clean.json"
   in
 
   Printf.printf "Chargement du fichier : %s\n" json_path;

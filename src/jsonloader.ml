@@ -1,8 +1,7 @@
 
 open Yojson.Basic.Util
-open Type
+open Types
 
-(* Convertit un champ JSON en int64 même si la valeur est très grande ou null *)
 let parse_int64 json =
   match json with
   | `Int i -> Int64.of_int i
