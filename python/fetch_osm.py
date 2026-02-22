@@ -7,6 +7,7 @@ area["name"="Paris 13e Arrondissement"]["admin_level"="9"]->.search;
 (
   way["highway"](area.search);
   node["highway"="traffic_signals"](area.search);
+  node["highway"="crossing"]["crossing"="traffic_signals"](area.search);
 );
 out body;
 >;
@@ -27,6 +28,10 @@ if r.status_code != 200:
     exit()
 
 data = r.json()
+
+if r.status_code == 429:
+    print(" Rate limit atteint, attente 30 secondes...")
+    time.sleep(30)
 
 with open("../data/paris13.json", "w") as f:
     json.dump(data, f, indent=2)
