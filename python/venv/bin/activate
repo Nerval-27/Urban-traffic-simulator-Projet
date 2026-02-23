@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/Users/jordanlengrai/Documents/gbaguidi-lengrai-pprog-2025/python/venv"
+VIRTUAL_ENV="/Users/jordanlengrai/Projects/ecole/gbaguidi-lengrai-pprog-2025/python/venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

@@ -1,6 +1,7 @@
 import json
 import sys
 import math
+import os
 from utils import haversine
 
 
@@ -30,11 +31,14 @@ CARROSSABLE = [
 
 for el in elements:
     if el["type"] == "node":
-        nodes[el["id"]] = {
-            "lat": el["lat"],
-            "lon": el["lon"],
-            "tags": el.get("tags", {})
-        }
+        nid = el["id"]
+        # On ne veut pas écraser un node qui a des tags par un node sans tags (doublon d'Overpass)
+        if nid not in nodes or "tags" in el:
+            nodes[nid] = {
+                "lat": el["lat"],
+                "lon": el["lon"],
+                "tags": el.get("tags", {})
+            }
 
     elif el["type"] == "way":
         highway = el.get("tags", {}).get("highway")
@@ -66,16 +70,16 @@ def compute_length(node_list):
         total += haversine(n1["lat"], n1["lon"], n2["lat"], n2["lon"])
     return total
 
-# vitesse par défaut selon type de route
-SPEED_LIMITS = {
-    "motorway": 33.3,     # 120 km/h 
-    "trunk": 27.7,        # 100 km/h
-    "primary": 22.2,      # 80 km/h
-    "secondary": 16.6,    # 60 km/h
-    "tertiary": 13.8,     # 50 km/h
-    "residential": 11.1,  # 40 km/h
+# vitesses par défaut
+VITESSES = {
+    "motorway": 33.3, 
+    "trunk": 27.7,
+    "primary": 22.2,
+    "secondary": 16.6,
+    "tertiary": 13.8,
+    "residential": 11.1,
     "unclassified": 11.1,
-    "service": 8.3        # 30 km/h
+    "service": 8.3
 }
 
 roads = []
@@ -95,8 +99,9 @@ for way in ways:
 
     roads.append({
         "id": way_id,
+        "name": way["tags"].get("name", "Inconnue"),
         "length": length,
-        "speed_limit": SPEED_LIMITS[highway],
+        "speed_limit": VITESSES.get(highway, 11.1),
         "nodes": nlist,
         "next": next_inter
     })
@@ -114,7 +119,7 @@ inter_dict = {
         "id": nid,
         "incoming": [],
         "outgoing": [],
-        "has_light": ("traffic_signals" in nodes[nid].get("tags", {})),
+        "has_light": (nodes[nid].get("tags", {}).get("highway") == "traffic_signals"),
         "lat": nodes[nid]["lat"],
         "lon": nodes[nid]["lon"]
     }
@@ -148,17 +153,49 @@ for road in roads:
 intersections_list = list(inter_dict.values())
 
 
+# EXTRACTION DES FEUX ET PASSAGES PIÉTONS SPÉCIFIQUES
 
-# EXPORT FINAL POUR OCAML
+signals_list = []
+crossings_list = []
+
+for nid, ninfo in nodes.items():
+    tags = ninfo.get("tags", {})
+    if tags.get("highway") == "traffic_signals":
+        signals_list.append({
+            "id": nid,
+            "lat": ninfo["lat"],
+            "lon": ninfo["lon"]
+        })
+    elif tags.get("highway") == "crossing":
+        crossings_list.append({
+            "id": nid,
+            "lat": ninfo["lat"],
+            "lon": ninfo["lon"],
+            "is_regulated": tags.get("crossing") == "traffic_signals"
+        })
+
+
+
+# EXPORT FINAL POUR LE SIMULATEUR
+
+# On exporte aussi les coordonnées de tous les nodes pour pouvoir dessiner les routes avec leurs courbes
+# On s'assure que les clés sont des chaînes pour la compatibilité JSON
+nodes_coords = {str(nid): {"lat": ninfo["lat"], "lon": ninfo["lon"]} for nid, ninfo in nodes.items()}
 
 output = {
     "roads": roads,
-    "intersections": intersections_list
+    "intersections": intersections_list,
+    "feux": signals_list,
+    "passages": crossings_list,
+    "nodes": nodes_coords
 }
 
-with open("../data/map_clean.json", "w") as f:
+file_path = os.path.join(os.path.dirname(__file__), "..", "data", "map_clean.json")
+with open(file_path, "w") as f:
     json.dump(output, f, indent=2)
 
-print("map_clean.json généré !")
+print(f"{file_path} généré !")
 print(f"{len(roads)} routes")
 print(f"{len(intersections_list)} intersections")
+print(f"{len(signals_list)} feux de circulation")
+print(f"{len(crossings_list)} passages piétons")

@@ -19,6 +19,8 @@ def main():
     
     print(f" Réseau chargé : {len(network.roads)} routes")
     print(f" Intersections chargées : {len(network.intersections)} intersections")
+    print(f" Feux de circulation : {len(network.feux)}")
+    print(f" Passages piétons : {len(network.passages)}")
 
     print("Initialisation des véhicules (non implémentée)")
 

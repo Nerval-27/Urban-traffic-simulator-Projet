@@ -20,10 +20,26 @@ class Road:
     speed_limit: float
     nodes: List[NodeId]
     next: NodeId
+    name: str = "Inconnue"
+
+@dataclass
+class TrafficSignal:
+    id: int
+    lat: float
+    lon: float
+
+@dataclass
+class PedestrianCrossing:
+    id: int
+    lat: float
+    lon: float
+    is_regulated: bool  # True if it has traffic lights
 
 @dataclass
 class Intersection:
     id: IntersectionId
+    lat: float
+    lon: float
     incoming: List[RoadId]
     outgoing: List[RoadId]
     light_state: List[Tuple[RoadId, LightColor]] = field(default_factory=list)
@@ -69,6 +85,9 @@ SimulationTrace = List[Snapshot]
 class Network:
     roads: List[Road]
     intersections: List[Intersection]
+    feux: List[TrafficSignal] = field(default_factory=list)
+    passages: List[PedestrianCrossing] = field(default_factory=list)
+    nodes: dict = field(default_factory=dict) # Mapping NodeId -> (lat, lon)
 
 @dataclass
 class SimConfig:
