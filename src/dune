@@ -1,5 +1,0 @@
-(executable
- (name main)
- (modules (:standard) types)
- (modules_without_implementation types)
- (libraries yojson))
