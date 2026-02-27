@@ -1,169 +1,146 @@
-#gbaguidi-lengrai-pprog-2025
+# Simulateur de Trafic Urbain — Paris 13e
 
-##Description générale du projet
+## Objectif
 
-Ce projet vise à développer un simulateur de trafic urbain, codé intégralement en OCaml, dans lequel circulent des véhicules sur un réseau de routes et d’intersections.
+Ce projet simule la circulation de véhicules sur le réseau routier réel du 13e arrondissement de Paris (données OpenStreetMap). Des véhicules calculent leur trajet via Dijkstra, respectent les feux de circulation et gèrent les priorités aux intersections.
 
-Sur ce simulateur, nous implémenterons ensuite un agent d’apprentissage par renforcement (RL) chargé de contrôler dynamiquement les feux de circulation afin de réduire les embouteillages et d’optimiser la fluidité du trafic.
+L'objectif à terme est de brancher un agent d'apprentissage par renforcement (Q-learning) sur les feux pour les rendre adaptatifs : observer l'état du trafic, choisir une action sur les feux, et maximiser le débit tout en réduisant les files d'attente.
 
-##Quel problème le projet résout-il ?
+---
 
-Les systèmes de feux urbains actuels sont généralement :
+## Données en entrée
 
-à cycle fixe,
+Les entrées sont le réseau routier OSM et la configuration initiale de la simulation.
 
-incapables de s’adapter en temps réel,
-
-responsables d’embouteillages, de pollution et d'une augmentation du temps d’attente.
-
-##Notre objectif
-
-Créer un système de signalisation adaptatif, capable d’observer l’état réel du trafic et d’ajuster dynamiquement les feux afin de fluidifier la circulation.
-
-Pour cela, nous :
-
-Simulons le trafic (sans bibliothèques externes comme SUMO),
-
-Définissons un MDP (états, actions, récompenses),
-
-Entraînons un agent RL (Q-learning ou Deep RL),
-
-Mesurons scientifiquement les améliorations (temps moyen de trajet, longueur des files, throughput…).
-
-##Objectifs du projet
-
-###Objectif principal
-
-Construire un simulateur complet de trafic urbain, doté d’un contrôle intelligent des feux par RL, en OCaml (ou un autre langage encore à définir).
-
-###Objectifs intermédiaires
-
-Modéliser un graphe routier minimal (routes, intersections, feux),
-
-Implémenter la physique du trafic (déplacement, vitesse, files, évitement des collisions),
-
-Définir précisément un MDP,
-
-Implémenter un agent RL simple (Q-learning tabulaire),
-
-Rédiger des tests unitaires pour chaque module.
-
-##Entrées et Sorties du programme
-
-Dans cette section, nous présentons les types OCaml représentant les données d’entrée (réseau, trafic, RL) et les données de sortie (statistiques, traces de simulation).
-
-###Entrées
-
-### 1. Paramètres du réseau
-
+```ocaml
+(* Identifiants *)
+type node_id         = int
+type road_id         = int
 type intersection_id = int
-type road_id = int
+type vehicle_id      = int
 
-Type road
+(* Couleur d'un feu dans la configuration statique du réseau *)
+type light_color =
+  | Red
+  | Green
+  | Yellow
+
+(* Une route : séquence de nœuds OSM avec vitesse limite *)
 type road = {
-id : road_id;
-length : float; (_ en mètres _)
-speed_limit : float; (_ en m/s _)
-next : intersection_id; (_ intersection d'arrivée _)
+  road_id     : road_id;
+  length      : float;         (* mètres *)
+  speed_limit : float;         (* m/s *)
+  nodes       : node_id list;  (* nœuds OSM traversés dans l'ordre *)
+  next        : node_id;       (* nœud de destination, -1 si absent *)
+  name        : string;
 }
 
-Type light_color
-type light_color = Red | Green | Yellow
+(* Un feu de circulation OSM (position GPS brute) *)
+type traffic_signal = {
+  signal_id : int;
+  sig_lat   : float;
+  sig_lon   : float;
+}
 
-Type intersection
+(* Une intersection : routes entrantes/sortantes + état initial des feux *)
 type intersection = {
-id : intersection_id;
-incoming : road_id list;
-outgoing : road_id list;
-light_state : (road_id, light_color) Hashtbl.t;
+  inter_id    : intersection_id;
+  inter_lat   : float;
+  inter_lon   : float;
+  incoming    : road_id list;
+  outgoing    : road_id list;
+  light_state : (road_id * light_color) list;
 }
 
-### 2. Paramètres du trafic
+(* Réseau complet chargé depuis map_clean.json *)
+type network = {
+  roads         : road list;
+  intersections : intersection list;
+  feux          : traffic_signal list;
+  net_nodes     : (node_id * (float * float)) list; (* node_id → (lat, lon) *)
+}
 
-Type vehicle
+(* Configuration de la simulation *)
+type sim_config = {
+  network              : network;
+  dt                   : float;      (* pas de temps en secondes *)
+  max_time             : float;      (* durée maximale de simulation *)
+  initial_vehicle_count: int;        (* véhicules au démarrage *)
+  target_vehicles      : int;        (* nombre cible maintenu *)
+  max_vehicles         : int;        (* limite haute *)
+  random_seed          : int option;
+}
+```
+
+---
+
+## Données en sortie
+
+Les sorties sont les statistiques de trafic produites à chaque instant et en fin de simulation, ainsi que les données nécessaires au module RL.
+
+```ocaml
+(* État d'un véhicule pendant la simulation *)
+type vehicle_state =
+  | Moving    (* en circulation *)
+  | Braking   (* ralentissement *)
+  | Stopped   (* arrêt complet : feu, embouteillage, priorité *)
+  | Arrived   (* destination atteinte *)
+  | NoPath    (* aucun chemin trouvé *)
+
 type vehicle = {
-id : int;
-current_road : road_id;
-position : float; (_ distance depuis le début de la route _)
-speed : float; (_ vitesse actuelle en m/s _)
+  v_id             : vehicle_id;
+  origin_node      : node_id;
+  dest_node        : node_id;
+  path             : node_id list; (* chemin Dijkstra *)
+  v_lat            : float;
+  v_lon            : float;
+  speed            : float;        (* m/s *)
+  v_state          : vehicle_state;
+  travel_time      : float;        (* temps de trajet accumulé en secondes *)
+  waiting_at_light : bool;
 }
 
-### 3. Paramètres RL
-
-Type state
-type state = {
-queue_lengths : int list; (_ nb de voitures par voie entrante _)
-light_config : light_color list;
-}
-
-Type action
-type action =
-| SwitchLights of (road_id \* light_color) list
-| Keep
-
-Sorties
-
-### 1. Statistiques du trafic
-
-Type traffic_stats
+(* Statistiques en temps réel (produites à chaque tick) *)
 type traffic_stats = {
-mean_travel_time : float; (_ temps moyen de trajet des véhicules _)
-mean_queue_length : float; (_ longueur moyenne des files d'attente _)
-throughput : float; (_ nombre de véhicules écoulés par unité de temps _)
+  total_vehicles : int;
+  moving         : int;
+  stopped        : int;
+  braking        : int;
+  at_light       : int;   (* véhicules en attente à un feu *)
+  arrived        : int;   (* total arrivés à destination depuis le début *)
+  spawned        : int;   (* total créés depuis le début *)
 }
 
-### 2. Trace de simulation (pour visualisation)
+(* Statistiques finales (produites à l'arrêt de la simulation) *)
+type final_stats = {
+  sim_duration_s    : float;        (* durée simulée en secondes *)
+  total_spawned     : int;
+  total_arrived     : int;
+  total_light_stops : int;          (* total d'arrêts aux feux *)
+  congested_lights  : node_id list; (* feux ayant dépassé le seuil d'arrêts *)
+}
 
-Type simulation_trace
-type simulation_trace = (float _ state _ vehicle list) list
+(* État MDP observé par l'agent RL *)
+type light_state =
+  | LightRed
+  | LightGreen
+  | LightYellow
 
-Ce type représente une liste de snapshots, où chaque élément contient :
+type rl_state = {
+  queue_lengths : (node_id * int) list;        (* nb véhicules en attente par feu *)
+  light_config  : (node_id * light_state) list (* état courant de chaque feu *)
+}
 
-un temps float,
+(* Action choisie par l'agent RL *)
+type rl_action =
+  | SwitchLights of (node_id * light_state) list (* modifier ces feux *)
+  | Keep                                          (* ne rien changer *)
 
-l’état du MDP (state),
-
-la liste complète des véhicules avec leurs positions et vitesses.
-
-##Algorithmes impliqués
-
-### 1. Simulation physique
-
-Discrétisation du temps Δt,
-
-Mise à jour du mouvement :
-position ← position + speed × Δt,
-
-Gestion des files d’attente (ralentissement, arrêt),
-
-Arrêt obligatoire au feu rouge,
-
-Prévention simple des collisions (distance minimale).
-
-### 2. Définition du MDP
-
-État : longueurs des files + configuration des feux,
-
-Action : changer ou conserver la configuration des feux,
-
-Transition : propagation du trafic selon la physique + changement de feux,
-
-Récompense :
-
-négative si files longues,
-
-positive si throughput élevé,
-
-basée sur la réduction du temps de trajet.
-
-### 3. Q-Learning
-
-Table Q en Hashtbl,
-
-Politique ε-greedy,
-
-Mise à jour :
-
-Q(s,a) ← Q(s,a) + α ( r + γ max_a' Q(s',a') − Q(s,a) )
-
-Entraînement sur plusieurs épisodes.
+(* Résultat d'un épisode d'entraînement RL *)
+type episode_result = {
+  episode_id   : int;
+  total_reward : float;
+  final_stats  : final_stats;
+  steps        : int;
+}
+```
