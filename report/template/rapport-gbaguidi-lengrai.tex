@@ -1,0 +1,502 @@
+\documentclass[a4paper,10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1.8cm]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage{array}
+
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue}
+
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\bfseries\color{blue!70!black},
+  commentstyle=\itshape\color{gray},
+  frame=single,
+  rulecolor=\color{black!30},
+  backgroundcolor=\color{gray!5},
+  breaklines=true,
+  captionpos=b,
+  language=[Objective]Caml,
+  morekeywords={type,let,in,match,with,fun,rec,and,of,begin,end}
+}
+
+\titlespacing{\section}{0pt}{7pt}{3pt}
+\titlespacing{\subsection}{0pt}{5pt}{2pt}
+\titlespacing{\subsubsection}{0pt}{3pt}{1pt}
+\setlength{\parskip}{3pt}
+
+\title{\textbf{Rapport interm\'{e}diaire}\\
+       \large Simulateur de trafic urbain avec feux adaptatifs\\
+       \normalsize Paris 13\textsuperscript{e} arrondissement
+       --- Donn\'{e}es OpenStreetMap}
+\author{GBAGUIDI Nerval \and LENGRAI Jordan\\
+        \small Licence/Master Informatique --- Programmation avanc\'{e}e 2025}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+\vspace{-0.6em}\hrule\vspace{0.4em}
+
+%=================================================================
+\section{Introduction}
+%=================================================================
+
+\subsection{But du projet}
+
+L'objectif est de d\'{e}velopper un simulateur de trafic urbain r\'{e}aliste
+sur le r\'{e}seau routier du 13\textsuperscript{e} arrondissement de Paris,
+en utilisant des donn\'{e}es g\'{e}ographiques r\'{e}elles issues d'OpenStreetMap (OSM).
+Des v\'{e}hicules autonomes se d\'{e}placent sur ce r\'{e}seau en calculant leur
+itin\'{e}raire via l'algorithme de Dijkstra, en respectant les feux de
+circulation et les r\`{e}gles de priorit\'{e} aux intersections.
+\`{A} terme, un agent d'apprentissage par renforcement (Q-learning)
+contr\^{o}lera dynamiquement les feux afin de r\'{e}duire les files d'attente
+et d'augmenter le d\'{e}bit global du r\'{e}seau.
+
+\subsection{Probl\'{e}matique}
+
+Les syst\`{e}mes de feux urbains actuels reposent sur des cycles fixes,
+incapables de s'adapter en temps r\'{e}el \`{a} la densit\'{e} du trafic.
+La probl\'{e}matique centrale est la suivante :
+\textit{est-il possible, par apprentissage par renforcement, d'obtenir
+une politique de contr\^{o}le des feux qui am\'{e}liore mesur\'{e}ment le d\'{e}bit
+du trafic par rapport \`{a} une politique \`{a} cycles fixes~?}
+
+\subsection{M\'{e}trique de succ\`{e}s}
+
+Pour d\'{e}terminer si le projet est un succ\`{e}s ou un \'{e}chec, nous avons besoin
+de mesures objectives, quantitatives et reproductibles.
+Trois m\'{e}triques ont \'{e}t\'{e} retenues, chacune capturant un aspect distinct
+de la qualit\'{e} du trafic.
+Elles sont toutes calcul\'{e}es en comparant deux conditions sur une m\^{e}me
+simulation de \textbf{300 secondes simul\'{e}es} avec \textbf{100 v\'{e}hicules actifs}
+en r\'{e}gime permanent~: la \textbf{Baseline} (cycles fixes, vert\,=\,10\,s,
+orange\,=\,3\,s, rouge\,=\,12\,s) et la condition \textbf{RL}
+(m\^{e}me configuration de d\'{e}part, cycles modifi\'{e}s dynamiquement par l'agent).
+La m\^{e}me graine al\'{e}atoire est utilis\'{e}e dans les deux cas
+(\texttt{RANDOM\_SEED\,=\,42}) pour garantir la reproductibilit\'{e} des r\'{e}sultats.
+
+\subsubsection*{M\'{e}trique 1 --- Temps moyen de trajet}
+
+\textbf{Ce qu'on mesure.}
+Pour chaque v\'{e}hicule qui atteint sa destination, on enregistre le temps
+\'{e}coul\'{e} depuis son apparition sur le r\'{e}seau jusqu'\`{a} son arriv\'{e}e.
+La m\'{e}trique est la moyenne de ces dur\'{e}es sur l'ensemble des v\'{e}hicules
+arriv\'{e}s pendant les 300\,s de simulation~:
+
+\[
+  \overline{T}
+  \;=\;
+  \frac{1}{|\mathcal{A}|} \sum_{v \in \mathcal{A}} t_v
+\]
+
+o\`{u} $\mathcal{A}$ est l'ensemble des v\'{e}hicules arriv\'{e}s et $t_v$
+le temps de trajet du v\'{e}hicule $v$ en secondes simul\'{e}es.
+
+\textbf{Pourquoi cette m\'{e}trique.}
+Le temps de trajet est la mesure la plus directe du ressenti de l'usager.
+Un v\'{e}hicule qui attend longuement \`{a} plusieurs feux rouges
+avant d'atteindre sa destination a un temps de trajet \'{e}lev\'{e}.
+Si l'agent RL apprend \`{a} pr\'{e}voir les pointes de trafic et \`{a}
+allonger les phases vertes au bon moment, les v\'{e}hicules traverseront
+davantage de carrefours sans s'arr\^{e}ter, ce qui r\'{e}duira m\'{e}caniquement
+cette moyenne.
+
+\textbf{Cible.} R\'{e}duction d'au moins \textbf{15\,\%}
+entre Baseline et condition RL ($\overline{T}_{\text{RL}} \leq 0{,}85 \cdot \overline{T}_{\text{base}}$).
+
+\subsubsection*{M\'{e}trique 2 --- Longueur moyenne des files d'attente}
+
+\textbf{Ce qu'on mesure.}
+\`{A} intervalles r\'{e}guliers pendant la simulation, on compte le nombre de
+v\'{e}hicules immobilis\'{e}s devant un feu rouge ou orange.
+La m\'{e}trique est la moyenne temporelle de ce nombre, ramen\'{e}e
+au nombre de feux actifs sur le r\'{e}seau~:
+
+\[
+  \overline{Q}
+  \;=\;
+  \frac{1}{T \cdot |\mathcal{F}|}
+  \sum_{t=1}^{T}
+  \bigl|\{\, v \mid v \text{ en attente au feu \`{a} l'instant } t \,\}\bigr|
+\]
+
+o\`{u} $T$ est le nombre de relevés, $|\mathcal{F}|$ le nombre de feux actifs.
+
+\textbf{Pourquoi cette m\'{e}trique.}
+La longueur des files est l'indicateur le plus visible de la congestion~:
+une file qui s'allonge signifie que le feu reste rouge trop longtemps
+par rapport au flux entrant.
+C'est aussi la grandeur que l'agent RL observera directement dans son
+\'{e}tat (\texttt{queue\_lengths}) pour prendre ses d\'{e}cisions.
+Une bonne politique doit maintenir des files courtes et stables plut\^{o}t
+que de laisser la congestion s'accumuler puis se r\'{e}sorber par \`{a}-coups.
+
+\textbf{Cible.} R\'{e}duction d'au moins \textbf{20\,\%}
+entre Baseline et condition RL ($\overline{Q}_{\text{RL}} \leq 0{,}80 \cdot \overline{Q}_{\text{base}}$).
+
+\subsubsection*{M\'{e}trique 3 --- D\'{e}bit}
+
+\textbf{Ce qu'on mesure.}
+Le d\'{e}bit est le nombre de v\'{e}hicules ayant compl\'{e}t\'{e} leur trajet
+par seconde simul\'{e}e~:
+
+\[
+  D
+  \;=\;
+  \frac{N_{\text{arriv\'{e}s}}}{T_{\text{sim}}}
+  \quad \bigl[\text{v\'{e}hicules\,/\,s}\bigr]
+\]
+
+o\`{u} $N_{\text{arriv\'{e}s}}$ est le nombre total de v\'{e}hicules arriv\'{e}s
+et $T_{\text{sim}}$ la dur\'{e}e totale de la simulation en secondes.
+
+\textbf{Pourquoi cette m\'{e}trique.}
+Le d\'{e}bit mesure la capacit\'{e} effective du r\'{e}seau \`{a} \'{e}couler le trafic.
+Contrairement au temps de trajet qui d\'{e}pend de la distance parcourue,
+le d\'{e}bit est une vision globale~: un r\'{e}seau fluidifi\'{e} laisse passer
+plus de v\'{e}hicules dans le m\^{e}me intervalle de temps,
+m\^{e}me si chaque trajet individuel reste de longueur variable.
+C'est la m\'{e}trique de synth\`{e}se la plus robuste~: un agent RL
+qui r\'{e}duit \`{a} la fois les temps d'attente et les files
+doit n\'{e}cessairement faire augmenter ce d\'{e}bit.
+
+\textbf{Cible.} Augmentation d'au moins \textbf{10\,\%}
+entre Baseline et condition RL ($D_{\text{RL}} \geq 1{,}10 \cdot D_{\text{base}}$).
+
+\subsubsection*{Synth\`{e}se et crit\`{e}re de succ\`{e}s}
+
+\begin{tabular}{lllll}
+\toprule
+\textbf{M\'{e}trique} & \textbf{Notation} & \textbf{Calcul} & \textbf{Cible} \\
+\midrule
+Temps moyen de trajet
+  & $\overline{T}$
+  & Moyenne sur arriv\'{e}s
+  & $-15\,\%$ \\
+File d'attente moyenne
+  & $\overline{Q}$
+  & Moyenne temporelle / feu
+  & $-20\,\%$ \\
+D\'{e}bit
+  & $D$
+  & Arriv\'{e}s / dur\'{e}e
+  & $+10\,\%$ \\
+\bottomrule
+\end{tabular}
+
+\medskip
+Le projet est consid\'{e}r\'{e} comme un \textbf{succ\`{e}s} si les trois m\'{e}triques
+atteignent simultan\'{e}ment leur cible.
+
+
+\section{Impl\'{e}mentation}
+
+
+\subsection{Comment nous r\'{e}alisons le projet}
+
+Le projet est d\'{e}velopp\'{e} enti\`{e}rement en \textbf{Python}.
+Le d\'{e}veloppement est le suivant: on part des donn\'{e}es
+g\'{e}ographiques r\'{e}elles du 13\textsuperscript{e} arrondissement (t\'{e}l\'{e}charg\'{e}es
+depuis OpenStreetMap), on les transforme en graphe routier navigable,
+puis on y fait circuler des v\'{e}hicules qui ob\'{e}issent \`{a} des r\`{e}gles : respecter les feux, suivre la voiture devant,
+c\'{e}der la priorit\'{e} \`{a} droite, \'{e}viter les collisions.
+La simulation tourne en temps r\'{e}el dans une fen\^{e}tre Pygame \`{a} 60\,FPS.
+
+Une fois la simulation stable, nous brancherons un agent RL (Q-learning)
+qui observera l'\'{e}tat du trafic \`{a} chaque instant et modifiera dynamiquement
+les cycles des feux via l'interface \texttt{set\_cycle()} d\'{e}j\`{a} pr\'{e}vue
+dans
+\texttt{traffic\_light\_manager.py}.
+
+\subsection{Logiciel d\'{e}j\`{a} cod\'{e} et technologies utilis\'{e}es}
+
+\textbf{Python\,3.11 --- biblioth\`{e}que standard uniquement.}
+Nous utilisons les modules \texttt{heapq} (file de priorit\'{e} pour Dijkstra),
+\texttt{math} (haversine, atan2, radians), \texttt{dataclasses} et \texttt{enum}
+(typage des structures).
+
+\textbf{Pygame\,2.x --- rendu graphique 2D.}
+Toute la visualisation est r\'{e}alis\'{e}e avec Pygame~: fond sombre style carte
+de nuit, routes trac\'{e}es par poly-lignes, feux color\'{e}s selon leur \'{e}tat
+courant (vert/orange/rouge), v\'{e}hicules repr\'{e}sent\'{e}s par des cercles
+color\'{e}s selon leur \'{e}tat (vert\,=\,mobile, jaune\,=\,freine, rouge\,=\,arr\^{e}t\'{e}).
+La projection GPS\,$\to$\,pixels utilise une correction Mercator locale~:
+\texttt{scale\_x\,=\,zoom\,$\times$\,cos(mid\_lat)}.
+
+\textbf{Overpass:source des donn\'{e}es OSM.}
+Le script \texttt{fetch\_osm.py} envoie une requ\^{e}te Overpass structur\'{e}e
+qui extrait sp\'{e}cifiquement les \textit{ways} de type \texttt{highway},
+les noeuds \texttt{traffic\_signals} et \texttt{crossing} du
+13\textsuperscript{e} arrondissement. Le r\'{e}sultat brut (JSON) est sauvegard\'{e}
+dans \texttt{data/paris13.json}.
+
+\textbf{JSON:format d'\'{e}change.}
+\texttt{clean\_json.py} transforme \texttt{paris13.json} en \texttt{map\_clean.json},
+le format propre consomm\'{e} par le simulateur. \texttt{loader.py} le
+d\'{e}s\'{e}rialise vers les dataclasses Python.
+
+\textbf{Makefile --- automatisation.}
+Un Makefile g\`{e}re l'ensemble du pipeline~: cr\'{e}ation du virtualenv,
+installation des d\'{e}pendances, t\'{e}l\'{e}chargement OSM, g\'{e}n\'{e}ration du JSON
+propre, et lancement de la simulation.
+
+\subsection{Structure en modules / packages}
+
+Le projet est d\'{e}coup\'{e} en \textbf{11 fichiers Python} organis\'{e}s
+en trois couches:
+
+\medskip
+\noindent\textbf{Couche 1 : Pipeline de donn\'{e}es OSM}
+(ex\'{e}cut\'{e} une fois avant la simulation)
+
+\begin{description}[leftmargin=2em,itemsep=1pt]
+  \item[\texttt{fetch\_osm.py}] Requ\^{e}te Overpass~: r\'{e}cup\`{e}re toutes les
+  routes, tous les feux (\texttt{traffic\_signals}) et tous les passages
+  pi\'{e}tons (\texttt{crossing}) du 13\textsuperscript{e}. Sauvegarde le r\'{e}sultat brut.
+
+  \item[\texttt{clean\_json.py}] Filtre les 8 types de voies carrossables
+  (\textit{motorway}, \textit{primary}, \textit{secondary}, \textit{tertiary},
+  \textit{residential}, \textit{unclassified}, \textit{trunk}, \textit{service}),
+  calcule les longueurs r\'{e}elles par int\'{e}gration haversine segment par segment,
+  d\'{e}tecte les intersections (noeuds partag\'{e}s par $\geq 2$ voies),
+  et produit \texttt{map\_clean.json}.
+
+  \item[\texttt{loader.py}] D\'{e}s\'{e}rialise \texttt{map\_clean.json} vers les
+  dataclasses \texttt{Road}, \texttt{Intersection},
+  \texttt{TrafficSignal}, \texttt{PedestrianCrossing} et \texttt{Network}.
+
+  \item[\texttt{models.py}] D\'{e}finit toutes les dataclasses du domaine
+  et les alias de types (\texttt{RoadId}, \texttt{NodeId}, \texttt{VehicleId}).
+\end{description}
+
+\medskip
+\noindent\textbf{Couche 2 : Moteur de simulation}
+(ex\'{e}cut\'{e} \`{a} chaque tick de 50\,ms)
+
+\begin{description}[leftmargin=2em,itemsep=1pt]
+  \item[\texttt{graph.py}] Construit le graphe orient\'{e} pond\'{e}r\'{e}
+  \texttt{RoadGraph} depuis le \texttt{Network}. Chaque noeud OSM routier
+  devient un \texttt{GraphNode}. Chaque segment de route devient un
+  \texttt{GraphEdge} avec poids\,=\,distance\,/\,vitesse\_limite (temps de
+  parcours). Le graphe est \textbf{bidirectionnel}~: pour chaque arc A\,$\to$\,B,
+  un arc B\,$\to$\,A est cr\'{e}\'{e}. Dijkstra est impl\'{e}ment\'{e} avec \texttt{heapq}.
+
+  \item[\texttt{traffic\_light\_manager.py}] Gestionnaire centralis\'{e} de
+  tous les feux. Chaque \texttt{TrafficLight} a un cycle autonome
+  vert\,(10\,s)\,$\to$\,orange\,(3\,s)\,$\to$\,rouge\,(12\,s),
+  avec un d\'{e}calage de phase initial al\'{e}atoire (graine\,42) pour
+  d\'{e}synchroniser les feux entre eux. Fournit au simulateur~:
+  \texttt{is\_green()}, \texttt{get\_state()}, \texttt{has\_light()},
+  \texttt{record\_vehicle\_waiting()}. Dans le futur ce cycle autonome sera remplacer par l'agent RL que nous souhaitons implementer.
+
+  \item[\texttt{vehicle.py}]
+  Contient la dataclass \texttt{Vehicle} et \texttt{VehicleManager}.
+  Au spawn, Dijkstra calcule l'itin\'{e}raire A$\to$B.
+  \`{A} chaque tick, cinq m\'{e}canismes s'appliquent en s\'{e}quence~:
+  d\'{e}tection feu rouge/orange, car-following (v\'{e}hicule devant),
+  d\'{e}tection sens inverse, priorit\'{e} \`{a} droite, r\'{e}solution de collision.
+\end{description}
+
+\medskip
+\noindent\textbf{Couche 3 : Interface graphique}
+(ex\'{e}cut\'{e} \`{a} chaque frame Pygame)
+
+\begin{description}[leftmargin=2em,itemsep=1pt]
+  \item[\texttt{renderer.py}] Rendu Pygame~: routes, feux (couleur
+  effective depuis le manager), v\'{e}hicules (couleur par \'{e}tat), chemin
+  du v\'{e}hicule s\'{e}lectionn\'{e}, HUD, l\'{e}gende.
+  \item[\texttt{simulation\_gui.py}] Boucle principale.
+  Orchestre \texttt{light\_manager.update(sim\_dt)},
+  \texttt{vehicle\_manager.update(sim\_dt)}, \texttt{renderer.draw()}.
+  Spawn automatique toutes les 5,5\,s pour maintenir 100 v\'{e}hicules actifs.
+  Multiplicateur de vitesse r\'{e}glable en direct ($\times$0,25
+  \`{a} $\times$8).
+\end{description}
+
+\subsection{Repr\'{e}sentation des donn\'{e}es}
+
+\subsubsection*{Graphe routier}
+
+La structure centrale du simulateur est un graphe orient\'{e} pond\'{e}r\'{e}.
+Un \texttt{GraphNode} repr\'{e}sente un noeud OSM~: il stocke ses coordonn\'{e}es
+GPS et indique si un feu y est associ\'{e}. Un \texttt{GraphEdge} repr\'{e}sente
+un segment de route orient\'{e}~: il stocke la distance en m\`{e}tres,
+la vitesse limite en m/s, et le poids utilis\'{e} par Dijkstra
+(poids\,=\,distance\,/\,vitesse, c'est-\`{a}-dire le temps de parcours estim\'{e}).
+
+\begin{lstlisting}
+type graph_node = {
+  node_id : node_id; lat : float; lon : float;
+  has_traffic_light : bool; traffic_light_id : int option }
+
+type graph_edge = {
+  from_node : node_id; to_node : node_id;
+  distance : float; speed_limit : float;
+  weight : float }  (* weight = distance / speed_limit = temps en secondes *)
+\end{lstlisting}
+
+\subsubsection*{V\'{e}hicules}
+
+Chaque v\'{e}hicule m\'{e}morise son chemin Dijkstra (liste de \texttt{node\_id}),
+sa position GPS courante , sa vitesse, et les deux champs
+\texttt{seg\_from}/\texttt{seg\_to} qui identifient le tron\c{c}on
+actuel. Ces deux champs sont indispensables~: ils permettent \`{a} la d\'{e}tection
+de sens inverse de distinguer un v\'{e}hicule qui roule dans le m\^{e}me sens
+d'un v\'{e}hicule qui vient en face sur le m\^{e}me segment physique.
+
+\begin{lstlisting}
+type vehicle_state = Moving | Braking | Stopped | Arrived | NoPath
+
+type vehicle = {
+  v_id : vehicle_id;  path : node_id list;  path_index : int;
+  v_lat : float;      v_lon : float;        speed : float;
+  seg_from : node_id; seg_to : node_id;  (* troncon physique courant *)
+  v_state  : vehicle_state;
+  travel_time : float;  waiting_at_light : bool;
+}
+\end{lstlisting}
+
+La boucle de mise \`{a} jour d'un v\'{e}hicule (\texttt{\_update\_vehicle})
+calcule \`{a} chaque tick une \texttt{desired\_speed} en appliquant cinq
+r\`{e}gles dans l'ordre de priorit\'{e} suivant~:
+
+\begin{enumerate}[leftmargin=1.8em,itemsep=1pt]
+  \item \textbf{Feux rouges/orange} (\texttt{\_check\_traffic\_light})~:
+  si le noeud cible a un feu non vert, la vitesse d\'{e}sir\'{e}e est forc\'{e}e
+  \`{a} z\'{e}ro. En dehors de la ligne d'arr\^{e}t (12\,m), un freinage
+  proportionnel commence d\`{e}s 28\,m.
+
+  \item \textbf{Car-following} (\texttt{\_gap\_to\_leader})~: recherche
+  du v\'{e}hicule le plus proche devant selon trois cas~:
+  m\^{e}me segment (m\^{e}me \texttt{seg\_from}),
+  transition de segment (\texttt{other.seg\_from == target\_nid}),
+  convergence Y/T (m\^{e}me noeud cible, \texttt{seg\_from} diff\'{e}rents,
+  filtr\'{e} par produit scalaire). Freinage entre 8 et 25\,m,
+  arr\^{e}t au del\`{a} de 8\,m.
+
+  \item \textbf{Sens inverse} (\texttt{\_dist\_to\_oncoming})~:
+  d\'{e}tection via \texttt{other.seg\_from == v.seg\_to}.
+  Ralentissement entre 5 et 14\,m, arr\^{e}t quasi-imm\'{e}diat sous 5\,m.
+
+  \item \textbf{Priorit\'{e} \`{a} droite} (\texttt{\_must\_yield})~:
+  activ\'{e}e \`{a} 18\,m du carrefour. Cap calcul\'{e} par \texttt{atan2} avec
+  correction Mercator. Le v\'{e}hicule c\`{e}de si l'autre est dans le secteur
+  45--135$^{\circ}$ et plus proche du noeud.
+
+  \item \textbf{Collision physique} (\texttt{check\_collisions})~:
+  filet de s\'{e}curit\'{e} ex\'{e}cut\'{e} apr\`{e}s tous les d\'{e}placements.
+  Si deux v\'{e}hicules sont \`{a} moins de 4\,m, les deux sont stopp\'{e}s~;
+  si sens inverse, chacun est recul\'{e} de 3\,m vers son \texttt{seg\_from}.
+\end{enumerate}
+
+L'acc\'{e}l\'{e}ration et le freinage sont contraints par des bornes physiques~:
+MAX\_ACCEL\,=\,2,5\,m/s$^2$, MAX\_DECEL\,=\,5,0\,m/s$^2$,
+EMERG\_DECEL\,=\,9,0\,m/s$^2$.
+
+\subsubsection*{Types MDP pour l'agent RL} ( peut changer au cours de l'avancer)
+
+\begin{lstlisting}
+type rl_state = {
+  queue_lengths : (node_id * int) list;    (* nb vehicules en attente par feu *)
+  light_config  : (node_id * light_state) list }  (* etat courant de chaque feu *)
+
+type rl_action = SwitchLights of (node_id * light_state) list | Keep
+type ql_params = { alpha : float; gamma : float; epsilon : float }
+\end{lstlisting}
+
+\subsection{Difficultés rencontrées}
+
+\textbf{Spawn sur des nœuds de passages piétons.}
+Les nœuds OSM incluent indistinctement routes et passages piétons.
+Résolution : filtrage dans \texttt{build\_from\_network} pour ne conserver
+que les nœuds appartenant à au moins une voie carrossable.
+
+
+\textbf{Collisions sur les routes bidirectionnelles.}
+Le graphe crée un arc A$\to$B et un arc B$\to$A pour chaque route.
+Sans suivi du tronçon courant (\texttt{seg\_from}/\texttt{seg\_to}),
+les véhicules en sens inverse étaient invisibles l'un à l'autre.
+Résolution : chaque véhicule mémorise son tronçon ; la détection
+compare \texttt{other.seg\_from == v.seg\_to}.
+
+\textbf{Collision lors des transitions de segment.}
+Quand un véhicule franchissait un nœud, son \texttt{path\_index}
+avançait, le rendant invisible à l'algorithme \texttt{\_gap\_to\_leader}
+pendant exactement un tick. Corrigé en ajoutant le cas
+\texttt{other.seg\_from == target\_nid} dans la détection.
+
+\textbf{Collisions aux feux rouges}
+Empilement arrière lors des arrêts simultanés. \texttt{Correction :}
+Ajout d'une distance lorsque la proximité est inférieure à \texttt{SAFE\_DISTANCE}.
+
+\textbf{Collisions aux intersections.}
+Aucun mécanisme de gestion des priorités aux intersections n'était initialement implémenté.
+Les véhicules s'engageaient simultanément dans les carrefours depuis toutes les directions,
+provoquant des collisions fréquentes.
+Une méthode \texttt{\_must\_yield} a été introduite afin de modéliser une règle de priorité à droite.
+
+
+\section{Jalons}
+
+\subsection{T\^{a}ches r\'{e}alis\'{e}es}
+
+\begin{tabular}{lll}
+\toprule
+\textbf{T\^{a}che} & \textbf{Module} & \textbf{\'{E}tat} \\
+\midrule
+Pipeline de donn\'{e}es OSM
+  & \texttt{fetch\_osm} / \texttt{clean\_json}
+  & $\checkmark$ Termin\'{e} \\
+Chargement JSON $\to$ dataclasses
+  & \texttt{loader.py} / \texttt{models.py}
+  & $\checkmark$ Termin\'{e} \\
+Graphe orient\'{e} + Dijkstra
+  & \texttt{graph.py}
+  & $\checkmark$ Termin\'{e} \\
+Gestion des feux avec cycles
+  & \texttt{traffic\_light\_manager.py}
+  & $\checkmark$ Termin\'{e} \\
+Physique v\'{e}hicules (5 m\'{e}canismes)
+  & \texttt{vehicle.py}
+  & $\checkmark$ Termin\'{e} \\
+D\'{e}tection collisions (4 cas)
+  & \texttt{vehicle.py}
+  & $\checkmark$ Termin\'{e} \\
+Priorit\'{e} \`{a} droite par cap GPS
+  & \texttt{vehicle.py}
+  & $\checkmark$ Termin\'{e} \\
+Interface graphique Pygame
+  & \texttt{simulation\_gui.py} / \texttt{renderer.py}
+  & $\checkmark$ Termin\'{e} \\
+D\'{e}finition des types OCaml (MDP)
+  & \texttt{types.ml}
+  & $\checkmark$ Termin\'{e} \\
+\bottomrule
+\end{tabular}
+
+\subsection{T\^{a}ches restantes et planning}
+
+\begin{tabular}{>{\raggedright\arraybackslash}p{3cm} >{\raggedright\arraybackslash}p{10cm}}
+\toprule
+\textbf{Durée} & \textbf{Tâche} \\
+\midrule
+Mois de mars & Gestion de toutes les nouvelles erreurs causées par la circulation des voitures \\
+Mois de mars & Implementation de la logique des feux intelligents \\
+Semaines d'avril & Implementation de la simulation globale avec, d'un côté, des feux standards et de l'autre, les feux intelligents \\
+\bottomrule
+\end{tabular}
+
+
+\end{document}
