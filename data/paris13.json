@@ -2,8 +2,8 @@
   "version": 0.6,
   "generator": "Overpass API 0.7.62.10 2d4cfc48",
   "osm3s": {
-    "timestamp_osm_base": "2026-02-25T23:34:14Z",
-    "timestamp_areas_base": "2026-01-22T23:45:51Z",
+    "timestamp_osm_base": "2026-02-28T19:45:15Z",
+    "timestamp_areas_base": "2026-01-23T01:22:35Z",
     "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
   },
   "elements": [
@@ -1122,6 +1122,7 @@
       "lat": 48.8218222,
       "lon": 2.3633358,
       "tags": {
+        "crossing:signals": "no",
         "highway": "crossing"
       }
     },
@@ -9031,6 +9032,7 @@
       "lat": 48.8311362,
       "lon": 2.3564929,
       "tags": {
+        "button_operated": "no",
         "crossing": "traffic_signals",
         "crossing:island": "no",
         "crossing:markings": "zebra",
@@ -24887,7 +24889,8 @@
       "tags": {
         "crossing": "uncontrolled",
         "crossing:markings": "zebra",
-        "highway": "crossing"
+        "highway": "crossing",
+        "tactile_paving": "yes"
       }
     },
     {
@@ -135395,7 +135398,8 @@
         "footway": "crossing",
         "highway": "footway",
         "lit": "yes",
-        "source": "BDOrtho IGN 2022"
+        "source": "BDOrtho IGN 2022",
+        "surface": "asphalt"
       }
     },
     {
@@ -200863,7 +200867,8 @@
       ],
       "tags": {
         "highway": "service",
-        "lit": "yes"
+        "lit": "yes",
+        "surface": "asphalt"
       }
     },
     {
@@ -202594,7 +202599,8 @@
       ],
       "tags": {
         "footway": "sidewalk",
-        "highway": "footway"
+        "highway": "footway",
+        "surface": "asphalt"
       }
     },
     {
@@ -208379,7 +208385,8 @@
       ],
       "tags": {
         "footway": "sidewalk",
-        "highway": "footway"
+        "highway": "footway",
+        "surface": "asphalt"
       }
     },
     {
@@ -208449,7 +208456,8 @@
       ],
       "tags": {
         "footway": "sidewalk",
-        "highway": "footway"
+        "highway": "footway",
+        "surface": "asphalt"
       }
     },
     {
@@ -212430,7 +212438,8 @@
       ],
       "tags": {
         "highway": "service",
-        "source": "BDOrtho IGN 2024"
+        "source": "BDOrtho IGN 2024",
+        "surface": "sett"
       }
     },
     {

@@ -6,3 +6,7 @@ all:
 
 clean:
 	rm -rf *bak *~ *out *log *aux _minted-report *.aex
+
+run:
+	pdflatex -shell-escape rapport-gbaguidi-lengrai.tex
+	pdflatex -shell-escape rapport-gbaguidi-lengrai.tex

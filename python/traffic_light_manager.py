@@ -13,8 +13,6 @@ class LightState(Enum):
 
 # Durées par défaut (en secondes simulées)
 # Cycle court et visible : vert 10s → orange 3s → rouge 12s (total 25s)
-# Avec sim_speed x1 : un cycle complet toutes les 25 secondes réelles
-# Avec sim_speed x2 : un cycle toutes les 12 secondes réelles → bien visible à la démo
 DEFAULT_GREEN_DURATION  = 10.0
 DEFAULT_YELLOW_DURATION = 3.0
 DEFAULT_RED_DURATION    = 12.0
@@ -244,22 +242,6 @@ class TrafficLightManager:
         if node_id in self._lights:
             self._lights[node_id].force_state(LightState.RED)
 
-    def set_cycle(self, node_id: int, green_duration: float, red_duration: float,
-                  yellow_duration: float = 5.0):
-        """
-        Modifie dynamiquement le cycle d'un feu.
-        Point d'entrée pour un futur algorithme d'optimisation IA.
-        """
-        if node_id in self._lights:
-            light = self._lights[node_id]
-            light.cycle = [
-                (LightState.GREEN,  green_duration),
-                (LightState.YELLOW, yellow_duration),
-                (LightState.RED,    red_duration),
-            ]
-            # Repart du début pour éviter un état incohérent
-            light.current_phase_index = 0
-            light.time_in_phase = 0.0
 
     @property
     def simulation_time(self) -> float:

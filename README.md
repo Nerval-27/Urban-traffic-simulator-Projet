@@ -120,27 +120,4 @@ type final_stats = {
   congested_lights  : node_id list; (* feux ayant dépassé le seuil d'arrêts *)
 }
 
-(* État MDP observé par l'agent RL *)
-type light_state =
-  | LightRed
-  | LightGreen
-  | LightYellow
-
-type rl_state = {
-  queue_lengths : (node_id * int) list;        (* nb véhicules en attente par feu *)
-  light_config  : (node_id * light_state) list (* état courant de chaque feu *)
-}
-
-(* Action choisie par l'agent RL *)
-type rl_action =
-  | SwitchLights of (node_id * light_state) list (* modifier ces feux *)
-  | Keep                                          (* ne rien changer *)
-
-(* Résultat d'un épisode d'entraînement RL *)
-type episode_result = {
-  episode_id   : int;
-  total_reward : float;
-  final_stats  : final_stats;
-  steps        : int;
-}
-```
+(* a completer avec les types decider pour l'implamnetation des feu inteligent*)
