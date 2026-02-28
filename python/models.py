@@ -24,6 +24,7 @@ class Road:
     speed_limit: float
     nodes: List[NodeId]
     next: NodeId
+    oneway: bool = False
     name: str = "Inconnue"
 
 
@@ -58,7 +59,7 @@ class Network:
     intersections: List[Intersection]
     feux: List[TrafficSignal]          = field(default_factory=list)
     passages: List[PedestrianCrossing] = field(default_factory=list)
-    nodes: Dict[int, Tuple[float, float]] = field(default_factory=dict)  # node_id → (lat, lon)
+    nodes: Dict[int, Tuple[float, float]] = field(default_factory=dict)  # node_id  (lat, lon)
 
 
 @dataclass

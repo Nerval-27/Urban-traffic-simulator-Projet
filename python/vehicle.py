@@ -70,7 +70,7 @@ class Vehicle:
     waiting_at_light: bool  = False
     next_light_node: Optional[int] = None
 
-    # Tronçon courant : from → to  (pour détection sens inverse)
+    # Tronçon courant : from  to  (pour détection sens inverse)
     seg_from:     int = -1
     seg_to:       int = -1
 
@@ -95,12 +95,6 @@ class VehicleManager:
     def spawn_vehicle(self,
                       origin_node: Optional[int] = None,
                       dest_node:   Optional[int] = None):
-        """
-        Crée un véhicule A→B.
-        Retourne None si :
-          - Dijkstra ne trouve pas de chemin
-          - La position de spawn est déjà occupée
-        """
         pool = self.graph.get_spawn_nodes()
         if len(pool) < 2:
             return None
@@ -284,10 +278,6 @@ class VehicleManager:
 
     def _check_traffic_light(self, v: Vehicle, target_nid: int,
                               dist: float) -> bool:
-        """
-        Retourne True si le véhicule doit s'arrêter pour un feu rouge/orange.
-
-        """
         if not self.light_manager.has_light(target_nid):
             return False
 
@@ -308,13 +298,9 @@ class VehicleManager:
 
     def _gap_to_leader(self, v: Vehicle, target_nid: int,
                        my_dist: float) -> float:
-        """
-        Retourne la distance (mètres) au véhicule le plus proche DEVANT v.
-
-        """
         best = math.inf
 
-        # Vecteur de déplacement de v (seg_from → seg_to) pour le cône avant
+        # Vecteur de déplacement de v (seg_from  seg_to) pour le cône avant
         v_fn = self.graph.nodes.get(v.seg_from)
         v_tn = self.graph.nodes.get(v.seg_to)
         v_has_dir = (v_fn is not None and v_tn is not None
@@ -360,7 +346,7 @@ class VehicleManager:
             # transition de segment
             # other vient de franchir target_nid ce tick :
             # son path_index a avancé, donc other_next != target_nid,
-            # mais son seg_from == target_nid → il est physiquement juste
+            # mais son seg_from == target_nid  il est physiquement juste
             # après le nœud, devant v qui n'y est pas encore.
             if other.seg_from == target_nid:
                 direct = haversine(v.lat, v.lon, other.lat, other.lon)
@@ -382,10 +368,10 @@ class VehicleManager:
                     ody = other.lon - v.lon
                     dot = odx * vdx + ody * vdy
                     if dot <= 0:
-                        # L'autre est derrière ou sur le côté → on ignore
+                        # L'autre est derrière ou sur le côté  on ignore
                         continue
 
-                # L'autre est devant, dans une rue différente, proche → on freine
+                # L'autre est devant, dans une rue différente, proche  on freine
                 best = min(best, direct)
 
         return best
@@ -393,13 +379,6 @@ class VehicleManager:
     #Sens inverse
 
     def _dist_to_oncoming(self, v):
-        """
-        Retourne la distance au véhicule le plus proche circulant en SENS INVERSE
-        sur le même tronçon physique.
-
-        Détection : v va seg_from→seg_to.
-        Un véhicule inverse va seg_to→seg_from.
-        """
         if v.seg_from == -1 or v.seg_to == -1:
             return math.inf
 
@@ -419,9 +398,6 @@ class VehicleManager:
     # Priorité à l'intersection
 
     def _must_yield(self, v, inter_nid, dist_to_inter) -> bool:
-        """
-        Priorité à droite .
-        """
         # On n'applique pas la priorité si le nœud a déjà un feu
         if self.light_manager.has_light(inter_nid):
             return False
@@ -435,7 +411,7 @@ class VehicleManager:
         if len(outgoing) < 3:
             return False
 
-        # Cap de v : vecteur seg_from → seg_to (en degrés, 0 = nord, sens horaire)
+        # Cap de v : vecteur seg_from  seg_to (en degrés, 0 = nord, sens horaire)
         my_bearing = self._bearing(v.seg_from, v.seg_to)
         if my_bearing is None:
             return False
@@ -472,7 +448,7 @@ class VehicleManager:
 
             # "À droite" = entre 45° et 135° dans le sens horaire
             if 45 <= rel_angle <= 135:
-                # L'autre est à droite ET plus proche de l'intersection → on cède
+                # L'autre est à droite ET plus proche de l'intersection  on cède
                 if other_dist < dist_to_inter:
                     return True
 
@@ -497,10 +473,6 @@ class VehicleManager:
     #  Initialisation d'un segment
 
     def _init_segment(self, v) :
-        """
-        Met à jour max_speed, segment_length, seg_from et seg_to
-        pour le segment courant du véhicule.
-        """
         if v.path_index >= len(v.path):
             return
 
@@ -566,7 +538,7 @@ class VehicleManager:
                     if n:
                         d1 = haversine(v1.lat, v1.lon, n.lat, n.lon)
                         d2 = haversine(v2.lat, v2.lon, n.lat, n.lon)
-                        # Plus loin du nœud cible = derrière → s'arrête
+                        # Plus loin du nœud cible = derrière  s'arrête
                         if d1 > d2:
                             v1.speed = 0.0; v1.state = VehicleState.STOPPED
                         else:
@@ -580,10 +552,6 @@ class VehicleManager:
         return collisions
 
     def _push_back(self, v: Vehicle) -> None:
-        """
-        Recule v de 3m vers son nœud d'origine de segment pour
-        défaire un blocage face-à-face.
-        """
         if v.seg_from == -1:
             return
         origin = self.graph.nodes.get(v.seg_from)

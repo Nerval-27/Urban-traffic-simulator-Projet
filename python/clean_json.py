@@ -17,7 +17,7 @@ with open(osm_file, "r") as f:
 
 elements = osm["elements"]
 
-nodes = {}   # node_id → {lat, lon, tags}
+nodes = {}   # node_id  {lat, lon, tags}
 ways = []    # routes utilisables (carrossables uniquement)
 
 # Routes pour voitures -> on enleve les troitoirs , piste cyclable..etc
@@ -47,7 +47,7 @@ for el in elements:
 
 
 
-# DÉTECTION DES INTERSECTIONS = nodes utilisés ≥ 2 fois
+# DÉTECTION DES INTERSECTIONS = nodes utilisés >= 2 fois
 
 usage = {}
 for way in ways:
@@ -102,6 +102,7 @@ for way in ways:
         "name": way["tags"].get("name", "Inconnue"),
         "length": length,
         "speed_limit": VITESSES.get(highway, 11.1),
+        "oneway": way["tags"].get("oneway") == "yes",
         "nodes": nlist,
         "next": next_inter
     })

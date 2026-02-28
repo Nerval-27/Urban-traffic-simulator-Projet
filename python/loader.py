@@ -9,7 +9,8 @@ def parse_road(data):
         length=float(data["length"]),
         speed_limit=float(data["speed_limit"]),
         nodes=[int(n) for n in data["nodes"]],
-        next=int(data["next"]) if data["next"] is not None else -1
+        next=int(data["next"]) if data["next"] is not None else -1,
+        oneway=data.get("oneway", False)
     )
 
 def parse_intersection(data):

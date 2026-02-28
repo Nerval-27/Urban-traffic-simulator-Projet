@@ -12,7 +12,7 @@ class LightState(Enum):
 
 
 # Durées par défaut (en secondes simulées)
-# Cycle court et visible : vert 10s → orange 3s → rouge 12s (total 25s)
+# Cycle court et visible : vert 10s  orange 3s  rouge 12s (total 25s)
 DEFAULT_GREEN_DURATION  = 10.0
 DEFAULT_YELLOW_DURATION = 3.0
 DEFAULT_RED_DURATION    = 12.0
@@ -20,12 +20,7 @@ DEFAULT_RED_DURATION    = 12.0
 
 @dataclass
 class TrafficLight:
-    """
-    Représente un feu de circulation individuel attaché à un node OSM.
-
-    Chaque feu a son propre timer et cycle. Par défaut ils sont décalés
-    aléatoirement pour éviter que tous les feux soient synchronisés.
-    """
+    # cycle vert/orange/rouge
     node_id: int
     lat: float
     lon: float
@@ -37,12 +32,11 @@ class TrafficLight:
     current_phase_index: int = 0
     time_in_phase: float = 0.0      # secondes déjà passées dans la phase courante
 
-    # Décalage initial (pour désynchroniser les feux entre eux)
     phase_offset: float = 0.0
 
     def __post_init__(self):
         if not self.cycle:
-            # Cycle standard : vert → orange → rouge
+            # Cycle standard : vert  orange  rouge
             self.cycle = [
                 (LightState.GREEN,  DEFAULT_GREEN_DURATION),
                 (LightState.YELLOW, DEFAULT_YELLOW_DURATION),
@@ -52,7 +46,6 @@ class TrafficLight:
         self._apply_offset(self.phase_offset)
 
     def _apply_offset(self, offset):
-        """Avance le timer de 'offset' secondes pour désynchroniser les feux."""
         remaining = offset
         while remaining > 0:
             _, duration = self.cycle[self.current_phase_index]
@@ -70,12 +63,10 @@ class TrafficLight:
 
     @property
     def time_remaining(self):
-        """Secondes restantes dans la phase courante."""
         _, duration = self.cycle[self.current_phase_index]
         return duration - self.time_in_phase
 
     def update(self, dt: float):
-        """Avance le timer du feu de dt secondes."""
         self.time_in_phase += dt
         _, duration = self.cycle[self.current_phase_index]
         if self.time_in_phase >= duration:
@@ -92,7 +83,6 @@ class TrafficLight:
         return self.state == LightState.YELLOW
 
     def force_state(self, new_state: LightState):
-        """Force un état (pour plus tard). Repart du début de la phase."""
         for i, (s, _) in enumerate(self.cycle):
             if s == new_state:
                 self.current_phase_index = i
@@ -100,7 +90,6 @@ class TrafficLight:
                 return
 
     def get_color_rgb(self):
-        """Retourne la couleur RGB pour Pygame."""
         colors = {
             LightState.RED:    (220, 50,  50),
             LightState.GREEN:  (50,  200, 50),
@@ -110,17 +99,6 @@ class TrafficLight:
 
 
 class TrafficLightManager:
-    """
-    Gestionnaire centralisé de tous les feux de circulation.
-
-    Interface principale pour le reste du simulateur :
-        - update(dt)           : mettre à jour tous les feux
-        - is_green(node_id)    : vrai si le feu sur ce nœud est vert
-        - get_state(node_id)   : retourne LightState ou None si pas de feu
-        - get_light(node_id)   : retourne l'objet TrafficLight complet
-        - get_all_lights()     : liste de tous les feux (pour le renderer)
-    """
-
     def __init__(self):
         # node_id -> TrafficLight
         self._lights: Dict[int, TrafficLight] = {}
@@ -132,11 +110,6 @@ class TrafficLightManager:
 
 
     def build_from_graph(self, graph):
-        """
-        Construit les feux à partir du graphe
-
-        On désynchronise les feux en les décalant aléatoirement dans leur cycle.
-        """
         import random
         rng = random.Random(42)  # seed fixe pour reproductibilité
 
@@ -161,30 +134,18 @@ class TrafficLightManager:
     def add_light(self, node_id: int, lat: float, lon: float,
                   offset: float = 0.0,
                   cycle: Optional[List[Tuple[LightState, float]]] = None):
-        """Ajoute manuellement un feu (utile pour les tests)."""
         light = TrafficLight(node_id=node_id, lat=lat, lon=lon,
                              cycle=cycle or [], phase_offset=offset)
         self._lights[node_id] = light
 
 
     def update(self, dt):
-        """
-        Appeler à chaque tick de simulation.
-        dt = temps écoulé en secondes (ex : 1/60 pour 60 FPS).
-
-        C'est ici que l'on pourrait brancher un algorithme d'optimisation :
-        - Analyser les queues de voitures sur chaque branche
-        - Prolonger les phases vertes dynamiquement
-        """
         self._simulation_time += dt
         for light in self._lights.values():
             light.update(dt)
 
 
     def is_green(self, node_id):
-        """
-        Retourne True si le nœud n'a pas de feu OU si le feu est vert.
-        """
         if node_id not in self._lights:
             return True
         return self._lights[node_id].is_green()
@@ -202,7 +163,6 @@ class TrafficLightManager:
         return self._lights[node_id].state
 
     def get_time_remaining(self, node_id):
-        """Temps restant dans la phase courante."""
         if node_id not in self._lights:
             return 0.0
         return self._lights[node_id].time_remaining

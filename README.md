@@ -57,7 +57,7 @@ type network = {
   roads         : road list;
   intersections : intersection list;
   feux          : traffic_signal list;
-  net_nodes     : (node_id * (float * float)) list; (* node_id → (lat, lon) *)
+  net_nodes     : (node_id * (float * float)) list; (* node_id  (lat, lon) *)
 }
 
 (* Configuration de la simulation *)

@@ -1,23 +1,3 @@
-"""
-simulation_gui.py — Point d'entrée principal de la simulation avec interface graphique.
-
-Ordre d'initialisation :
-1. Chargement du Network (loader.py)
-2. Construction du RoadGraph (graph.py)
-3. Initialisation du TrafficLightManager (traffic_light_manager.py)
-4. Création du VehicleManager (vehicle.py)
-5. Lancement de la boucle Pygame via le Renderer
-
-Contrôles :
-    WASD / Flèches  → Pan de la caméra
-    Molette         → Zoom
-    R               → Reset de la vue
-    +/-             → Accélérer/ralentir la simulation
-    N               → Spawner un nouveau véhicule manuellement
-    Clic gauche     → Sélectionner un véhicule (affiche son chemin)
-    Échap           → Quitter
-"""
-
 import os
 import sys
 import random
@@ -54,22 +34,22 @@ def main():
     try:
         network = load_network(json_path)
     except FileNotFoundError:
-        print(f"ERREUR : Fichier introuvable → {json_path}")
+        print(f"ERREUR : Fichier introuvable  {json_path}")
         print("Lancez d'abord fetch_osm.py puis clean_json.py pour générer map_clean.json")
         sys.exit(1)
     except Exception as e:
         print(f"ERREUR lors du chargement : {e}")
         sys.exit(1)
 
-    print(f"  ✓ {len(network.roads)} routes, {len(network.intersections)} intersections")
-    print(f"  ✓ {len(network.feux)} feux, {len(network.passages)} passages piétons")
-    print(f"  ✓ {len(network.nodes)} nœuds OSM")
+    print(f"  {len(network.roads)} routes, {len(network.intersections)} intersections")
+    print(f"  {len(network.feux)} feux, {len(network.passages)} passages piétons")
+    print(f"  {len(network.nodes)} noeuds OSM")
 
     # --- 2. Construction du graphe ---
     print("\n[2/4] Construction du graphe routier...")
     graph = RoadGraph()
     graph.build_from_network(network)
-    print(f"  ✓ {graph.node_count()} nœuds, {graph.edge_count()} arcs")
+    print(f"  {graph.node_count()} nœuds, {graph.edge_count()} arcs")
 
     if graph.node_count() == 0:
         print("ERREUR : Le graphe est vide. Vérifiez map_clean.json.")
@@ -85,7 +65,7 @@ def main():
     rng = random.Random(RANDOM_SEED)
     vehicle_manager = VehicleManager(graph, light_manager, rng=rng)
     created = vehicle_manager.spawn_batch(INITIAL_VEHICLE_COUNT)
-    print(f"  ✓ {created} véhicules créés sur {INITIAL_VEHICLE_COUNT} demandés")
+    print(f"  {created} véhicules créés sur {INITIAL_VEHICLE_COUNT} demandés")
 
     # --- 5. Renderer ---
     print("\nDémarrage de la simulation Pygame...")
@@ -102,10 +82,10 @@ def main():
     clock          = renderer.clock
 
     print("\nSimulation en cours. (Appuyez sur Échap pour quitter)\n")
-    print("  N  → spawner un véhicule")
-    print("  +  → accélérer la simulation")
-    print("  -  → ralentir la simulation")
-    print("  R  → reset de la vue\n")
+    print("  N   spawner un véhicule")
+    print("  +   accélérer la simulation")
+    print("  -   ralentir la simulation")
+    print("  R   reset de la vue\n")
 
     while True:
         # Temps réel de ce frame
@@ -159,7 +139,6 @@ def main():
 
 
 def _print_final_stats(vehicle_manager, light_manager, sim_time):
-    """Affiche les stats finales dans la console."""
     stats = vehicle_manager.get_stats()
     mins  = int(sim_time) // 60
     secs  = int(sim_time) % 60

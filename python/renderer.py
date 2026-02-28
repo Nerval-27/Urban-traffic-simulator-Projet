@@ -96,7 +96,28 @@ class Renderer:
                     c = self.network.nodes[nid]
                     points.append(self.gps_to_pixel(c[0], c[1]))
             if len(points) >= 2:
-                pygame.draw.lines(self.screen, (55, 58, 70), False, points, 1)
+                if road.oneway:
+                    pygame.draw.lines(self.screen, (55, 58, 70), False, points, 2)
+                else:
+                    offset = 2.0
+                    points_aller, points_retour = [], []
+                    
+                    for i in range(len(points) - 1):
+                        p1, p2 = points[i], points[i+1]
+                        dx, dy = p2[0] - p1[0], p2[1] - p1[1]
+                        length = math.hypot(dx, dy)
+                        if length > 0:
+                            nx, ny = -dy/length, dx/length
+                            aller_p1 = (p1[0] + nx * offset, p1[1] + ny * offset)
+                            aller_p2 = (p2[0] + nx * offset, p2[1] + ny * offset)
+                            retour_p1 = (p1[0] - nx * offset, p1[1] - ny * offset)
+                            retour_p2 = (p2[0] - nx * offset, p2[1] - ny * offset)
+                            points_aller.extend([aller_p1, aller_p2] if not points_aller else [aller_p2])
+                            points_retour.extend([retour_p1, retour_p2] if not points_retour else [retour_p2])
+
+                    if len(points_aller) >= 2 and len(points_retour) >= 2:
+                        pygame.draw.lines(self.screen, (65, 68, 80), False, points_aller, 1)
+                        pygame.draw.lines(self.screen, (65, 68, 80), False, points_retour, 1)
 
     def _draw_intersections(self):
         for inter in self.network.intersections:
@@ -190,7 +211,7 @@ class Renderer:
                 f"Vitesse ×{self.sim_speed:.1f}  |  "
                 f"FPS : {fps}  |  "
                 f"Véhicules : {stats['total']}  "
-                f"(▶ {stats['moving']}  ⏸ {stats['stopped']}  ✓ {stats['arrived']})"
+                f"(▶ {stats['moving']}  ⏸ {stats['stopped']}   {stats['arrived']})"
             )
         else:
             hud_text = (
@@ -225,7 +246,8 @@ class Renderer:
         self.screen.blit(bg, (x, y))
 
         items = [
-            ((55, 58, 70),   "route", "Route"),
+            ((55, 58, 70),   "route", "Route sens unique"),
+            ((65, 68, 80),   "double", "Route double sens"),
             ((80, 82, 95),   "dot",   "Intersection"),
             ((50, 200, 50),  "dot",   "Feu — vert"),
             ((220, 50, 50),  "dot",   "Feu — rouge"),
@@ -235,10 +257,13 @@ class Renderer:
         ]
 
         for i, (color, shape, label) in enumerate(items):
-            iy = y + 8 + i * 16
+            iy = y + 8 + i * 14
             cx = x + 18
             if shape == "route":
                 pygame.draw.line(self.screen, color, (cx - 8, iy + 6), (cx + 8, iy + 6), 2)
+            elif shape == "double":
+                pygame.draw.line(self.screen, color, (cx - 8, iy + 4), (cx + 8, iy + 4), 1)
+                pygame.draw.line(self.screen, color, (cx - 8, iy + 8), (cx + 8, iy + 8), 1)
             elif shape == "dot":
                 pygame.draw.circle(self.screen, color, (cx, iy + 6), 5)
             elif shape == "car":

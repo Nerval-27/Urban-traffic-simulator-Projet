@@ -7,7 +7,6 @@ from models import Network, Road
 
 @dataclass
 class GraphNode:
-    """Représente un nœud du graphe (= node OSM)."""
     node_id: int
     lat: float
     lon: float
@@ -19,7 +18,6 @@ class GraphNode:
 
 @dataclass
 class GraphEdge:
-    """Représente un arc orienté entre deux nœuds."""
     from_node: int
     to_node: int
     road_id: int          # ID de la Way OSM d'origine
@@ -32,15 +30,6 @@ class GraphEdge:
 
 
 class RoadGraph:
-    """
-    Graphe orienté du réseau routier.
-
-    Attributs principaux :
-        nodes  : dict[node_id -> GraphNode]
-        edges  : dict[node_id -> list[GraphEdge]]  (liste d'adjacence)
-        all_edges : list[GraphEdge]  (toutes les arêtes, pour le renderer)
-    """
-
     def __init__(self):
         self.nodes: Dict[int, GraphNode] = {}
         self.edges: Dict[int, List[GraphEdge]] = {}  # adjacence
@@ -49,16 +38,7 @@ class RoadGraph:
 
 
     def build_from_network(self, network):
-        """
-        Construit le graphe à partir d'un objet Network (issu de loader.py).
-
-        -On n'inclut dans le graphe QUE les nodes qui appartiennent
-        à au moins une route carrossable. Les nodes de passages piétons ou de
-        feux isolés sont ignorés — les véhicules ne doivent pas pouvoir y
-        spawner ni circuler dessus.
-        """
-
-        # 1. Collecter uniquement les node_ids utilisés par des routes
+        # nodes utilises par les routes
         road_node_ids: set = set()
         for road in network.roads:
             for nid in road.nodes:
@@ -93,10 +73,6 @@ class RoadGraph:
               f"{len(self._spawn_nodes)} nœuds de spawn valides")
 
     def _add_road_edges(self, road):
-        """
-        Pour une route donnée, ajoute des arcs entre chaque paire de nœuds consécutifs.
-        Cela permet à Dijkstra de suivre le chemin exact de la route.
-        """
         nlist = road.nodes
         if len(nlist) < 2:
             return
@@ -132,29 +108,22 @@ class RoadGraph:
             self.all_edges.append(edge)
 
 
-            reverse_edge = GraphEdge(
-                from_node=n_to,
-                to_node=n_from,
-                road_id=road.id,
-                road_name=road.name,
-                distance=dist,
-                speed_limit=road.speed_limit,
-                weight=weight,
-                intermediate_nodes=[]
-            )
-            self.edges[n_to].append(reverse_edge)
-            # On n'ajoute pas au all_edges pour éviter doublon visuel
+            if not road.oneway:
+                reverse_edge = GraphEdge(
+                    from_node=n_to,
+                    to_node=n_from,
+                    road_id=road.id,
+                    road_name=road.name,
+                    distance=dist,
+                    speed_limit=road.speed_limit,
+                    weight=weight,
+                    intermediate_nodes=[]
+                )
+                self.edges[n_to].append(reverse_edge)
 
 
 
-    def dijkstra(self, source, target) :
-        """
-        Algorithme de Dijkstra pour trouver le plus court chemin (en temps)
-        entre source et target.
-
-        Retourne la liste ordonnée des node_ids constituant le chemin,
-        ou None si aucun chemin n'existe.
-        """
+    def dijkstra(self, source, target):
         if source not in self.nodes or target not in self.nodes:
             return None
 
@@ -204,7 +173,6 @@ class RoadGraph:
         return path
 
     def get_path_coordinates(self, path):
-        """Convertit une liste de node_ids en liste de (lat, lon)."""
         coords = []
         for nid in path:
             if nid in self.nodes:
@@ -214,7 +182,6 @@ class RoadGraph:
 
 
     def _find_closest_node(self, lat, lon):
-        """Trouve le node OSM le plus proche d'une coordonnée GPS."""
         best_id = None
         best_dist = math.inf
         for nid, node in self.nodes.items():
@@ -243,7 +210,6 @@ class RoadGraph:
 
 
 def haversine(lat1, lon1, lat2, lon2) -> float:
-    """Distance en mètres entre deux coordonnées GPS."""
     R = 6371000
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
     dphi = math.radians(lat2 - lat1)
