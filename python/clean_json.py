@@ -5,7 +5,7 @@ import os
 from utils import haversine
 
 
-# LECTURE DU FICHIER OSM
+# Lecture du fichier OSM.
 
 if len(sys.argv) < 2:
     exit()
@@ -17,22 +17,22 @@ with open(osm_file, "r") as f:
 
 elements = osm["elements"]
 
-nodes = {}   # node_id  {lat, lon, tags}
-ways = []    # routes utilisables (carrossables uniquement)
+nodes = {}
+ways = []
 
-# Routes pour voitures -> on enleve les troitoirs , piste cyclable..etc
+# Routes gardées pour la circulation automobile.
 CARROSSABLE = [
     "motorway", "trunk", "primary", "secondary",
     "tertiary", "residential", "unclassified", "service"
 ]
 
 
-# EXTRACTION DES NODES ET WAYS
+# Extraction des nodes et ways.
 
 for el in elements:
     if el["type"] == "node":
         nid = el["id"]
-        # On ne veut pas écraser un node qui a des tags par un node sans tags (doublon d'Overpass)
+        # Certains exports contiennent le même node plusieurs fois.
         if nid not in nodes or "tags" in el:
             nodes[nid] = {
                 "lat": el["lat"],
@@ -47,7 +47,7 @@ for el in elements:
 
 
 
-# DÉTECTION DES INTERSECTIONS = nodes utilisés >= 2 fois
+# Détection des intersections.
 
 usage = {}
 for way in ways:
@@ -58,8 +58,7 @@ intersections = {nid for nid, count in usage.items() if count >= 2}
 
 
 
-# CONSTRUCTION DES ROUTES (ID = way.id)
-# + calcul de length + détermination de next intersection
+# Construction des routes.
 
 
 def compute_length(node_list):
@@ -70,7 +69,7 @@ def compute_length(node_list):
         total += haversine(n1["lat"], n1["lon"], n2["lat"], n2["lon"])
     return total
 
-# vitesses par défaut
+# Vitesses par défaut.
 VITESSES = {
     "motorway": 33.3, 
     "trunk": 27.7,
@@ -85,14 +84,23 @@ VITESSES = {
 roads = []
 for way in ways:
     way_id = way["id"]
-    nlist = way["nodes"]
+    nlist = list(way["nodes"])
     highway = way["tags"]["highway"]
+    oneway_tag = str(way["tags"].get("oneway", "")).strip().lower()
+    junction_tag = str(way["tags"].get("junction", "")).strip().lower()
+    is_oneway = (
+        oneway_tag in ("yes", "true", "1")
+        or junction_tag in ("roundabout", "circular")
+        or highway == "motorway"
+    )
+    if oneway_tag == "-1":
+        nlist.reverse()
+        is_oneway = True
 
     length = compute_length(nlist)
 
-    # next = premier node de fin qui est une intersection
     next_inter = None
-    for nid in nlist[::-1]:  # reverse
+    for nid in nlist[::-1]:
         if nid in intersections:
             next_inter = nid
             break
@@ -102,19 +110,18 @@ for way in ways:
         "name": way["tags"].get("name", "Inconnue"),
         "length": length,
         "speed_limit": VITESSES.get(highway, 11.1),
-        "oneway": way["tags"].get("oneway") == "yes",
+        "oneway": is_oneway,
         "nodes": nlist,
         "next": next_inter
     })
 
 
 
-# CONSTRUCTION DES INTERSECTIONS (incoming/outgoing)
+# Construction des intersections.
 
 
 intersections_list = []
 
-# initialisation
 inter_dict = {
     nid: {
         "id": nid,
@@ -127,7 +134,6 @@ inter_dict = {
     for nid in intersections
 }
 
-# remplissage des incoming/outgoing
 for road in roads:
     r_id = road["id"]
     nlist = road["nodes"]
@@ -135,13 +141,11 @@ for road in roads:
     start = None
     end = None
 
-    # start = premier node intersection rencontré
     for nid in nlist:
         if nid in intersections:
             start = nid
             break
 
-    # end = dernier node intersection rencontré
     for nid in reversed(nlist):
         if nid in intersections:
             end = nid
@@ -154,7 +158,7 @@ for road in roads:
 intersections_list = list(inter_dict.values())
 
 
-# EXTRACTION DES FEUX ET PASSAGES PIÉTONS SPÉCIFIQUES
+# Extraction des feux et passages piétons.
 
 signals_list = []
 crossings_list = []
@@ -177,10 +181,7 @@ for nid, ninfo in nodes.items():
 
 
 
-# EXPORT FINAL POUR LE SIMULATEUR
-
-# On exporte aussi les coordonnées de tous les nodes pour pouvoir dessiner les routes avec leurs courbes
-# On s'assure que les clés sont des chaînes pour la compatibilité JSON
+# Export de la carte nettoyée.
 nodes_coords = {str(nid): {"lat": ninfo["lat"], "lon": ninfo["lon"]} for nid, ninfo in nodes.items()}
 
 output = {

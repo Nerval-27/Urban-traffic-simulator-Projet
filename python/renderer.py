@@ -25,23 +25,22 @@ class Renderer:
             self.font = self.font_small = self.font_big = None
             print("[Renderer] Police non disponible.")
 
-        # Zoom / Pan
+        # Vue carte
         self.zoom     = 1.0
         self.offset_x = 0.0
         self.offset_y = 0.0
 
-        # Bounding box GPS
         self.min_lat, self.max_lat, self.min_lon, self.max_lon = self._get_bounding_box()
         self._reset_view()
 
-        # Références optionnelles (injectées depuis simulation_gui)
+        # Références injectées par la simulation.
         self.vehicle_manager      = None
         self.light_manager        = None
         self.graph                = None
         self.simulation_time: float = 0.0
         self.sim_speed: float     = 1.0  # multiplicateur de vitesse
 
-        # Véhicule sélectionné (pour debug path)
+        # Véhicule sélectionné à la souris.
         self.selected_vehicle_id: Optional[int] = None
 
 
@@ -75,7 +74,7 @@ class Renderer:
 
 
     def draw(self):
-        self.screen.fill((20, 22, 28))  # Fond sombre (style carte de nuit)
+        self.screen.fill((20, 22, 28))
 
         self._draw_roads()
         self._draw_crossings()
@@ -125,19 +124,21 @@ class Renderer:
             pygame.draw.circle(self.screen, (80, 82, 95), pos, 2)
 
     def _draw_traffic_lights(self):
-        """Dessine les feux avec leur vraie couleur (via light_manager si disponible)."""
+        """Dessine les feux avec leur couleur courante."""
         if self.light_manager:
             for light in self.light_manager.get_all_lights():
                 pos = self.gps_to_pixel(light.lat, light.lon)
                 color = light.get_color_rgb()
-                # Halo externe
-                pygame.draw.circle(self.screen, (40, 40, 40), pos, 7)
-                pygame.draw.circle(self.screen, color, pos, 5)
+                outer = pygame.Rect(pos[0] - 6, pos[1] - 6, 12, 12)
+                inner = pygame.Rect(pos[0] - 4, pos[1] - 4, 8, 8)
+                pygame.draw.rect(self.screen, (8, 8, 10), outer)
+                pygame.draw.rect(self.screen, color, inner)
         else:
-            # Fallback sans manager : points rouges statiques
+            # Affichage simple quand le gestionnaire n'est pas encore branché.
             for signal in self.network.feux:
                 pos = self.gps_to_pixel(signal.lat, signal.lon)
-                pygame.draw.circle(self.screen, (220, 50, 50), pos, 4)
+                pygame.draw.rect(self.screen, (220, 50, 50),
+                                 (pos[0] - 4, pos[1] - 4, 8, 8))
 
     def _draw_crossings(self):
         for crossing in self.network.passages:
@@ -150,29 +151,51 @@ class Renderer:
             return
 
         for vehicle in self.vehicle_manager.get_vehicle_list():
-            pos = self.gps_to_pixel(vehicle.lat, vehicle.lon)
+            pos = self._vehicle_pixel(vehicle)
 
-            # Couleur du corps du véhicule
-            body_color = vehicle.color
-
-            # Indicateur d'état : cercle extérieur
+            # Les véhicules gardent des couleurs différentes des feux.
             if vehicle.state == VehicleState.STOPPED:
-                outline_color = (220, 50, 50)   # Rouge = arrêté
+                outline_color = (225, 230, 240)
+                body_color = (120, 130, 150)
             elif vehicle.state == VehicleState.BRAKING:
-                outline_color = (220, 180, 50)  # Jaune = ralentit
+                outline_color = (245, 170, 70)
+                body_color = (250, 205, 95)
             else:
-                outline_color = (50, 200, 50)   # Vert = en mouvement
+                outline_color = (80, 170, 255)
+                body_color = (105, 200, 255)
 
-            # Dessin
             pygame.draw.circle(self.screen, outline_color, pos, 6)
             pygame.draw.circle(self.screen, body_color, pos, 4)
 
-            # Indicateur feu rouge
             if vehicle.waiting_at_light:
-                pygame.draw.circle(self.screen, (255, 80, 80), (pos[0], pos[1] - 9), 2)
+                pygame.draw.rect(self.screen, (255, 80, 80),
+                                 (pos[0] - 2, pos[1] - 11, 4, 4))
+
+    def _vehicle_pixel(self, vehicle):
+        pos = self.gps_to_pixel(vehicle.lat, vehicle.lon)
+        if self.graph is None or vehicle.seg_oneway:
+            return pos
+
+        from_node = self.graph.nodes.get(vehicle.seg_from)
+        to_node = self.graph.nodes.get(vehicle.seg_to)
+        if from_node is None or to_node is None:
+            return pos
+
+        p1 = self.gps_to_pixel(from_node.lat, from_node.lon)
+        p2 = self.gps_to_pixel(to_node.lat, to_node.lon)
+        dx = p2[0] - p1[0]
+        dy = p2[1] - p1[1]
+        length = math.hypot(dx, dy)
+        if length <= 1e-6:
+            return pos
+
+        lane_offset = 4.0
+        nx = -dy / length
+        ny = dx / length
+        return int(pos[0] + nx * lane_offset), int(pos[1] + ny * lane_offset)
 
     def _draw_selected_path(self):
-        """Affiche le chemin du véhicule sélectionné en surbrillance."""
+        """Affiche le trajet du véhicule sélectionné."""
         if self.vehicle_manager is None or self.selected_vehicle_id is None:
             return
         vehicle = self.vehicle_manager.vehicles.get(self.selected_vehicle_id)
@@ -186,7 +209,7 @@ class Renderer:
         pixels = [self.gps_to_pixel(lat, lon) for lat, lon in coords]
         pygame.draw.lines(self.screen, (0, 150, 255), False, pixels, 2)
 
-        # Origine (carré vert) et destination (carré rouge)
+        # Origine et destination du trajet.
         if pixels:
             pygame.draw.rect(self.screen, (0, 255, 80),
                              (pixels[0][0] - 4, pixels[0][1] - 4, 8, 8))
@@ -199,7 +222,6 @@ class Renderer:
         if self.font is None:
             return
 
-        # Barre supérieure
         mins  = int(self.simulation_time) // 60
         secs  = int(self.simulation_time) % 60
         fps   = int(self.clock.get_fps())
@@ -211,7 +233,8 @@ class Renderer:
                 f"Vitesse ×{self.sim_speed:.1f}  |  "
                 f"FPS : {fps}  |  "
                 f"Véhicules : {stats['total']}  "
-                f"(▶ {stats['moving']}  ⏸ {stats['stopped']}   {stats['arrived']})"
+                f"(▶ {stats['moving']}  ⏸ {stats['stopped']}   {stats['arrived']})  |  "
+                f"Files : {stats['queued']}  max {stats['max_queue']}"
             )
         else:
             hud_text = (
@@ -227,7 +250,6 @@ class Renderer:
         self.screen.blit(bg, (5, 5))
         self.screen.blit(text_surf, (15, 9))
 
-        # Instructions clavier (bas de l'écran)
         keys_text = "WASD/Flèches: pan  |  Molette: zoom  |  R: reset vue  |  +/-: vitesse  |  N: nouveau véhicule  |  Échap: quitter"
         k_surf = self.font_small.render(keys_text, True, (130, 135, 150))
         self.screen.blit(k_surf, (10, self.height - 20))
@@ -237,8 +259,8 @@ class Renderer:
         if self.font_small is None:
             return
 
-        x, y = 10, self.height - 145
-        w, h = 235, 118
+        x, y = 10, self.height - 160
+        w, h = 255, 132
 
         bg = pygame.Surface((w, h))
         bg.set_alpha(175)
@@ -249,10 +271,11 @@ class Renderer:
             ((55, 58, 70),   "route", "Route sens unique"),
             ((65, 68, 80),   "double", "Route double sens"),
             ((80, 82, 95),   "dot",   "Intersection"),
-            ((50, 200, 50),  "dot",   "Feu — vert"),
-            ((220, 50, 50),  "dot",   "Feu — rouge"),
-            ((220, 180, 50), "dot",   "Feu — orange"),
-            ((255, 200, 0),  "car",   "Véhicule"),
+            ((50, 200, 50),  "light", "Feu — vert"),
+            ((220, 50, 50),  "light", "Feu — rouge"),
+            ((220, 180, 50), "light", "Feu — orange"),
+            ((105, 200, 255), "car",  "Véhicule en mouvement"),
+            ((120, 130, 150), "car",  "Véhicule arrêté"),
             ((0, 180, 200),  "sq",    "Passage piéton"),
         ]
 
@@ -266,8 +289,10 @@ class Renderer:
                 pygame.draw.line(self.screen, color, (cx - 8, iy + 8), (cx + 8, iy + 8), 1)
             elif shape == "dot":
                 pygame.draw.circle(self.screen, color, (cx, iy + 6), 5)
+            elif shape == "light":
+                pygame.draw.rect(self.screen, color, (cx - 4, iy + 2, 8, 8))
             elif shape == "car":
-                pygame.draw.circle(self.screen, (50, 200, 50), (cx, iy + 6), 6)
+                pygame.draw.circle(self.screen, (80, 170, 255), (cx, iy + 6), 6)
                 pygame.draw.circle(self.screen, color, (cx, iy + 6), 4)
             elif shape == "sq":
                 pygame.draw.rect(self.screen, color, (cx - 4, iy + 2, 9, 9), 1)
@@ -278,10 +303,7 @@ class Renderer:
 
 
     def handle_events(self):
-        """
-        Gère les événements Pygame.
-        Retourne un dict d'actions pour la boucle principale.
-        """
+        """Gère les entrées clavier et souris."""
         actions = {"spawn": False, "quit": False, "speed_up": False, "speed_down": False}
 
         for event in pygame.event.get():
@@ -294,7 +316,6 @@ class Renderer:
                 elif event.button == 5:
                     self.zoom /= 1.15
                 elif event.button == 1:
-                    # Clic gauche : sélectionner un véhicule
                     self._try_select_vehicle(event.pos)
 
             elif event.type == pygame.KEYDOWN:
@@ -309,7 +330,6 @@ class Renderer:
                 elif event.key == pygame.K_n:
                     actions["spawn"] = True
 
-        # Pan clavier
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]  or keys[pygame.K_a]: self.offset_x += 8
         if keys[pygame.K_RIGHT] or keys[pygame.K_d]: self.offset_x -= 8
@@ -325,7 +345,7 @@ class Renderer:
         best_id   = None
         best_dist = 15  # pixels
         for vid, v in self.vehicle_manager.vehicles.items():
-            px, py = self.gps_to_pixel(v.lat, v.lon)
+            px, py = self._vehicle_pixel(v)
             d = math.hypot(px - mouse_pos[0], py - mouse_pos[1])
             if d < best_dist:
                 best_dist = d

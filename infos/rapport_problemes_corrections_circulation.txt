@@ -1,0 +1,746 @@
+RAPPORT DETAILLE - PROBLEMES RENCONTRES ET CORRECTIONS DE LA CIRCULATION
+Projet : simulateur de circulation Paris 13e
+Fichier principal concerne : python/vehicle.py
+Date du rapport : 2026-05-04
+
+===============================================================================
+1. OBJECTIF GENERAL DE LA CORRECTION
+===============================================================================
+
+Le probleme observe etait une circulation instable dans les zones complexes :
+carrefours, intersections, routes a double sens, files d'attente aux feux, et
+zones ou plusieurs vehicules voulaient entrer en meme temps.
+
+Les captures montraient surtout :
+- des files de voitures trop compactes ou mal ordonnees au feu ;
+- des voitures qui semblaient se bloquer dans les carrefours ;
+- des conflits quand deux vehicules se rencontraient sur une route double sens ;
+- des decisions de virage pas assez fines, surtout pour les virages a gauche ;
+- des feux parfois mal associes a la bonne entree du carrefour ;
+- un besoin futur de lire les bonnes donnees de simulation pour programmer des
+  feux intelligents.
+
+La correction a donc porte sur toute la logique de conduite :
+- detection du vehicule devant ;
+- distance de securite ;
+- freinage progressif ;
+- file d'attente au feu ;
+- sortie de file au feu vert ;
+- reservation de carrefour ;
+- priorite a droite ;
+- vehicules en face dans les routes double sens ;
+- compatibilite de plusieurs mouvements dans une intersection ;
+- protection contre les chevauchements de vehicules ;
+- exposition des donnees utiles aux futurs feux intelligents.
+
+===============================================================================
+2. PROBLEME : DETECTION DU VEHICULE DEVANT INCORRECTE
+===============================================================================
+
+2.1 Probleme rencontre
+----------------------
+
+La detection du vehicule devant utilisait des differences de latitude et de
+longitude comme si ces deux valeurs avaient la meme echelle. Or ce n'est pas le
+cas.
+
+A Paris, 1 degre de latitude represente environ 111 320 metres, mais 1 degre de
+longitude represente moins, car il faut multiplier par cos(latitude). A Paris,
+cela donne environ 73 200 metres.
+
+Ancienne consequence :
+- un vehicule pouvait etre considere comme "devant" alors qu'il etait plutot
+  sur le cote ou derriere ;
+- un vehicule pouvait ne pas voir le vrai vehicule qui le precedait ;
+- les voitures pouvaient se rapprocher trop fort, se chevaucher ou former une
+  file anormale ;
+- sur route double sens, une voiture en face pouvait etre mal interpretee.
+
+2.2 Resolution
+--------------
+
+La correction consiste a convertir les coordonnees GPS en metres locaux avant
+de faire les calculs de direction.
+
+Fonctions concernees :
+- _seg_dir_meters(fn, tn)
+- _dot_to_other_meters(v, other, ux, uy)
+- _gap_to_leader(v, target_nid, my_dist)
+
+2.3 Fonctionnement de la correction
+-----------------------------------
+
+_seg_dir_meters calcule le vecteur direction d'un segment routier en metres :
+- dx = difference de longitude * M_PER_DEG_LON
+- dy = difference de latitude * M_PER_DEG_LAT
+- n = sqrt(dx^2 + dy^2)
+- ux = dx / n
+- uy = dy / n
+
+Le couple (ux, uy) est un vecteur unitaire. Il donne le sens exact de la route
+en metres.
+
+_dot_to_other_meters calcule ensuite si un autre vehicule est devant :
+- on cree le vecteur v -> other en metres ;
+- on fait le produit scalaire avec la direction de la route ;
+- si le resultat est positif, l'autre vehicule est dans le sens de marche ;
+- si le resultat est negatif, il est derriere.
+
+Cette correction stabilise toute la logique de suivi entre vehicules.
+
+===============================================================================
+3. PROBLEME : FILES D'ATTENTE AU FEU MAL ORDONNEES
+===============================================================================
+
+3.1 Probleme rencontre
+----------------------
+
+Les voitures pouvaient arriver au feu rouge et former une file qui ne respectait
+pas toujours l'ordre physique. Une voiture plus loin pouvait parfois etre
+traitee comme si elle etait devant une voiture plus proche du feu.
+
+Consequences :
+- files trop compactes ;
+- voitures superposees ;
+- sortie de file desordonnee au feu vert ;
+- blocage ou mouvement en accordéon trop fort.
+
+3.2 Resolution
+--------------
+
+La file est maintenant geree par couple :
+- identifiant du feu ;
+- segment d'arrivee vers ce feu.
+
+Ainsi, deux rues differentes qui arrivent au meme carrefour ne partagent pas la
+meme file. Chaque entree de carrefour a sa propre file.
+
+Fonctions concernees :
+- _handle_queue(v, target_nid, dist, dt)
+- _queue_join(v, light_nid)
+- _queue_remove(v)
+- _queue_compact(key)
+- _queue_slot_fits(light_nid, seg_from, slot_index)
+- _queue_hold(v, dt)
+- _queue_release(v, dt)
+- _place_at_slot(v, light_nid, target_dist)
+
+3.3 Fonctionnement de la correction
+-----------------------------------
+
+Quand un vehicule approche d'un feu :
+1. _handle_queue verifie si le prochain noeud est un feu.
+2. Le feu doit etre rouge ou orange.
+3. Le feu doit concerner le segment d'arrivee du vehicule.
+4. Le vehicule doit etre a moins de QUEUE_JOIN_DIST.
+5. Le vehicule rejoint la file avec _queue_join.
+
+La file est compactee avec _queue_compact :
+- les vehicules disparus sont retires ;
+- les vehicules qui ne sont plus dans cette file sont retires ;
+- la file est triee par distance reelle au feu ;
+- l'indice queue_index est recalcule pour chaque vehicule.
+
+Chaque voiture recoit ensuite une place theorique :
+- voiture 0 : STOP_LINE_DIST metres avant le feu ;
+- voiture 1 : STOP_LINE_DIST + QUEUE_SLOT metres ;
+- voiture 2 : STOP_LINE_DIST + 2 * QUEUE_SLOT metres ;
+- etc.
+
+Avec :
+- STOP_LINE_DIST = 4.0 m
+- QUEUE_SLOT = VEHICLE_LENGTH + 2.0 = 6.5 m
+
+Donc les voitures ne s'empilent pas au feu.
+
+===============================================================================
+4. PROBLEME : UNE FILE POUVAIT ENVAHIR LE CARREFOUR
+===============================================================================
+
+4.1 Probleme rencontre
+----------------------
+
+Avant correction, une voiture en file pouvait etre trop proche du feu et
+atteindre physiquement le noeud d'intersection avant d'etre completement
+arretee. Cela pouvait provoquer un changement de segment alors que la voiture
+etait encore censee attendre dans la file.
+
+Consequence :
+- le vehicule etait dans une file associee a l'ancien segment ;
+- mais son seg_from / seg_to pouvait deja avoir change ;
+- la file devenait incoherente ;
+- des vehicules pouvaient se bloquer dans le carrefour.
+
+4.2 Resolution
+--------------
+
+La fonction _queue_hold bloque maintenant le vehicule avant la ligne d'arret.
+
+Condition importante :
+- si gap <= 0.5
+- ou si dist_to_light <= STOP_LINE_DIST + 0.5
+
+Alors la voiture est placee exactement a sa position de file avec
+_place_at_slot, sa vitesse devient 0, et elle reste STOPPED.
+
+4.3 Effet obtenu
+----------------
+
+La file reste derriere le feu. Le vehicule ne traverse pas le noeud tant que le
+feu ne lui permet pas de sortir de la file.
+
+===============================================================================
+5. PROBLEME : SORTIE DE FILE AU FEU VERT TROP BRUTALE
+===============================================================================
+
+5.1 Probleme rencontre
+----------------------
+
+Si toutes les voitures repartaient exactement au meme instant quand le feu
+devenait vert, elles pouvaient se rapprocher trop fort ou se chevaucher.
+
+5.2 Resolution
+--------------
+
+La sortie de file est maintenant progressive.
+
+Fonction concernee :
+- _queue_release(v, dt)
+
+Regles appliquees :
+- la premiere voiture attend REACTION_HEAD = 0.8 seconde ;
+- les voitures suivantes attendent REACTION_NEXT = 1.0 seconde apres le depart
+  du vehicule devant ;
+- apres sortie, queue_cooldown vaut QUEUE_RELEASE_COOLDOWN = 2.0 secondes.
+
+5.3 Effet obtenu
+----------------
+
+La file se vide par vagues naturelles. Cela evite les departs simultanes et
+limite les collisions numeriques juste apres le feu vert.
+
+===============================================================================
+6. PROBLEME : CONFLITS DANS LES CARREFOURS ET INTERSECTIONS
+===============================================================================
+
+6.1 Probleme rencontre
+----------------------
+
+Un seul carrefour peut recevoir plusieurs vehicules depuis plusieurs rues. Sans
+controle, plusieurs voitures peuvent vouloir entrer en meme temps dans la zone
+d'intersection.
+
+Problemes visibles :
+- blocage au centre ;
+- collision logique ;
+- voitures qui se coupent la route ;
+- double sens mal gere dans les zones d'entree et de sortie.
+
+6.2 Resolution globale
+----------------------
+
+Une logique de reservation de carrefour a ete codee.
+
+Fonctions concernees :
+- _intersection_token_speed(v, target_nid, dist, dt)
+- _intersection_yield_speed(v, dist)
+- _active_token_owners(node_id, requester_id)
+- _token_acquire(v, node_id)
+- _token_release(v)
+- _movements_conflict(v, other, target_nid)
+- _must_yield_at_intersection(v, target_nid, my_dist)
+- _turn_kind(v, target_nid)
+- _is_oncoming_approach(v, other)
+- _is_other_on_right(v, other, target_nid)
+- _next_after_intersection(v)
+- _is_real_intersection_node(node_id)
+
+6.3 Principe de la reservation
+------------------------------
+
+Quand une voiture approche d'une vraie intersection a moins de
+INTER_RESERVE_DIST = 20 m :
+- elle regarde si l'intersection est libre ;
+- elle regarde si les mouvements deja reserves sont compatibles ;
+- elle regarde si elle doit ceder le passage ;
+- si tout est bon, elle reserve le noeud ;
+- sinon elle ralentit ou s'arrete avant la zone.
+
+Le champ vehicle.reserved_node contient le noeud reserve par la voiture.
+Le dictionnaire _node_tokens contient les reservations actives.
+
+Correction importante :
+_node_tokens est maintenant un dictionnaire vers un ensemble de vehicules :
+
+    Dict[int, Set[int]]
+
+Cela permet a plusieurs vehicules compatibles d'utiliser la meme intersection
+en meme temps.
+
+Exemple :
+- deux voitures en face qui vont tout droit peuvent passer ;
+- deux mouvements qui ne se croisent pas peuvent coexister ;
+- un virage a gauche face a une voiture qui va tout droit doit attendre.
+
+===============================================================================
+7. PROBLEME : ROUTES A DOUBLE SENS ET VEHICULES EN FACE
+===============================================================================
+
+7.1 Probleme rencontre
+----------------------
+
+Le simulateur bloquait ou creait un conflit quand deux vehicules arrivaient en
+sens oppose sur une route double sens ou dans une intersection liee a une route
+double sens.
+
+Le probleme venait du fait que "vehicule en face" etait parfois traite comme
+un conflit absolu, alors que dans une route double sens normale, les deux
+directions sont deux voies opposees.
+
+7.2 Resolution
+--------------
+
+La logique distingue maintenant :
+- meme segment et meme sens : suivi normal avec distance de securite ;
+- segment oppose : pas traite comme une voiture devant ;
+- intersection : conflit seulement si les trajectoires se croisent vraiment.
+
+Fonctions concernees :
+- _is_oncoming_approach(v, other)
+- _movements_conflict(v, other, target_nid)
+- _gap_to_leader(v, target_nid, my_dist)
+- _resolve_same_segment_overlaps()
+- _resolve_adjacent_segment_overlaps()
+
+7.3 Regles appliquees dans une intersection
+-------------------------------------------
+
+Si deux vehicules viennent de directions opposees :
+- tout droit contre tout droit : compatible ;
+- tout droit contre virage a droite : compatible ;
+- virage a droite contre tout droit : compatible ;
+- virage a gauche contre vehicule en face tout droit : conflit ;
+- virage a gauche contre vehicule en face a droite : conflit ;
+- deux sorties identiques : conflit, car ils veulent entrer dans la meme voie.
+
+Cette logique evite de bloquer inutilement les doubles sens, tout en gardant la
+securite dans les virages.
+
+===============================================================================
+8. PROBLEME : DECISION DE VIRAGE PAS ASSEZ PRECISE
+===============================================================================
+
+8.1 Probleme rencontre
+----------------------
+
+Pour savoir si une voiture va tout droit, tourne a gauche ou tourne a droite,
+il faut comparer le segment d'arrivee et le segment de sortie. Avant correction,
+la decision etait moins fiable dans les carrefours irreguliers.
+
+8.2 Resolution
+--------------
+
+La fonction _turn_kind calcule l'angle entre :
+- le vecteur entrant : ancien noeud -> intersection ;
+- le vecteur sortant : intersection -> prochain noeud.
+
+Formules :
+- dot = in_ux * out_ux + in_uy * out_uy
+- cross = in_ux * out_uy - in_uy * out_ux
+- angle = degrees(atan2(cross, dot))
+
+Interpretation :
+- abs(angle) <= 30 degres : tout droit ;
+- angle > 0 : gauche ;
+- angle < 0 : droite.
+
+8.3 Effet obtenu
+----------------
+
+Le simulateur peut maintenant prendre de meilleures decisions :
+- ceder en virage a gauche ;
+- laisser passer les mouvements compatibles ;
+- detecter les conflits de trajectoire dans le carrefour.
+
+===============================================================================
+9. PROBLEME : PRIORITE A DROITE
+===============================================================================
+
+9.1 Probleme rencontre
+----------------------
+
+Dans les intersections non gerees par un feu, une voiture doit parfois ceder
+si une autre arrive par sa droite.
+
+9.2 Resolution
+--------------
+
+La fonction _is_other_on_right detecte si un autre vehicule est dans le secteur
+droit du vehicule courant.
+
+Principe mathematique :
+- on prend la direction du vehicule courant ;
+- on construit le vecteur de droite : (uy, -ux) ;
+- on prend la direction depuis l'intersection vers l'autre vehicule ;
+- on fait un produit scalaire ;
+- si le resultat est au moins cos(45 degres), l'autre vehicule est considere
+  comme venant de droite.
+
+Cette decision est ensuite utilisee dans _must_yield_at_intersection.
+
+===============================================================================
+10. PROBLEME : MAUVAIS FEU POUR UNE VOITURE
+===============================================================================
+
+10.1 Probleme rencontre
+-----------------------
+
+Dans une zone dense, plusieurs feux peuvent etre proches. Une voiture pouvait
+etre influencee par un feu qui n'etait pas celui de son entree.
+
+10.2 Resolution
+---------------
+
+Deux corrections ont ete faites :
+
+1. Dans traffic_light_manager.py :
+   - le rayon de regroupement des feux a ete reduit ;
+   - INTERSECTION_RADIUS vaut maintenant 25.0 m.
+
+2. Dans vehicle.py :
+   - avant de respecter un feu, la voiture verifie que le feu concerne bien son
+     segment d'approche ;
+   - la verification passe par light.is_approached_from(v.seg_from).
+
+Fonctions concernees :
+- _light_approach_speed(v)
+- _handle_queue(v, target_nid, dist, dt)
+- _approach_allowed_by_light(v, target_nid)
+
+10.3 Effet obtenu
+-----------------
+
+Une voiture ne s'arrete plus pour un feu qui concerne une autre rue du carrefour.
+Cela reduit les blocages incoherents et les arrets fantomes.
+
+===============================================================================
+11. PROBLEME : SAUTS DE SEGMENTS A HAUTE VITESSE DE SIMULATION
+===============================================================================
+
+11.1 Probleme rencontre
+-----------------------
+
+Quand la simulation tournait vite, une voiture pouvait parcourir plus d'un
+segment pendant une seule mise a jour. L'ancien calcul pouvait consommer tout le
+temps disponible meme si le segment etait court.
+
+Consequence :
+- position deposee trop loin ;
+- franchissement brutal de noeuds ;
+- incoherence dans les files et les intersections.
+
+11.2 Resolution
+---------------
+
+La fonction _update_vehicle divise le temps dt en sous-etapes.
+
+Principe :
+- remaining contient le temps restant ;
+- step_dt est limite au temps necessaire pour atteindre le prochain noeud ;
+- _move_vehicle retourne le temps reellement utilise ;
+- la boucle continue tant qu'il reste du temps et que le nombre de segments
+  traverses reste raisonnable.
+
+Constante de protection :
+- MAX_SEGS_PER_TICK = 5
+
+11.3 Effet obtenu
+-----------------
+
+Les vehicules franchissent les noeuds progressivement, meme quand la vitesse de
+simulation est augmentee.
+
+===============================================================================
+12. PROBLEME : CHEVAUCHEMENTS SUR LE MEME SEGMENT
+===============================================================================
+
+12.1 Probleme rencontre
+-----------------------
+
+Apres certaines corrections de vitesse ou de file, deux voitures pouvaient
+encore finir trop proches sur un meme segment.
+
+12.2 Resolution
+---------------
+
+La fonction _resolve_same_segment_overlaps est executee apres la mise a jour des
+vehicules.
+
+Principe :
+- les voitures sont groupees par segment (seg_from, seg_to) ;
+- elles sont triees par distance au noeud cible ;
+- la voiture la plus proche du noeud reste devant ;
+- les suivantes sont replacees si elles sont trop proches ;
+- la distance minimale imposee est QUEUE_SLOT.
+
+12.3 Effet obtenu
+-----------------
+
+Les voitures restent ordonnees sur une meme voie et ne se superposent pas.
+
+===============================================================================
+13. PROBLEME : CHEVAUCHEMENTS ENTRE DEUX SEGMENTS CONSECUTIFS
+===============================================================================
+
+13.1 Probleme rencontre
+-----------------------
+
+Un vehicule pouvait etre juste avant un noeud, et un autre juste apres le meme
+noeud. Meme s'ils etaient sur deux segments differents, la distance reelle le
+long du chemin pouvait etre trop faible.
+
+13.2 Resolution
+---------------
+
+La fonction _resolve_adjacent_segment_overlaps traite les cas entre segments
+consecutifs.
+
+Principe :
+- on regarde le segment actuel du vehicule suiveur ;
+- on regarde le segment suivant apres le noeud partage ;
+- on cherche le vehicule le plus proche sur ce segment suivant ;
+- on calcule path_gap = distance du suiveur au noeud + distance du leader au
+  noeud ;
+- si path_gap < QUEUE_SLOT, le suiveur est replace.
+
+13.3 Effet obtenu
+-----------------
+
+La distance de securite est conservee meme quand les voitures sont de part et
+d'autre d'un noeud.
+
+===============================================================================
+14. PROBLEME : ROUTES SENS UNIQUE ET DOUBLE SENS
+===============================================================================
+
+14.1 Probleme rencontre
+-----------------------
+
+Une mauvaise interpretation des routes pouvait creer des conflits :
+- certaines routes etaient prises comme double sens alors qu'elles etaient sens
+  unique ;
+- certains cas OSM comme oneway=-1 ou rond-point demandaient une lecture plus
+  stricte.
+
+14.2 Resolution
+---------------
+
+Dans clean_json.py :
+- oneway=yes, true, 1 sont lus comme sens unique ;
+- oneway=-1 inverse l'ordre des noeuds ;
+- les rond-points sont traites comme sens unique.
+
+Dans graph.py :
+- les feux sont attaches au bon noeud seulement si la distance est correcte ;
+- la distance maximale d'attache est limitee.
+
+Dans vehicle.py :
+- build_edge_index detecte les routes qui ont un retour inverse ;
+- seg_oneway est renseigne dans chaque vehicule.
+
+14.3 Effet obtenu
+-----------------
+
+Le simulateur distingue mieux les voies a sens unique et les voies a double sens.
+Les vehicules ne creent pas de conflit inutile quand ils circulent sur deux voies
+opposees.
+
+===============================================================================
+15. DONNEES AJOUTEES POUR LES FUTURS FEUX INTELLIGENTS
+===============================================================================
+
+15.1 Besoin
+-----------
+
+Pour programmer des feux intelligents plus tard, le simulateur doit exposer les
+informations importantes :
+- nombre de voitures actives ;
+- voitures en mouvement ;
+- voitures arretees ;
+- voitures en freinage ;
+- voitures en attente au feu ;
+- longueurs de files ;
+- etat actuel des feux ;
+- temps restant du cycle ;
+- identifiants des vehicules en attente.
+
+15.2 Fonctions concernees
+-------------------------
+
+Dans vehicle.py :
+- get_stats()
+- get_queue_lengths()
+- get_light_observations()
+
+Dans traffic_light_manager.py :
+- get_light_states()
+
+15.3 Utilisation possible
+-------------------------
+
+Un futur programme de feu intelligent pourra lire :
+- queue_length pour savoir combien de vehicules attendent ;
+- waiting_vehicle_ids pour identifier les files ;
+- state pour connaitre la couleur actuelle ;
+- time_remaining pour savoir quand une phase va changer.
+
+Ces informations permettent plus tard de creer une strategie :
+- prolonger un vert si la file est longue ;
+- raccourcir une phase si personne n'attend ;
+- coordonner plusieurs feux d'un meme axe ;
+- eviter qu'une intersection sature.
+
+===============================================================================
+16. LISTE DES PRINCIPALES FONCTIONS CODEES OU RENFORCEES
+===============================================================================
+
+Dans python/vehicle.py :
+
+1. _seg_dir_meters
+   Convertit un segment GPS en vecteur unitaire metrique.
+
+2. _dot_to_other_meters
+   Determine si un vehicule est devant ou derriere selon la direction de la voie.
+
+3. _speed_for_gap
+   Calcule une vitesse cible selon la distance disponible.
+
+4. _apply_speed
+   Applique acceleration ou freinage progressif.
+
+5. build_edge_index
+   Construit les informations de sens unique/double sens et les entrees de
+   noeuds.
+
+6. _update_vehicle
+   Decoupe une mise a jour en sous-etapes pour eviter les sauts de segments.
+
+7. _tick
+   Combine toutes les decisions de conduite : file, vehicule devant, feu,
+   intersection, vitesse, mouvement.
+
+8. _gap_to_leader
+   Calcule l'espace libre devant une voiture.
+
+9. _light_approach_speed
+   Fait ralentir une voiture a l'approche d'un feu rouge ou orange.
+
+10. _intersection_token_speed
+    Gere la reservation d'une intersection.
+
+11. _movements_conflict
+    Decide si deux trajectoires dans le carrefour sont compatibles.
+
+12. _must_yield_at_intersection
+    Decide si une voiture doit ceder a une autre.
+
+13. _turn_kind
+    Detecte gauche, droite ou tout droit.
+
+14. _is_oncoming_approach
+    Detecte si deux vehicules arrivent en face.
+
+15. _is_other_on_right
+    Detecte la priorite a droite.
+
+16. _handle_queue
+    Decide si une voiture doit rejoindre ou rester dans une file au feu.
+
+17. _queue_join
+    Ajoute une voiture dans la bonne file.
+
+18. _queue_compact
+    Nettoie et retrie la file selon la distance au feu.
+
+19. _queue_hold
+    Maintient une voiture a sa position de file.
+
+20. _queue_release
+    Libere les voitures progressivement au feu vert.
+
+21. _place_at_slot
+    Place une voiture a une distance precise derriere le feu.
+
+22. _move_vehicle
+    Deplace physiquement la voiture et franchit les noeuds.
+
+23. _next_segment_has_space
+    Evite d'entrer dans un segment deja bouche.
+
+24. _resolve_same_segment_overlaps
+    Corrige les chevauchements sur une meme voie.
+
+25. _resolve_adjacent_segment_overlaps
+    Corrige les chevauchements autour d'un noeud.
+
+26. _place_on_current_segment
+    Replace une voiture a une distance donnee du noeud cible.
+
+27. get_queue_lengths
+    Expose les longueurs des files.
+
+28. get_light_observations
+    Expose les donnees utiles aux futurs feux intelligents.
+
+===============================================================================
+17. TESTS ET VERIFICATIONS REALISES
+===============================================================================
+
+Les verifications realisees apres correction ont inclus :
+
+1. Verification de syntaxe Python :
+   - vehicle.py
+   - graph.py
+   - clean_json.py
+   - renderer.py
+   - traffic_light_manager.py
+   - main.py
+   - simulation_gui.py
+
+2. Lancement simple du simulateur :
+   - vehicules crees ;
+   - vehicules en mouvement ;
+   - pas d'erreur bloquante.
+
+3. Test cible double sens :
+   - deux vehicules en face ne doivent pas se bloquer inutilement ;
+   - ils doivent pouvoir atteindre leur destination.
+
+4. Test cible intersection avec vehicules opposes :
+   - deux vehicules qui vont tout droit en sens oppose peuvent passer ;
+   - le token d'intersection ne reste pas bloque.
+
+5. Test de charge :
+   - environ 160 vehicules actifs ;
+   - simulation prolongee ;
+   - files actives ;
+   - tokens actifs ;
+   - aucune erreur detectee dans ce test.
+
+===============================================================================
+18. CONCLUSION
+===============================================================================
+
+La logique de circulation a ete renforcee sur les points importants :
+- les files d'attente sont ordonnees et espacees ;
+- les voitures respectent mieux les feux ;
+- les voitures ne s'arretent pas pour le mauvais feu ;
+- les intersections utilisent une reservation plus intelligente ;
+- les virages a gauche cedent aux mouvements en face ;
+- la priorite a droite est prise en compte ;
+- les routes double sens ne creent plus un conflit automatique ;
+- les chevauchements sont corriges apres chaque mise a jour ;
+- les donnees necessaires aux futurs feux intelligents sont disponibles.
+
+Le simulateur est donc plus stable et plus preparé pour une prochaine etape :
+l'optimisation dynamique des feux selon les files et la densite de circulation.

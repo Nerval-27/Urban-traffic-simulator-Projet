@@ -1,0 +1,1457 @@
+DOCUMENTATION DETAILLEE DU FICHIER python/vehicle.py
+Version documentee : derniere version presente dans le projet au 2026-05-04
+
+===============================================================================
+1. ROLE GENERAL DU FICHIER
+===============================================================================
+
+Le fichier python/vehicle.py contient le moteur principal de comportement des
+vehicules.
+
+Il gere :
+- la creation des vehicules ;
+- leur itineraire ;
+- leur position GPS ;
+- leur vitesse ;
+- leur acceleration ;
+- leur freinage ;
+- la detection des voitures devant ;
+- les files d'attente aux feux ;
+- le franchissement des intersections ;
+- les priorites ;
+- les conflits de trajectoire ;
+- le passage sur routes a double sens ;
+- la suppression des vehicules arrives ;
+- les statistiques utiles a l'affichage et aux futurs feux intelligents.
+
+Le fichier travaille avec :
+- graph.py, pour lire les noeuds, routes, distances et chemins ;
+- traffic_light_manager.py, pour connaitre les feux et leurs etats ;
+- renderer.py, indirectement, car le rendu utilise la liste des vehicules.
+
+===============================================================================
+2. IMPORTS
+===============================================================================
+
+import math
+-----------
+Utilise pour les calculs mathematiques :
+- racine carree : math.sqrt ;
+- cosinus : math.cos ;
+- conversion radians : math.radians ;
+- arc tangente : math.atan2 ;
+- conversion degres : math.degrees ;
+- infini : math.inf.
+
+import random
+-------------
+Utilise pour choisir aleatoirement :
+- les points de depart ;
+- les destinations ;
+- les couleurs des vehicules.
+
+from dataclasses import dataclass, field
+----------------------------------------
+Utilise pour definir la classe Vehicle comme une structure de donnees propre.
+field(default_factory=list) sert a creer une nouvelle liste path pour chaque
+vehicule.
+
+from enum import Enum, auto
+---------------------------
+Utilise pour definir les etats possibles d'un vehicule :
+MOVING, BRAKING, STOPPED, ARRIVED, NO_PATH.
+
+from typing import Dict, List, Optional, Set, Tuple
+--------------------------------------------------
+Utilise pour documenter les types des variables :
+- Dict : dictionnaire ;
+- List : liste ;
+- Optional : valeur possible ou None ;
+- Set : ensemble ;
+- Tuple : groupe de valeurs fixe.
+
+from graph import RoadGraph, haversine
+--------------------------------------
+RoadGraph contient le reseau routier.
+haversine calcule une distance en metres entre deux points GPS.
+
+from traffic_light_manager import TrafficLightManager, LightState
+-----------------------------------------------------------------
+TrafficLightManager gere les feux.
+LightState represente la couleur d'un feu : vert, orange, rouge.
+
+===============================================================================
+3. CONSTANTES PHYSIQUES
+===============================================================================
+
+VEHICLE_LENGTH = 4.5
+--------------------
+Longueur theorique d'un vehicule, en metres.
+Elle sert a calculer les distances de securite et les espacements de file.
+
+SAFE_GAP = 5.0
+--------------
+Distance minimale souhaitee entre deux vehicules.
+Si l'espace libre est inferieur ou egal a SAFE_GAP, la vitesse cible devient 0.
+
+BRAKE_DISTANCE = 35.0
+---------------------
+Distance a partir de laquelle un vehicule commence a adapter sa vitesse au
+vehicule devant lui.
+Si l'espace est superieur ou egal a BRAKE_DISTANCE, il peut rouler a sa vitesse
+maximale.
+
+QUEUE_SLOT = VEHICLE_LENGTH + 2.0
+---------------------------------
+Espace reserve pour une voiture dans une file.
+Avec VEHICLE_LENGTH = 4.5, on obtient QUEUE_SLOT = 6.5 metres.
+
+QUEUE_JOIN_DIST = 80.0
+----------------------
+Distance maximale a partir de laquelle une voiture peut rejoindre une file de
+feu rouge ou orange.
+
+STOP_LINE_DIST = 4.0
+--------------------
+Distance entre la premiere voiture de la file et le noeud du feu.
+Cela evite de placer la voiture exactement au centre de l'intersection.
+
+LIGHT_BRAKE_DIST = 50.0
+-----------------------
+Distance a partir de laquelle un vehicule commence a ralentir pour un feu rouge
+ou orange.
+
+INTER_RESERVE_DIST = 20.0
+-------------------------
+Distance avant une intersection ou une voiture commence a demander une
+reservation de passage.
+
+INTER_CLEAR_DIST = 3.0
+----------------------
+Distance tres proche de l'intersection. Si une voiture doit ceder et qu'elle est
+dans cette zone, sa vitesse cible devient 0.
+
+INTER_YIELD_TIMEOUT = 8.0
+-------------------------
+Temps maximum pendant lequel une voiture peut attendre une reservation
+compatible sans passer. Sert a eviter certains blocages prolonges.
+
+MAX_ACCEL = 2.5
+---------------
+Acceleration maximale en m/s^2.
+Une voiture ne passe pas instantanement de 0 a sa vitesse cible.
+
+MAX_DECEL = 5.5
+---------------
+Freinage maximal en m/s^2.
+Une voiture ne s'arrete pas instantanement sauf correction de securite.
+
+MIN_SPEED = 0.1
+---------------
+Seuil sous lequel la vitesse est consideree comme nulle.
+
+MAX_SEGS_PER_TICK = 5
+---------------------
+Nombre maximum de segments qu'une voiture peut franchir pendant une mise a jour.
+C'est une protection contre les sauts trop grands quand la simulation va vite.
+
+QUEUE_RELEASE_COOLDOWN = 2.0
+----------------------------
+Temps pendant lequel une voiture sortie d'une file ne peut pas rejoindre
+immediatement la meme file.
+
+M_PER_DEG_LAT = 111_320.0
+-------------------------
+Approximation du nombre de metres dans un degre de latitude.
+
+M_PER_DEG_LON = 111_320.0 * cos(radians(48.85))
+------------------------------------------------
+Approximation du nombre de metres dans un degre de longitude a Paris.
+La longitude est corrigee par cos(latitude), car les meridiens se rapprochent
+quand on s'eloigne de l'equateur.
+
+===============================================================================
+4. ENUM VehicleState
+===============================================================================
+
+class VehicleState(Enum)
+------------------------
+
+Cette enumeration donne l'etat logique d'un vehicule.
+
+MOVING
+------
+Le vehicule avance normalement.
+
+BRAKING
+-------
+Le vehicule ralentit.
+
+STOPPED
+-------
+Le vehicule est arrete.
+
+ARRIVED
+-------
+Le vehicule est arrive a destination. Il sera retire de la simulation.
+
+NO_PATH
+-------
+Aucun chemin valide n'a ete trouve. Le vehicule ne peut pas circuler.
+
+===============================================================================
+5. DATACLASS Vehicle
+===============================================================================
+
+class Vehicle
+-------------
+
+Vehicle represente une voiture individuelle dans la simulation.
+Chaque voiture possede un identifiant, une position, une vitesse, un chemin,
+des informations de segment, de file et de reservation.
+
+vehicle_id : int
+----------------
+Identifiant unique du vehicule.
+Il permet de le retrouver dans les dictionnaires et de regler certains cas
+d'egalite.
+
+origin_node : int
+-----------------
+Noeud de depart.
+
+dest_node : int
+---------------
+Noeud de destination.
+
+path : List[int]
+----------------
+Liste des noeuds que le vehicule doit suivre.
+Exemple : [100, 101, 102, 205].
+
+path_index : int
+----------------
+Index du prochain noeud a atteindre dans path.
+Si path_index = 1, cela veut dire que la voiture part de path[0] et se dirige
+vers path[1].
+
+lat : float
+-----------
+Latitude actuelle du vehicule.
+
+lon : float
+-----------
+Longitude actuelle du vehicule.
+
+speed : float
+-------------
+Vitesse actuelle du vehicule, en metres par seconde.
+
+max_speed : float
+-----------------
+Vitesse maximale autorisee sur le segment actuel, en metres par seconde.
+Par defaut : 11.1 m/s, environ 40 km/h.
+
+segment_length : float
+----------------------
+Longueur du segment actuel, en metres.
+
+state : VehicleState
+--------------------
+Etat actuel du vehicule.
+
+color : Tuple[int, int, int]
+----------------------------
+Couleur RGB du vehicule pour l'affichage.
+
+travel_time : float
+-------------------
+Temps total passe par ce vehicule dans la simulation.
+
+waiting_at_light : bool
+-----------------------
+Indique si le vehicule attend dans une file de feu.
+
+seg_from : int
+--------------
+Noeud de depart du segment actuel.
+
+seg_to : int
+------------
+Noeud cible du segment actuel.
+
+seg_road_id : int
+-----------------
+Identifiant de la route OSM ou interne correspondant au segment actuel.
+
+seg_oneway : bool
+-----------------
+Indique si la route du segment actuel est a sens unique.
+
+queue_light_node : int
+----------------------
+Noeud du feu ou le vehicule attend.
+Valeur -1 si le vehicule n'est pas en file.
+
+queue_index : int
+-----------------
+Position du vehicule dans la file.
+0 signifie premier de la file.
+
+queue_seg_from : int
+--------------------
+Segment d'arrivee utilise au moment ou le vehicule a rejoint la file.
+Cette valeur est figée pour garder la file coherente.
+
+queue_release_timer : float
+---------------------------
+Chronometre utilise pour liberer progressivement les voitures quand le feu
+passe au vert.
+
+queue_cooldown : float
+----------------------
+Temps de protection apres la sortie de file.
+Pendant ce temps, le vehicule ne rejoint pas immediatement une nouvelle file.
+
+reserved_node : int
+-------------------
+Noeud d'intersection actuellement reserve par le vehicule.
+Valeur -1 si aucune intersection n'est reservee.
+
+yield_timer : float
+-------------------
+Temps passe a ceder le passage a une intersection.
+Sert a eviter des attentes infinies.
+
+===============================================================================
+6. FONCTIONS UTILITAIRES GEOMETRIQUES
+===============================================================================
+
+6.1 _seg_dir_meters(fn, tn)
+---------------------------
+
+Role :
+Calcule la direction d'un segment en metres locaux.
+
+Parametres :
+- fn : noeud de depart ;
+- tn : noeud d'arrivee.
+
+Retour :
+- ux : composante Est-Ouest normalisee ;
+- uy : composante Nord-Sud normalisee ;
+- bool : True si le calcul est valide, False sinon.
+
+Calculs :
+- dx = (tn.lon - fn.lon) * M_PER_DEG_LON
+- dy = (tn.lat - fn.lat) * M_PER_DEG_LAT
+- n = sqrt(dx * dx + dy * dy)
+- ux = dx / n
+- uy = dy / n
+
+Pourquoi c'est important :
+Toutes les decisions de direction doivent etre faites en metres, pas en degres
+GPS bruts.
+
+6.2 _dot_to_other_meters(v, other, ux, uy)
+------------------------------------------
+
+Role :
+Determine la position relative d'un autre vehicule dans la direction d'une voie.
+
+Parametres :
+- v : vehicule de reference ;
+- other : autre vehicule ;
+- ux, uy : direction unitaire du segment.
+
+Calculs :
+- dx = (other.lon - v.lon) * M_PER_DEG_LON
+- dy = (other.lat - v.lat) * M_PER_DEG_LAT
+- resultat = dx * ux + dy * uy
+
+Interpretation :
+- resultat > 0 : other est devant v dans cette direction ;
+- resultat < 0 : other est derriere v ;
+- resultat proche de 0 : other est sur le cote ou au meme niveau.
+
+6.3 _speed_for_gap(gap, max_speed)
+----------------------------------
+
+Role :
+Calcule la vitesse cible selon l'espace libre devant le vehicule.
+
+Parametres :
+- gap : distance libre devant la voiture ;
+- max_speed : vitesse maximale possible.
+
+Regles :
+- si gap <= SAFE_GAP : vitesse cible = 0 ;
+- si gap >= BRAKE_DISTANCE : vitesse cible = max_speed ;
+- sinon vitesse proportionnelle.
+
+Formule proportionnelle :
+    max_speed * (gap - SAFE_GAP) / (BRAKE_DISTANCE - SAFE_GAP)
+
+Exemple :
+Si gap est au milieu entre SAFE_GAP et BRAKE_DISTANCE, la vitesse cible est
+environ la moitie de max_speed.
+
+6.4 _apply_speed(v, desired, dt)
+--------------------------------
+
+Role :
+Fait tendre la vitesse actuelle vers la vitesse desiree.
+
+Parametres :
+- v : vehicule ;
+- desired : vitesse cible ;
+- dt : temps ecoule depuis la derniere mise a jour.
+
+Cas 1 : desired <= 0
+Le vehicule freine :
+    v.speed = max(0, v.speed - MAX_DECEL * dt)
+
+Cas 2 : v.speed < desired
+Le vehicule accelere :
+    v.speed = min(desired, v.speed + MAX_ACCEL * dt)
+
+Cas 3 : v.speed > desired
+Le vehicule ralentit :
+    v.speed = max(desired, v.speed - MAX_DECEL * dt)
+
+Etat mis a jour :
+- STOPPED si la vitesse tombe sous MIN_SPEED ;
+- BRAKING si la voiture ralentit ;
+- MOVING si elle avance ou accelere.
+
+===============================================================================
+7. CLASSE VehicleManager
+===============================================================================
+
+VehicleManager est la classe qui gere tous les vehicules.
+
+7.1 __init__(graph, light_manager, rng=None)
+--------------------------------------------
+
+Role :
+Initialise le gestionnaire de vehicules.
+
+Variables internes :
+
+self.graph
+----------
+Reference vers le reseau routier.
+
+self.light_manager
+------------------
+Reference vers le gestionnaire de feux.
+
+self.rng
+--------
+Generateur aleatoire.
+Si aucun generateur n'est donne, random.Random(0) est utilise pour obtenir un
+comportement reproductible.
+
+self.vehicles : Dict[int, Vehicle]
+----------------------------------
+Dictionnaire des vehicules actifs.
+Cle : vehicle_id.
+Valeur : objet Vehicle.
+
+self._next_id : int
+-------------------
+Prochain identifiant de vehicule a attribuer.
+
+self.total_arrived : int
+------------------------
+Nombre total de vehicules arrives.
+
+self.total_spawned : int
+------------------------
+Nombre total de vehicules crees.
+
+self._road_oneway : Dict[int, bool]
+-----------------------------------
+Pour chaque route, indique si elle est a sens unique.
+
+self._queues : Dict[Tuple[int, int], List[int]]
+-----------------------------------------------
+Files d'attente aux feux.
+Cle : (light_node, seg_from).
+Valeur : liste d'identifiants de vehicules.
+
+self._node_tokens : Dict[int, Set[int]]
+---------------------------------------
+Reservations de carrefour.
+Cle : noeud d'intersection.
+Valeur : ensemble d'identifiants de vehicules qui ont une reservation
+compatible.
+
+self._incoming_cache : Optional[Dict[int, Set[int]]]
+----------------------------------------------------
+Cache des noeuds entrants pour chaque noeud.
+Il evite de recalculer les entrees d'une intersection a chaque frame.
+
+===============================================================================
+8. CONSTRUCTION DES INDEX
+===============================================================================
+
+8.1 build_edge_index()
+----------------------
+
+Role :
+Construit deux informations importantes :
+- quelles routes sont a sens unique ;
+- quels noeuds arrivent vers chaque noeud.
+
+Etapes :
+1. Parcourt toutes les aretes du graphe.
+2. Stocke les couples (road_id, from_node, to_node).
+3. Pour chaque route, verifie si le sens inverse existe.
+4. Si aucun sens inverse n'existe, la route est consideree comme sens unique.
+5. Construit _incoming_cache :
+   pour chaque arete from -> to, on ajoute from dans les entrants de to.
+
+Utilite :
+- _road_oneway sert a annoter les vehicules ;
+- _incoming_cache sert a detecter les intersections.
+
+===============================================================================
+9. CREATION DES VEHICULES
+===============================================================================
+
+9.1 spawn_vehicle(origin_node=None, dest_node=None)
+--------------------------------------------------
+
+Role :
+Cree un vehicule avec un chemin valide.
+
+Etapes :
+1. Recupere les noeuds autorises comme points de depart.
+2. Choisit un depart et une destination.
+3. Calcule le plus court chemin avec graph.dijkstra.
+4. Cree un identifiant unique.
+5. Choisit une couleur aleatoire.
+6. Cree l'objet Vehicle.
+7. Initialise son premier segment avec _init_segment.
+8. Verifie que la zone de spawn est libre avec _spawn_free.
+9. Ajoute le vehicule dans self.vehicles.
+
+Retour :
+- Vehicle si la creation reussit ;
+- None si aucun vehicule n'a pu etre cree.
+
+9.2 spawn_batch(count)
+----------------------
+
+Role :
+Cree plusieurs vehicules.
+
+Parametre :
+- count : nombre de tentatives de creation.
+
+Retour :
+- nombre de vehicules effectivement crees.
+
+===============================================================================
+10. BOUCLE PRINCIPALE DE SIMULATION
+===============================================================================
+
+10.1 update(dt)
+---------------
+
+Role :
+Met a jour tous les vehicules pendant dt secondes.
+
+Etapes :
+1. Parcourt les vehicules actifs.
+2. Ignore ceux deja arrives ou sans chemin.
+3. Ajoute dt a travel_time.
+4. Diminue queue_cooldown si necessaire.
+5. Appelle _update_vehicle pour calculer la conduite.
+6. Marque les vehicules arrives pour suppression.
+7. Supprime les vehicules arrives.
+8. Nettoie leurs files et reservations.
+9. Corrige les chevauchements sur meme segment.
+10. Corrige les chevauchements entre segments consecutifs.
+
+Pourquoi les corrections de chevauchement sont apres la boucle :
+Toutes les voitures doivent d'abord faire leur decision. Ensuite, on applique
+une correction globale de securite.
+
+10.2 _update_vehicle(v, dt)
+---------------------------
+
+Role :
+Met a jour un vehicule, avec sous-decoupage du temps.
+
+Variables :
+- remaining : temps restant a simuler ;
+- segs : nombre de segments traverses pendant cette mise a jour ;
+- steps : nombre de sous-etapes executees.
+
+Principe :
+Si une voiture va vite, elle peut atteindre un noeud avant la fin de dt.
+Au lieu de consommer tout dt d'un coup, on calcule le temps necessaire pour
+atteindre ce noeud.
+
+Calcul important :
+    speed_cap = max(MIN_SPEED, min(v.max_speed, v.speed + MAX_ACCEL * remaining))
+    step_dt = min(remaining, dist / max(speed_cap, MIN_SPEED))
+
+Cela limite la sous-etape au temps necessaire pour atteindre le prochain noeud.
+
+Protection :
+- MAX_SEGS_PER_TICK limite les franchissements de segments ;
+- steps < MAX_SEGS_PER_TICK * 3 evite une boucle infinie.
+
+10.3 _tick(v, target_nid, target_node, dist, dt)
+------------------------------------------------
+
+Role :
+Calcule une petite etape de conduite.
+
+Ordre des decisions :
+1. Gestion de file au feu avec _handle_queue.
+2. Vitesse maximale par defaut.
+3. Reduction selon le vehicule devant avec _gap_to_leader.
+4. Reduction selon les feux avec _light_approach_speed.
+5. Reduction selon les intersections avec _intersection_token_speed.
+6. Application acceleration/freinage avec _apply_speed.
+7. Deplacement avec _move_vehicle.
+
+La vitesse desiree finale est le minimum de toutes les contraintes.
+
+===============================================================================
+11. SUIVI DU VEHICULE DEVANT
+===============================================================================
+
+11.1 _gap_to_leader(v, target_nid, my_dist)
+-------------------------------------------
+
+Role :
+Trouve l'espace libre devant le vehicule.
+
+Parametres :
+- v : vehicule courant ;
+- target_nid : prochain noeud cible ;
+- my_dist : distance du vehicule courant jusqu'au prochain noeud.
+
+Variable best :
+---------------
+Distance minimale trouvee vers un leader.
+Elle commence a math.inf, ce qui signifie "aucun vehicule devant".
+
+Cas traite 1 : meme segment, meme sens
+--------------------------------------
+Si other.seg_from == v.seg_from et other.seg_to == v.seg_to, les deux vehicules
+sont sur la meme voie.
+
+On compare leur distance au noeud cible :
+- si l'autre est plus proche du noeud, il est devant ;
+- la distance libre vaut my_dist - od - VEHICLE_LENGTH.
+
+Cas traite 2 : segment juste apres le prochain noeud
+----------------------------------------------------
+Si l'autre vehicule est deja sur le segment que v va prendre ensuite, alors il
+peut etre un leader juste apres l'intersection.
+
+On verifie avec _dot_to_other_meters que l'autre est bien devant.
+
+Cas traite 3 : vehicule lent ou arrete sur le segment suivant
+-------------------------------------------------------------
+Si un vehicule est lent juste apres le noeud, le vehicule courant ralentit avant
+d'arriver sur lui.
+
+Retour :
+- best si un leader est trouve ;
+- math.inf sinon.
+
+===============================================================================
+12. FEUX DE CIRCULATION
+===============================================================================
+
+12.1 _light_approach_speed(v)
+-----------------------------
+
+Role :
+Calcule une vitesse cible quand un vehicule approche d'un feu rouge ou orange.
+
+Principe :
+La fonction regarde jusqu'a 3 noeuds devant le vehicule.
+
+Pour chaque noeud :
+1. Verifie s'il y a un feu.
+2. Ignore le feu si la voiture est deja geree par une file.
+3. Verifie que le feu concerne le segment d'approche.
+4. Si le feu est vert, pas de freinage.
+5. Si le feu est rouge ou orange, calcule la distance.
+6. Si la distance est dans LIGHT_BRAKE_DIST, renvoie une vitesse reduite.
+
+Formule :
+    eff = max(0, d - STOP_LINE_DIST)
+    ratio = eff / max(1, LIGHT_BRAKE_DIST - STOP_LINE_DIST)
+    vitesse = v.max_speed * ratio
+
+Interpretation :
+- loin du feu : ratio proche de 1 ;
+- proche de la ligne d'arret : ratio proche de 0 ;
+- la voiture ralentit progressivement.
+
+===============================================================================
+13. INTERSECTIONS ET RESERVATIONS
+===============================================================================
+
+13.1 _intersection_token_speed(v, target_nid, dist, dt)
+-------------------------------------------------------
+
+Role :
+Decide si une voiture peut entrer dans une intersection.
+
+Sortie :
+Retourne une vitesse cible :
+- v.max_speed si la voiture peut passer ;
+- vitesse reduite si elle doit ceder ;
+- 0 si elle doit s'arreter tres pres de l'intersection.
+
+Etapes :
+1. Si le vehicule est en file, ne gere pas l'intersection ici.
+2. Recupere les entrees du noeud cible.
+3. Si le noeud a moins de 2 entrees, ce n'est pas un carrefour a gerer.
+4. Verifie que le noeud est une vraie intersection.
+5. Si le vehicule est trop loin, il ne reserve pas encore.
+6. Si le vehicule a deja reserve ce noeud, il peut continuer.
+7. Si un feu rouge gere son approche, il ne reserve pas.
+8. Recupere les autres vehicules ayant une reservation active.
+9. Teste les conflits avec _movements_conflict.
+10. Si aucun conflit, teste les priorites avec _must_yield_at_intersection.
+11. Si tout est bon, reserve avec _token_acquire.
+12. Sinon, augmente yield_timer et ralentit avec _intersection_yield_speed.
+
+13.2 _intersection_yield_speed(v, dist)
+---------------------------------------
+
+Role :
+Calcule la vitesse d'approche quand une voiture doit ceder.
+
+Regle :
+- si dist <= INTER_CLEAR_DIST + 0.5 : vitesse = 0 ;
+- sinon vitesse faible proportionnelle a la distance.
+
+Formule :
+    ratio = (dist - INTER_CLEAR_DIST) / (INTER_RESERVE_DIST - INTER_CLEAR_DIST)
+    vitesse = v.max_speed * min(ratio, 0.18)
+
+Le facteur 0.18 limite fortement la vitesse pendant la phase de cedage.
+
+13.3 _active_token_owners(node_id, requester_id=-1)
+---------------------------------------------------
+
+Role :
+Retourne les vehicules qui possedent encore une reservation active sur un noeud.
+
+La fonction nettoie aussi les reservations mortes :
+- vehicule supprime ;
+- vehicule arrive ;
+- vehicule qui ne reserve plus ce noeud ;
+- vehicule qui n'a plus ce noeud comme cible.
+
+Retour :
+- liste d'objets Vehicle actifs.
+
+13.4 _approach_allowed_by_light(v, target_nid)
+----------------------------------------------
+
+Role :
+Verifie si un feu autorise l'approche d'un vehicule.
+
+Regles :
+- s'il n'y a pas de feu : True ;
+- si le feu ne concerne pas le segment du vehicule : True ;
+- si le feu concerne le segment : True seulement si le feu est vert.
+
+13.5 _must_yield_at_intersection(v, target_nid, my_dist)
+--------------------------------------------------------
+
+Role :
+Decide si v doit ceder le passage a un autre vehicule.
+
+La fonction parcourt les autres vehicules qui approchent du meme noeud.
+
+Elle ignore :
+- le vehicule lui-meme ;
+- les vehicules arrives ou invalides ;
+- les vehicules deja en file de feu ;
+- les vehicules qui ne ciblent pas la meme intersection ;
+- les vehicules du meme segment ;
+- les vehicules non autorises par leur feu.
+
+Regles de priorite :
+1. Si v tourne a gauche et qu'un vehicule arrive en face tout droit ou a droite,
+   v cede.
+2. Si un autre vehicule arrive par la droite et est assez proche, v cede.
+3. Si l'autre vehicule est nettement plus proche du carrefour, v cede.
+
+13.6 _turn_kind(v, target_nid)
+------------------------------
+
+Role :
+Determine le mouvement de v dans l'intersection :
+- "straight" ;
+- "left" ;
+- "right" ;
+- "end".
+
+Calcul :
+1. Vecteur entrant : seg_from -> target_nid.
+2. Vecteur sortant : target_nid -> prochain noeud.
+3. Produit scalaire :
+       dot = in_ux * out_ux + in_uy * out_uy
+4. Produit vectoriel 2D :
+       cross = in_ux * out_uy - in_uy * out_ux
+5. Angle :
+       angle = degrees(atan2(cross, dot))
+
+Decision :
+- abs(angle) <= 30 : "straight" ;
+- angle > 0 : "left" ;
+- angle < 0 : "right".
+
+13.7 _is_oncoming_approach(v, other)
+------------------------------------
+
+Role :
+Detecte si deux vehicules arrivent en sens oppose.
+
+Calcul :
+- direction de v ;
+- direction de other ;
+- produit scalaire entre les deux directions.
+
+Regle :
+Si dot <= -0.70, les deux directions sont considerees comme opposees.
+
+13.8 _next_after_intersection(v)
+--------------------------------
+
+Role :
+Retourne le noeud apres l'intersection.
+
+Si le vehicule termine son chemin a l'intersection, retourne -1.
+
+13.9 _movements_conflict(v, other, target_nid)
+----------------------------------------------
+
+Role :
+Determine si deux reservations d'intersection peuvent coexister.
+
+Regles :
+- meme vehicule : pas de conflit ;
+- meme segment d'arrivee : pas de conflit ici, car le suivi de voiture gere
+  deja la distance ;
+- meme sortie : conflit ;
+- vehicules en face :
+  - gauche contre tout droit/droite : conflit ;
+  - tout droit contre tout droit : compatible ;
+  - tout droit contre droite : compatible ;
+  - droite contre droite ou droite contre tout droit : compatible ;
+- autres cas : conflit par prudence.
+
+13.10 _is_other_on_right(v, other, target_nid)
+----------------------------------------------
+
+Role :
+Detecte si other arrive par la droite de v.
+
+Calculs :
+1. Direction de v : (ux, uy).
+2. Vecteur droite de v : (uy, -ux).
+3. Vecteur depuis l'intersection vers other.
+4. Normalisation de ce vecteur.
+5. Produit scalaire avec le vecteur droite.
+
+Regle :
+Si le produit scalaire est >= cos(45 degres), other est dans le secteur droit.
+
+13.11 _token_acquire(v, node_id)
+--------------------------------
+
+Role :
+Reserve une intersection pour un vehicule.
+
+Si le vehicule avait deja reserve un autre noeud, l'ancienne reservation est
+retiree.
+
+Ensuite :
+- v.reserved_node = node_id ;
+- vehicle_id est ajoute dans _node_tokens[node_id].
+
+13.12 _token_release(v)
+-----------------------
+
+Role :
+Libere la reservation d'intersection du vehicule.
+
+Elle retire vehicle_id de _node_tokens[v.reserved_node].
+Si l'ensemble devient vide, la cle est supprimee.
+
+13.13 _get_incoming_sources(node_id)
+------------------------------------
+
+Role :
+Retourne les noeuds entrants vers node_id.
+
+Utilise _incoming_cache construit par build_edge_index.
+
+13.14 _is_real_intersection_node(node_id)
+-----------------------------------------
+
+Role :
+Evite de traiter un simple point intermediaire comme un carrefour.
+
+Principe :
+- recupere les voisins entrants ;
+- ajoute les voisins sortants ;
+- si le total est au moins 3, le noeud est une vraie intersection.
+
+===============================================================================
+14. FILES D'ATTENTE AUX FEUX
+===============================================================================
+
+14.1 _handle_queue(v, target_nid, dist, dt)
+-------------------------------------------
+
+Role :
+Point d'entree de toute la logique de file.
+
+Si le vehicule est deja en file :
+- verifie que la file existe encore ;
+- si le feu est vert, appelle _queue_release ;
+- sinon appelle _queue_hold.
+
+Si le vehicule n'est pas en file :
+- ignore si queue_cooldown est actif ;
+- verifie qu'il y a un feu au prochain noeud ;
+- verifie que le vehicule arrive bien sur ce feu ;
+- verifie que la distance est <= QUEUE_JOIN_DIST ;
+- verifie que le feu est rouge ou orange ;
+- verifie que le feu concerne ce segment ;
+- tente _queue_join ;
+- puis _queue_hold.
+
+Retour :
+- True si la file gere le vehicule pendant cette etape ;
+- False sinon.
+
+14.2 _queue_join(v, light_nid)
+------------------------------
+
+Role :
+Ajoute un vehicule a la file du bon feu et du bon segment.
+
+Etapes :
+1. Verifie que seg_from est valide.
+2. Retire le vehicule d'une ancienne file si necessaire.
+3. Libere une reservation d'intersection incompatible avec l'attente en file.
+4. Cree la cle (light_nid, captured_seg_from).
+5. Compacte la file.
+6. Verifie qu'il reste une place avec _queue_slot_fits.
+7. Remplit les champs de file du vehicule.
+8. Ajoute vehicle_id dans la file.
+9. Recompacte.
+10. Signale au gestionnaire de feu qu'un vehicule attend.
+
+14.3 _queue_remove(v)
+---------------------
+
+Role :
+Retire un vehicule de sa file.
+
+La fonction :
+- retire son identifiant de la liste ;
+- recalcule les indices des voitures derriere ;
+- remet queue_light_node, queue_index et queue_seg_from a -1 ;
+- remet waiting_at_light a False ;
+- remet queue_release_timer a 0 ;
+- supprime la file si elle devient vide.
+
+14.4 _queue_compact(key)
+------------------------
+
+Role :
+Nettoie et ordonne une file.
+
+Parametre :
+- key = (light_nid, seg_from).
+
+Etapes :
+1. Verifie que le noeud du feu existe.
+2. Retire les vehicules inexistants.
+3. Retire les vehicules qui ne declarent plus etre dans cette file.
+4. Trie les vehicules par distance au feu.
+5. En cas d'egalite, trie par vehicle_id.
+6. Recalcule queue_index.
+
+14.5 _queue_slot_fits(light_nid, seg_from, slot_index)
+------------------------------------------------------
+
+Role :
+Verifie que la place d'une voiture dans la file tient sur le segment.
+
+Calcul :
+    seg_len = distance entre le noeud d'origine et le feu
+    target_dist = STOP_LINE_DIST + slot_index * QUEUE_SLOT
+
+Retourne True si :
+    target_dist <= max(STOP_LINE_DIST, seg_len - 0.5)
+
+Cela evite de creer une file plus longue que la rue disponible.
+
+14.6 _queue_hold(v, dt)
+-----------------------
+
+Role :
+Maintient la voiture a sa position dans la file.
+
+Variables :
+- light_nid : feu de la file ;
+- key : cle de file ;
+- k : position dans la file ;
+- dist_to_light : distance actuelle au feu ;
+- target_dist : distance desiree au feu ;
+- gap : dist_to_light - target_dist.
+
+Si gap <= 0.5 ou si la voiture est trop proche de la ligne :
+- elle est placee exactement a target_dist ;
+- speed = 0 ;
+- state = STOPPED.
+
+Sinon, elle avance doucement vers sa place.
+
+Formule de vitesse sure :
+    v_safe = sqrt(2 * MAX_DECEL * max(0, gap - 0.5))
+
+Cette formule vient de :
+    v^2 = 2 * a * d
+
+Elle donne la vitesse maximale permettant encore de freiner sur la distance
+restante.
+
+14.7 _queue_release(v, dt)
+--------------------------
+
+Role :
+Libere progressivement les vehicules quand le feu devient vert.
+
+Constantes locales :
+- REACTION_HEAD = 0.8 ;
+- REACTION_NEXT = 1.0.
+
+Cas premier vehicule :
+- attend 0.8 seconde ;
+- sort de la file ;
+- active queue_cooldown.
+
+Cas vehicule suivant :
+- attend que le precedent soit sorti ;
+- puis attend 1.0 seconde ;
+- sort de la file ;
+- active queue_cooldown.
+
+14.8 _place_at_slot(v, light_nid, target_dist)
+----------------------------------------------
+
+Role :
+Place une voiture a une distance exacte du feu, sur l'axe du segment d'entree.
+
+Calcul :
+- calcule la direction origin_node -> light_node ;
+- prend la position du feu ;
+- recule de target_dist metres dans la direction inverse.
+
+Formules :
+    v.lat = light_node.lat - uy * (d / M_PER_DEG_LAT)
+    v.lon = light_node.lon - ux * (d / M_PER_DEG_LON)
+
+===============================================================================
+15. DEPLACEMENT PHYSIQUE
+===============================================================================
+
+15.1 _move_vehicle(v, target_node, dist, dt)
+--------------------------------------------
+
+Role :
+Deplace physiquement le vehicule vers son prochain noeud.
+
+Calcul :
+    move = v.speed * dt
+
+Cas 1 : move <= 0
+Le vehicule ne bouge pas.
+
+Cas 2 : dist <= move + 0.1
+Le vehicule peut atteindre le prochain noeud.
+
+Avant de franchir :
+- _next_segment_has_space verifie que le segment suivant n'est pas bouche ;
+- si le segment est bouche, la voiture est replacee avant le noeud et s'arrete.
+
+Si le passage est possible :
+- la reservation est liberee si le noeud etait reserve ;
+- la position devient exactement celle du noeud ;
+- path_index avance ;
+- si le chemin est termine, state = ARRIVED ;
+- sinon _init_segment initialise le segment suivant.
+
+Temps utilise :
+    used_dt = dist / speed
+
+Cas 3 : le vehicule reste sur le segment
+Le vehicule avance par interpolation :
+    r = move / dist
+    v.lat += (target_node.lat - v.lat) * r
+    v.lon += (target_node.lon - v.lon) * r
+
+15.2 _next_segment_has_space(v)
+-------------------------------
+
+Role :
+Verifie qu'une voiture peut entrer dans le segment suivant.
+
+Principe :
+- regarde le prochain segment ;
+- cherche la voiture la plus proche du debut de ce segment ;
+- si aucune voiture : passage autorise ;
+- sinon passage autorise seulement si la distance est >= QUEUE_SLOT.
+
+15.3 _resolve_same_segment_overlaps()
+-------------------------------------
+
+Role :
+Corrige les chevauchements sur un meme segment et dans le meme sens.
+
+Etapes :
+1. Groupe les voitures par (seg_from, seg_to).
+2. Trie chaque groupe par distance au noeud cible.
+3. La plus proche du noeud est consideree devant.
+4. Chaque voiture derriere doit etre au moins a QUEUE_SLOT.
+5. Si elle est trop proche, _place_on_current_segment la replace.
+6. Sa vitesse est reduite au maximum a celle du leader.
+
+15.4 _resolve_adjacent_segment_overlaps()
+-----------------------------------------
+
+Role :
+Corrige les chevauchements autour d'un noeud entre deux segments consecutifs.
+
+Exemple :
+- leader : juste apres l'intersection ;
+- follower : juste avant l'intersection.
+
+Calcul :
+    path_gap = follower_dist + best_leader_dist
+
+Si path_gap < QUEUE_SLOT :
+- le follower est replace avant le noeud ;
+- sa vitesse est reduite.
+
+15.5 _place_on_current_segment(v, target_dist)
+----------------------------------------------
+
+Role :
+Place une voiture a target_dist metres du noeud cible de son segment actuel.
+
+Calcul :
+1. Calcule la longueur du segment.
+2. Calcule la direction origin -> target.
+3. Limite target_dist entre 0.5 et seg_len - 0.5.
+4. Place la voiture en reculant depuis le noeud cible.
+
+Formules :
+    v.lat = target_node.lat - uy * (d / M_PER_DEG_LAT)
+    v.lon = target_node.lon - ux * (d / M_PER_DEG_LON)
+
+Retour :
+- la distance effectivement appliquee.
+
+===============================================================================
+16. INITIALISATION DU SEGMENT
+===============================================================================
+
+16.1 _init_segment(v)
+---------------------
+
+Role :
+Met a jour les informations du segment actuel du vehicule.
+
+Etapes :
+1. Determine le noeud courant :
+   - path[path_index - 1] si possible ;
+   - sinon path[0].
+2. Determine le prochain noeud : path[path_index].
+3. Remplit seg_from et seg_to.
+4. Cherche l'arete correspondante dans graph.edges.
+5. Si l'arete existe :
+   - max_speed = edge.speed_limit ;
+   - segment_length = edge.distance ;
+   - seg_road_id = edge.road_id ;
+   - seg_oneway = valeur depuis _road_oneway.
+6. Si l'arete n'existe pas :
+   - max_speed = 11.1 ;
+   - seg_road_id = -1 ;
+   - seg_oneway = False ;
+   - segment_length est recalculee avec haversine.
+
+===============================================================================
+17. CREATION DANS UNE ZONE LIBRE
+===============================================================================
+
+17.1 _spawn_free(new_v)
+-----------------------
+
+Role :
+Verifie qu'un nouveau vehicule n'apparait pas trop pres d'un autre.
+
+Regle :
+Si la distance avec un autre vehicule actif est inferieure a SAFE_GAP * 2,
+la creation est refusee.
+
+Avec SAFE_GAP = 5, la distance minimale de spawn est donc 10 metres.
+
+===============================================================================
+18. API PUBLIQUE
+===============================================================================
+
+18.1 get_vehicle_list()
+-----------------------
+
+Role :
+Retourne la liste des vehicules actifs.
+
+Utilisation :
+- affichage graphique ;
+- inspection de la simulation ;
+- statistiques externes.
+
+18.2 get_active_count()
+-----------------------
+
+Role :
+Retourne le nombre de vehicules actifs.
+
+Equivalent :
+    len(self.vehicles)
+
+18.3 get_stats()
+----------------
+
+Role :
+Retourne les statistiques principales de circulation.
+
+Champs retournes :
+- total : nombre de vehicules actifs ;
+- moving : vehicules en mouvement ;
+- stopped : vehicules arretes ;
+- braking : vehicules en freinage ;
+- at_light : vehicules en attente a un feu ;
+- arrived : total arrive depuis le debut ;
+- spawned : total cree depuis le debut.
+
+18.4 get_queue_lengths()
+------------------------
+
+Role :
+Retourne la longueur des files par feu.
+
+Important :
+Les files sont stockees par couple (feu, segment d'arrivee), mais cette fonction
+additionne toutes les files d'un meme feu.
+
+Retour :
+    Dict[int, int]
+
+Cle :
+- identifiant du noeud du feu.
+
+Valeur :
+- nombre total de vehicules en file pour ce feu.
+
+18.5 get_light_observations()
+-----------------------------
+
+Role :
+Retourne les donnees utiles pour un futur controleur de feux intelligents.
+
+Pour chaque feu :
+- state : couleur actuelle ;
+- time_remaining : temps restant dans l'etat actuel ;
+- queue_length : nombre de vehicules en attente ;
+- waiting_vehicle_ids : identifiants des vehicules en file.
+
+Cette fonction est importante pour la suite du projet, car elle donne au futur
+algorithme de feux intelligents une vision exploitable de la simulation.
+
+===============================================================================
+19. RESUME DU FLUX COMPLET POUR UNE VOITURE
+===============================================================================
+
+1. Une voiture est creee avec spawn_vehicle.
+2. Elle recoit un chemin calcule par Dijkstra.
+3. _init_segment initialise sa premiere route.
+4. A chaque frame, update appelle _update_vehicle.
+5. _update_vehicle decoupe dt si besoin.
+6. _tick choisit la vitesse selon :
+   - file au feu ;
+   - voiture devant ;
+   - feu rouge/orange ;
+   - intersection ;
+   - acceleration/freinage.
+7. _move_vehicle applique le deplacement.
+8. Quand un noeud est atteint, le segment suivant est initialise.
+9. Quand la destination est atteinte, la voiture passe ARRIVED.
+10. update supprime les voitures arrivees.
+11. Les corrections de chevauchement securisent la position finale des voitures.
+
+===============================================================================
+20. FORMULES MATHEMATIQUES IMPORTANTES
+===============================================================================
+
+20.1 Conversion longitude/latitude en metres
+--------------------------------------------
+
+    dx = delta_lon * M_PER_DEG_LON
+    dy = delta_lat * M_PER_DEG_LAT
+
+But :
+Faire les calculs dans une unite physique comparable.
+
+20.2 Norme d'un vecteur
+-----------------------
+
+    n = sqrt(dx^2 + dy^2)
+
+But :
+Connaitre la longueur du vecteur.
+
+20.3 Vecteur unitaire
+---------------------
+
+    ux = dx / n
+    uy = dy / n
+
+But :
+Garder seulement la direction, sans la distance.
+
+20.4 Produit scalaire
+---------------------
+
+    dot = ax * bx + ay * by
+
+Usages :
+- savoir si une voiture est devant ;
+- comparer deux directions ;
+- detecter un vehicule venant de droite.
+
+20.5 Produit vectoriel 2D
+-------------------------
+
+    cross = ax * by - ay * bx
+
+Usage :
+Connaitre le sens du virage :
+- positif : gauche ;
+- negatif : droite.
+
+20.6 Angle entre deux segments
+------------------------------
+
+    angle = degrees(atan2(cross, dot))
+
+Usage :
+Classer une trajectoire en tout droit, gauche ou droite.
+
+20.7 Vitesse selon espace libre
+-------------------------------
+
+    speed = max_speed * (gap - SAFE_GAP) / (BRAKE_DISTANCE - SAFE_GAP)
+
+Usage :
+Ralentir progressivement quand on se rapproche d'un vehicule devant.
+
+20.8 Distance de freinage inverse
+---------------------------------
+
+    v_safe = sqrt(2 * MAX_DECEL * distance)
+
+Usage :
+Trouver la vitesse maximale permettant encore de s'arreter avant une position de
+file.
+
+20.9 Mouvement lineaire sur un segment
+--------------------------------------
+
+    move = speed * dt
+    r = move / dist
+    lat += (target_lat - lat) * r
+    lon += (target_lon - lon) * r
+
+Usage :
+Avancer progressivement vers le prochain noeud.
+
+20.10 Recul depuis un noeud cible
+---------------------------------
+
+    lat = target_lat - uy * (distance / M_PER_DEG_LAT)
+    lon = target_lon - ux * (distance / M_PER_DEG_LON)
+
+Usage :
+Placer une voiture a une distance exacte avant un feu ou avant une intersection.
+
+===============================================================================
+21. POINTS IMPORTANTS POUR LA FLUIDITE
+===============================================================================
+
+La fluidite vient surtout de la combinaison de plusieurs protections :
+
+1. _gap_to_leader
+   Evite de rattraper le vehicule devant.
+
+2. _speed_for_gap
+   Transforme l'espace libre en vitesse raisonnable.
+
+3. _light_approach_speed
+   Anticipe les feux rouges/oranges.
+
+4. _handle_queue
+   Remplace les arrets desordonnes par une vraie file.
+
+5. _intersection_token_speed
+   Evite que tout le monde entre en meme temps dans un carrefour.
+
+6. _movements_conflict
+   Autorise les mouvements compatibles pour ne pas bloquer inutilement.
+
+7. _resolve_same_segment_overlaps
+   Corrige les collisions numeriques sur une voie.
+
+8. _resolve_adjacent_segment_overlaps
+   Corrige les collisions numeriques autour des noeuds.
+
+9. get_light_observations
+   Prepare la suite avec des feux intelligents capables de lire la simulation.
+
+===============================================================================
+22. CONCLUSION
+===============================================================================
+
+vehicle.py est maintenant organise autour d'une logique de conduite complete :
+- chaque voiture suit un chemin ;
+- chaque voiture respecte la distance devant elle ;
+- chaque voiture ralentit pour les feux ;
+- les files sont propres et ordonnees ;
+- les carrefours sont reserves selon les conflits reels ;
+- les routes double sens sont mieux gerees ;
+- les virages et priorites sont calcules avec des vecteurs ;
+- les donnees de circulation sont disponibles pour une intelligence de feux.
+
+Ce fichier est donc le coeur comportemental du simulateur.
