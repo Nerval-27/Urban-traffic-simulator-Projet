@@ -7,6 +7,7 @@ from loader import load_network
 from graph import RoadGraph
 from traffic_light_manager import TrafficLightManager
 from vehicle import VehicleManager
+from traffic_metrics import TrafficMetrics
 from renderer import Renderer
 
 
@@ -19,6 +20,8 @@ SIM_SPEED_DEFAULT     = 1.0
 SIM_SPEED_MIN         = 0.25
 SIM_SPEED_MAX         = 8.0
 RANDOM_SEED           = 42
+METRIC_SAMPLE_INTERVAL = 1.0
+TRAFFIC_MODE = "fixed"
 
 
 def main():
@@ -64,12 +67,16 @@ def main():
     created = vehicle_manager.spawn_batch(INITIAL_VEHICLE_COUNT)
     print(f"  {created} véhicules créés sur {INITIAL_VEHICLE_COUNT} demandés")
 
+    metrics = TrafficMetrics(sample_interval=METRIC_SAMPLE_INTERVAL)
+
     print("\nDémarrage de la simulation Pygame...")
     renderer = Renderer(network, width=1280, height=720)
     renderer.vehicle_manager = vehicle_manager
     renderer.light_manager   = light_manager
     renderer.graph           = graph
     renderer.sim_speed       = SIM_SPEED_DEFAULT
+    renderer.metrics         = metrics
+    renderer.traffic_mode    = TRAFFIC_MODE
 
     sim_time       = 0.0
     spawn_timer    = 0.0
@@ -90,6 +97,7 @@ def main():
 
         light_manager.update(sim_dt)
         vehicle_manager.update(sim_dt)
+        metrics.update(sim_dt, vehicle_manager, light_manager)
 
         sim_time   += sim_dt
         spawn_timer += sim_dt
@@ -110,7 +118,8 @@ def main():
 
         if actions.get("quit"):
             print("\nSimulation arrêtée.")
-            _print_final_stats(vehicle_manager, light_manager, sim_time)
+            _print_final_stats(vehicle_manager, light_manager, metrics, sim_time)
+            _export_metrics(metrics, current_dir, TRAFFIC_MODE)
             pygame.quit()
             sys.exit(0)
 
@@ -130,14 +139,19 @@ def main():
         renderer.draw()
 
 
-def _print_final_stats(vehicle_manager, light_manager, sim_time):
+def _print_final_stats(vehicle_manager, light_manager, metrics, sim_time):
     stats = vehicle_manager.get_stats()
+    metric_summary = metrics.summary()
     mins  = int(sim_time) // 60
     secs  = int(sim_time) % 60
     print("\nStatistiques finales")
     print(f"  Durée simulée   : {mins:02d}:{secs:02d}")
     print(f"  Véhicules créés : {stats['spawned']}")
     print(f"  Arrivés à dest. : {stats['arrived']}")
+    print(f"  Débit           : {metric_summary['throughput_per_min']} véhicules/min")
+    print(f"  File moyenne    : {metric_summary['avg_queue_length']} véhicules")
+    print(f"  File maximale   : {metric_summary['max_queue_length']} véhicules")
+    print(f"  Saturation max  : {metrics.live_stats()['max_saturation']}")
 
     waiting_stats = light_manager.get_waiting_stats()
     total_stops = sum(waiting_stats.values())
@@ -145,6 +159,22 @@ def _print_final_stats(vehicle_manager, light_manager, sim_time):
     congested = light_manager.get_congested_lights(threshold=5)
     print(f"  Feux congestionnés (>5 arrêts) : {len(congested)}")
     print()
+
+
+def _export_metrics(metrics, current_dir, mode):
+    results_dir = os.path.normpath(os.path.join(current_dir, "..", "results"))
+    os.makedirs(results_dir, exist_ok=True)
+
+    summary_path = os.path.join(results_dir, f"{mode}_summary.json")
+    snapshots_path = os.path.join(results_dir, f"{mode}_snapshots.csv")
+    observation_path = os.path.join(results_dir, f"{mode}_observation.json")
+
+    metrics.write_summary_json(summary_path)
+    metrics.write_snapshots_csv(snapshots_path)
+    metrics.write_observation_json(observation_path)
+
+    print(f"  Métriques JSON  : {summary_path}")
+    print(f"  Métriques CSV   : {snapshots_path}")
 
 
 if __name__ == "__main__":

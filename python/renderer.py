@@ -37,6 +37,8 @@ class Renderer:
         self.vehicle_manager      = None
         self.light_manager        = None
         self.graph                = None
+        self.metrics              = None
+        self.traffic_mode: str    = "fixed"
         self.simulation_time: float = 0.0
         self.sim_speed: float     = 1.0  # multiplicateur de vitesse
 
@@ -236,19 +238,38 @@ class Renderer:
                 f"(▶ {stats['moving']}  ⏸ {stats['stopped']}   {stats['arrived']})  |  "
                 f"Files : {stats['queued']}  max {stats['max_queue']}"
             )
+            hud_lines = [hud_text]
+            if self.metrics is not None:
+                live = self.metrics.live_stats()
+                hud_lines.append(
+                    f"Mode : {self.traffic_mode}  |  "
+                    f"Débit : {live['throughput_per_min']:.1f}/min  |  "
+                    f"File moy. : {live['avg_queue_length']:.1f}  |  "
+                    f"ρ max : {live['max_saturation']:.2f}  |  "
+                    f"Pression max : {live['max_pressure']:.1f}"
+                )
         else:
             hud_text = (
                 f"Temps : {mins:02d}:{secs:02d}  |  "
                 f"FPS : {fps}  |  "
                 f"Routes : {len(self.network.roads)}"
             )
+            hud_lines = [hud_text]
 
-        text_surf = self.font.render(hud_text, True, (210, 215, 230))
-        bg = pygame.Surface((text_surf.get_width() + 20, text_surf.get_height() + 8))
+        text_surfs = [
+            self.font.render(line, True, (210, 215, 230))
+            for line in hud_lines
+        ]
+        bg_width = max(surf.get_width() for surf in text_surfs) + 20
+        bg_height = sum(surf.get_height() for surf in text_surfs) + 10
+        bg = pygame.Surface((bg_width, bg_height))
         bg.set_alpha(160)
         bg.fill((15, 15, 20))
         self.screen.blit(bg, (5, 5))
-        self.screen.blit(text_surf, (15, 9))
+        y = 9
+        for surf in text_surfs:
+            self.screen.blit(surf, (15, y))
+            y += surf.get_height()
 
         keys_text = "WASD/Flèches: pan  |  Molette: zoom  |  R: reset vue  |  +/-: vitesse  |  N: nouveau véhicule  |  Échap: quitter"
         k_surf = self.font_small.render(keys_text, True, (130, 135, 150))

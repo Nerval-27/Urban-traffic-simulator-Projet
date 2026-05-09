@@ -9,10 +9,13 @@ from typing import Dict, List, Optional, Tuple
 
 
 APPROACH_RADIUS_M = 80.0
+RATE_WINDOW_S = 60.0
 
 QUEUE_WEIGHT = 2.0
 APPROACH_WEIGHT = 0.5
 WAIT_WEIGHT = 0.1
+SATURATION_WEIGHT = 3.0
+MAX_SATURATION = 9.99
 
 
 @dataclass
@@ -27,6 +30,9 @@ class LightObservation:
     avg_wait_s: float
     stop_events: int
     max_queue_length: int
+    arrival_rate: float
+    service_rate: float
+    saturation: float
     pressure: float
     green_ratio: float
     yellow_ratio: float
@@ -47,6 +53,9 @@ class LightObservation:
             "avg_wait_s": round(self.avg_wait_s, 3),
             "stop_events": self.stop_events,
             "max_queue_length": self.max_queue_length,
+            "arrival_rate": round(self.arrival_rate, 3),
+            "service_rate": round(self.service_rate, 3),
+            "saturation": round(self.saturation, 3),
             "pressure": round(self.pressure, 3),
             "green_ratio": round(self.green_ratio, 3),
             "yellow_ratio": round(self.yellow_ratio, 3),
@@ -156,10 +165,15 @@ class TrafficMetrics:
         self.completed_waits_by_light: Dict[int, List[float]] = {}
         self.last_light_stop_events: Dict[int, int] = {}
 
+        self.arrival_events_by_light: Dict[int, List[float]] = {}
+        self.service_events_by_light: Dict[int, List[float]] = {}
+
         self._current_light_waits: Dict[Tuple[int, int], float] = {}
         self._last_seen_travel_time: Dict[int, float] = {}
         self._recorded_vehicle_ids: set = set()
         self._recorded_arrivals = 0
+        self._active_approach_keys: set = set()
+        self._seen_light_entries: set = set()
 
     def update(self, dt: float, vehicle_manager, light_manager) -> TrafficObservation:
         if dt <= 0.0:
@@ -232,6 +246,30 @@ class TrafficMetrics:
             return self._empty_observation().to_dict()
         return self.latest_observation.to_dict()
 
+    def live_stats(self) -> dict:
+        if self.latest_observation is None:
+            return {
+                "avg_queue_length": 0.0,
+                "throughput_per_min": 0.0,
+                "max_pressure": 0.0,
+                "max_saturation": 0.0,
+                "avg_light_wait_s": 0.0,
+            }
+
+        lights = self.latest_observation.lights.values()
+        max_pressure = max((light.pressure for light in lights), default=0.0)
+        max_saturation = max((light.saturation for light in lights), default=0.0)
+        elapsed = max(self.elapsed, 1e-9)
+        return {
+            "avg_queue_length": self._round(self.queue_vehicle_time / elapsed),
+            "throughput_per_min": self._round(
+                self.latest_stats.get("arrived", 0) / (elapsed / 60.0)
+            ),
+            "max_pressure": self._round(max_pressure),
+            "max_saturation": self._round(max_saturation),
+            "avg_light_wait_s": self._avg(self.completed_light_waits),
+        }
+
     def write_summary_json(self, path: str) -> None:
         with open(path, "w") as f:
             json.dump(self.summary(), f, indent=2)
@@ -275,6 +313,7 @@ class TrafficMetrics:
             light_id = getattr(vehicle, "queue_light_node", -1)
             if getattr(vehicle, "waiting_at_light", False) and light_id != -1:
                 key = (vid, light_id)
+                self._record_arrival_event(key)
                 current_wait_keys.add(key)
                 self._current_light_waits[key] = (
                     self._current_light_waits.get(key, 0.0) + dt
@@ -287,6 +326,7 @@ class TrafficMetrics:
             wait_time = self._current_light_waits.pop(key)
             self.completed_light_waits.append(wait_time)
             self.completed_waits_by_light.setdefault(light_id, []).append(wait_time)
+            self._record_service_event(light_id)
 
         arrived_total = stats.get("arrived", 0)
         missing_ids = set(self._last_seen_travel_time) - current_ids
@@ -335,11 +375,12 @@ class TrafficMetrics:
                           light_stops: Dict[int, int],
                           vehicle_manager,
                           light_manager) -> TrafficObservation:
-        approaching = self._count_approaching_vehicles(
+        approaching, approach_keys = self._count_approaching_vehicles(
             vehicles,
             vehicle_manager,
             light_manager,
         )
+        self._record_approach_events(approach_keys)
         current_waits = self._current_waits_by_light()
 
         lights: Dict[int, LightObservation] = {}
@@ -350,10 +391,18 @@ class TrafficMetrics:
             avg_wait = mean(waits) if waits else 0.0
 
             green_ratio, yellow_ratio, red_ratio = self._light_ratios(light_id)
+            arrival_rate = self._event_rate_per_min(
+                self.arrival_events_by_light.get(light_id, [])
+            )
+            service_rate = self._event_rate_per_min(
+                self.service_events_by_light.get(light_id, [])
+            )
+            saturation = self._saturation(arrival_rate, service_rate)
             pressure = self._pressure_score(
                 queue_length,
                 approaching.get(light_id, 0),
                 oldest_wait,
+                saturation,
             )
 
             lights[light_id] = LightObservation(
@@ -367,6 +416,9 @@ class TrafficMetrics:
                 avg_wait_s=avg_wait,
                 stop_events=light_stops.get(light_id, 0),
                 max_queue_length=self.max_queue_by_light.get(light_id, 0),
+                arrival_rate=arrival_rate,
+                service_rate=service_rate,
+                saturation=saturation,
                 pressure=pressure,
                 green_ratio=green_ratio,
                 yellow_ratio=yellow_ratio,
@@ -421,6 +473,12 @@ class TrafficMetrics:
         for light_id in sorted(light_ids):
             green_ratio, yellow_ratio, red_ratio = self._light_ratios(light_id)
             waits = self.completed_waits_by_light.get(light_id, [])
+            arrival_rate = self._event_rate_per_min(
+                self.arrival_events_by_light.get(light_id, [])
+            )
+            service_rate = self._event_rate_per_min(
+                self.service_events_by_light.get(light_id, [])
+            )
             result[light_id] = {
                 "avg_queue_length": self._round(
                     self.queue_time_by_light.get(light_id, 0.0) / elapsed
@@ -428,6 +486,11 @@ class TrafficMetrics:
                 "max_queue_length": self.max_queue_by_light.get(light_id, 0),
                 "stop_events": self.last_light_stop_events.get(light_id, 0),
                 "avg_light_wait_s": self._avg(waits),
+                "arrival_rate": self._round(arrival_rate),
+                "service_rate": self._round(service_rate),
+                "saturation": self._round(
+                    self._saturation(arrival_rate, service_rate)
+                ),
                 "green_ratio": self._round(green_ratio),
                 "yellow_ratio": self._round(yellow_ratio),
                 "red_ratio": self._round(red_ratio),
@@ -437,12 +500,13 @@ class TrafficMetrics:
 
     def _count_approaching_vehicles(self, vehicles: list,
                                     vehicle_manager,
-                                    light_manager) -> Dict[int, int]:
+                                    light_manager):
         graph = getattr(vehicle_manager, "graph", None)
         if graph is None:
-            return {}
+            return {}, set()
 
         counts: Dict[int, int] = {}
+        active_keys = set()
         for vehicle in vehicles:
             if getattr(vehicle, "waiting_at_light", False):
                 continue
@@ -467,8 +531,48 @@ class TrafficMetrics:
             dist = _distance_m(vehicle.lat, vehicle.lon, target.lat, target.lon)
             if dist <= self.approach_radius_m:
                 counts[light_id] = counts.get(light_id, 0) + 1
+                active_keys.add((vehicle.vehicle_id, light_id))
 
-        return counts
+        return counts, active_keys
+
+    def _record_approach_events(self, active_keys: set) -> None:
+        for key in active_keys:
+            self._record_arrival_event(key)
+
+        for vehicle_id, light_id in self._active_approach_keys - active_keys:
+            if (vehicle_id, light_id) not in self._current_light_waits:
+                self._record_service_event(light_id)
+
+        self._active_approach_keys = set(active_keys)
+
+    def _record_arrival_event(self, key: Tuple[int, int]) -> None:
+        if key in self._seen_light_entries:
+            return
+        self._seen_light_entries.add(key)
+        _, light_id = key
+        self.arrival_events_by_light.setdefault(light_id, []).append(self.elapsed)
+        self._trim_events(self.arrival_events_by_light[light_id])
+
+    def _record_service_event(self, light_id: int) -> None:
+        self.service_events_by_light.setdefault(light_id, []).append(self.elapsed)
+        self._trim_events(self.service_events_by_light[light_id])
+
+    def _trim_events(self, events: List[float]) -> None:
+        cutoff = self.elapsed - RATE_WINDOW_S
+        while events and events[0] < cutoff:
+            events.pop(0)
+
+    def _event_rate_per_min(self, events: List[float]) -> float:
+        self._trim_events(events)
+        window = min(max(self.elapsed, 1e-9), RATE_WINDOW_S)
+        return len(events) * 60.0 / window
+
+    def _saturation(self, arrival_rate: float, service_rate: float) -> float:
+        if arrival_rate <= 0.0:
+            return 0.0
+        if service_rate <= 1e-9:
+            return MAX_SATURATION
+        return min(MAX_SATURATION, arrival_rate / service_rate)
 
     def _current_waits_by_light(self) -> Dict[int, List[float]]:
         waits: Dict[int, List[float]] = {}
@@ -489,11 +593,13 @@ class TrafficMetrics:
 
     def _pressure_score(self, queue_length: int,
                         approaching: int,
-                        oldest_wait_s: float) -> float:
+                        oldest_wait_s: float,
+                        saturation: float) -> float:
         return (
             queue_length * QUEUE_WEIGHT
             + approaching * APPROACH_WEIGHT
             + oldest_wait_s * WAIT_WEIGHT
+            + saturation * SATURATION_WEIGHT
         )
 
     def _record_trip_time(self, vehicle_id: int, travel_time: float) -> None:
