@@ -44,22 +44,22 @@ help:
 
 venv:
 	@if [ ! -d "$(VENV_DIR)" ]; then \
-		echo "→ Création du virtualenv..."; \
+		echo " Création du virtualenv..."; \
 		$(PYTHON) -m venv $(VENV_DIR); \
 	fi
 
 install: venv
-	@echo "→ Installation des dépendances..."
+	@echo " Installation des dépendances..."
 	@$(VENV_PIP) install --upgrade pip
 	@$(VENV_PIP) install -r $(REQ_FILE)
 
 setup: install
-	@echo "✓ Environnement prêt"
+	@echo " Environnement prêt"
 
 
 fetch: install
 	@mkdir -p $(DATA_DIR)
-	@echo "→ Téléchargement des données OSM..."
+	@echo " Téléchargement des données OSM..."
 	@$(VENV_PYTHON) $(SRC_DIR)/fetch_osm.py
 
 build: install
@@ -67,7 +67,7 @@ build: install
 		echo "ERREUR : paris13.json manquant (lancez make fetch)"; \
 		exit 1; \
 	fi
-	@echo "→ Génération de map_clean.json..."
+	@echo " Génération de map_clean.json..."
 	@$(VENV_PYTHON) $(SRC_DIR)/clean_json.py $(OSM_RAW)
 
 data: fetch build
@@ -77,10 +77,10 @@ data: fetch build
 
 run: install
 	@if [ ! -f "$(MAP_CLEAN)" ]; then \
-		echo "→ Données manquantes, génération..."; \
+		echo " Données manquantes, génération..."; \
 		$(MAKE) data; \
 	fi
-	@echo "→ Lancement de la simulation (GUI)"
+	@echo " Lancement de la simulation (GUI)"
 	@cd $(SRC_DIR) && $(abspath $(VENV_PYTHON)) simulation_gui.py
 
 console: install
