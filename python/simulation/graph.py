@@ -2,7 +2,7 @@ import heapq
 import math
 from dataclasses import dataclass, field
 from typing import Callable, Dict, List, Optional, Tuple
-from models import Network, Road
+from simulation.models import Network, Road
 
 TRAFFIC_SIGNAL_ATTACH_MAX_DIST = 25.0
 

@@ -3,9 +3,9 @@
 import math
 from typing import List, Tuple
 
-from graph import haversine
-from traffic_light_manager import LightState
-from vehicle_constants import (
+from simulation.graph import haversine
+from simulation.lights import LightState
+from simulation.vehicle_constants import (
     M_PER_DEG_LAT,
     M_PER_DEG_LON,
     MAX_DECEL,
@@ -14,8 +14,8 @@ from vehicle_constants import (
     QUEUE_SLOT,
     STOP_LINE_DIST,
 )
-from vehicle_geometry import _apply_speed, _seg_dir_meters
-from vehicle_model import Vehicle, VehicleState
+from simulation.vehicle_geometry import _apply_speed, _seg_dir_meters
+from simulation.vehicle_model import Vehicle, VehicleState
 
 
 class VehicleQueueMixin:

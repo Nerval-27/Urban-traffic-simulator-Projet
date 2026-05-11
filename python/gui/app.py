@@ -1,14 +1,15 @@
+import argparse
 import os
 import sys
 import random
 import pygame
 
-from loader import load_network
-from graph import RoadGraph
-from traffic_light_manager import TrafficLightManager
-from vehicle import VehicleManager
-from traffic_metrics import TrafficMetrics
-from renderer import Renderer
+from simulation.loader import load_network
+from simulation.graph import RoadGraph
+from simulation.lights import TrafficLightManager
+from simulation.vehicle import VehicleManager
+from simulation.metrics import TrafficMetrics
+from gui.renderer import Renderer
 
 
 
@@ -21,16 +22,30 @@ SIM_SPEED_MIN         = 0.25
 SIM_SPEED_MAX         = 8.0
 RANDOM_SEED           = 42
 METRIC_SAMPLE_INTERVAL = 1.0
-TRAFFIC_MODE = "fixed"
+RL_STEP_DT            = 5.0    # l'agent décide toutes les 5s simulées
+DEFAULT_QTABLE_PATH   = os.path.normpath(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                 "..", "..", "results", "q_table.json")
+)
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mode", choices=("fixed", "rl"), default="fixed",
+                        help="Stratégie des feux : fixed (cycles fixes) ou rl (Q-learning)")
+    parser.add_argument("--qtable", type=str, default=DEFAULT_QTABLE_PATH,
+                        help="Chemin de la Q-table (mode rl uniquement)")
+    args = parser.parse_args()
+
+    traffic_mode = args.mode
+
     print("=" * 50)
     print("   Paris 13e — Traffic Simulator")
+    print(f"   Mode feux : {traffic_mode.upper()}")
     print("=" * 50)
 
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    json_path = os.path.normpath(os.path.join(current_dir, "..", "data", "map_clean.json"))
+    json_path = os.path.normpath(os.path.join(current_dir, "..", "..", "data", "map_clean.json"))
 
     print(f"\n[1/4] Chargement du réseau : {json_path}")
     try:
@@ -69,6 +84,12 @@ def main():
 
     metrics = TrafficMetrics(sample_interval=METRIC_SAMPLE_INTERVAL)
 
+    rl_controller = None
+    if traffic_mode == "rl":
+        rl_controller = _build_rl_controller(args.qtable, light_manager, metrics)
+        if rl_controller is None:
+            sys.exit(1)
+
     print("\nDémarrage de la simulation Pygame...")
     renderer = Renderer(network, width=1280, height=720)
     renderer.vehicle_manager = vehicle_manager
@@ -76,7 +97,8 @@ def main():
     renderer.graph           = graph
     renderer.sim_speed       = SIM_SPEED_DEFAULT
     renderer.metrics         = metrics
-    renderer.traffic_mode    = TRAFFIC_MODE
+    renderer.traffic_mode    = traffic_mode
+    renderer.rl_controller   = rl_controller
 
     sim_time       = 0.0
     spawn_timer    = 0.0
@@ -99,6 +121,9 @@ def main():
         vehicle_manager.update(sim_dt)
         metrics.update(sim_dt, vehicle_manager, light_manager)
 
+        if rl_controller is not None:
+            rl_controller.tick(sim_dt)
+
         sim_time   += sim_dt
         spawn_timer += sim_dt
 
@@ -119,7 +144,9 @@ def main():
         if actions.get("quit"):
             print("\nSimulation arrêtée.")
             _print_final_stats(vehicle_manager, light_manager, metrics, sim_time)
-            _export_metrics(metrics, current_dir, TRAFFIC_MODE)
+            if rl_controller is not None:
+                _print_rl_stats(rl_controller)
+            _export_metrics(metrics, current_dir, traffic_mode)
             pygame.quit()
             sys.exit(0)
 
@@ -161,8 +188,36 @@ def _print_final_stats(vehicle_manager, light_manager, metrics, sim_time):
     print()
 
 
+def _build_rl_controller(qtable_path, light_manager, metrics):
+    """Charge la Q-table et construit un RLController prêt à brancher."""
+    if not os.path.isfile(qtable_path):
+        print(f"ERREUR : Q-table introuvable ({qtable_path})")
+        print("Lancez d'abord : make rl-train")
+        return None
+
+    from rl.agent import load_agent
+    from rl.env import RLController
+
+    print(f"\nChargement de la Q-table : {qtable_path}")
+    agent = load_agent(qtable_path)
+    print(f"  {len(agent.Q)} états mémorisés")
+
+    return RLController(agent, light_manager, metrics, step_dt=RL_STEP_DT)
+
+
+def _print_rl_stats(rl_controller):
+    stats = rl_controller.stats()
+    print("Agent RL")
+    print(f"  Q-table         : {stats['qtable_size']} états")
+    print(f"  Pas de décision : {stats['step_dt']:.1f}s")
+    print(f"  Décisions KEEP  : {stats['keep_count']}")
+    print(f"  Décisions SWITCH: {stats['switch_count']} "
+          f"({stats['switch_ratio'] * 100:.1f}%)")
+    print()
+
+
 def _export_metrics(metrics, current_dir, mode):
-    results_dir = os.path.normpath(os.path.join(current_dir, "..", "results"))
+    results_dir = os.path.normpath(os.path.join(current_dir, "..", "..", "results"))
     os.makedirs(results_dir, exist_ok=True)
 
     summary_path = os.path.join(results_dir, f"{mode}_summary.json")

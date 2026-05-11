@@ -3,9 +3,9 @@
 import math
 from typing import Dict, List, Tuple
 
-from graph import haversine
-from traffic_light_manager import LightState
-from vehicle_constants import (
+from simulation.graph import haversine
+from simulation.lights import LightState
+from simulation.vehicle_constants import (
     BRAKE_DISTANCE,
     LIGHT_BRAKE_DIST,
     M_PER_DEG_LAT,
@@ -17,8 +17,8 @@ from vehicle_constants import (
     STOP_LINE_DIST,
     VEHICLE_LENGTH,
 )
-from vehicle_geometry import _dot_to_other_meters, _seg_dir_meters
-from vehicle_model import Vehicle, VehicleState
+from simulation.vehicle_geometry import _dot_to_other_meters, _seg_dir_meters
+from simulation.vehicle_model import Vehicle, VehicleState
 
 
 class VehicleMotionMixin:

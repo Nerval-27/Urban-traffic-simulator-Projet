@@ -3,9 +3,9 @@
 import math
 from typing import List, Set
 
-from graph import haversine
-from traffic_light_manager import LightState
-from vehicle_constants import (
+from simulation.graph import haversine
+from simulation.lights import LightState
+from simulation.vehicle_constants import (
     INTER_CLEAR_DIST,
     INTER_RESERVE_DIST,
     INTER_YIELD_TIMEOUT,
@@ -13,8 +13,8 @@ from vehicle_constants import (
     M_PER_DEG_LON,
     QUEUE_SLOT,
 )
-from vehicle_geometry import _seg_dir_meters
-from vehicle_model import Vehicle, VehicleState
+from simulation.vehicle_geometry import _seg_dir_meters
+from simulation.vehicle_model import Vehicle, VehicleState
 
 
 class VehicleIntersectionMixin:

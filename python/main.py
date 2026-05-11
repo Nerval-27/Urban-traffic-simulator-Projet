@@ -3,10 +3,10 @@ import sys
 import os
 import random
 
-from loader import load_network
-from graph import RoadGraph
-from traffic_light_manager import TrafficLightManager
-from vehicle import VehicleManager
+from simulation.loader import load_network
+from simulation.graph import RoadGraph
+from simulation.lights import TrafficLightManager
+from simulation.vehicle import VehicleManager
 
 
 def main():
@@ -20,7 +20,7 @@ def main():
         network = load_network(json_path)
     except FileNotFoundError:
         print("ERREUR : map_clean.json introuvable.")
-        print("Lancez d'abord : python fetch_osm.py, puis python clean_json.py paris13.json")
+        print("Lancez d'abord : make data")
         sys.exit(1)
 
     print(f"  {len(network.roads)} routes, {len(network.intersections)} intersections")

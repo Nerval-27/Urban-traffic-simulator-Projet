@@ -2,7 +2,7 @@ import json
 import sys
 import math
 import os
-from utils import haversine
+from simulation.utils import haversine
 
 
 # Lecture du fichier OSM.
@@ -192,7 +192,7 @@ output = {
     "nodes": nodes_coords
 }
 
-file_path = os.path.join(os.path.dirname(__file__), "..", "data", "map_clean.json")
+file_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "map_clean.json")
 with open(file_path, "w") as f:
     json.dump(output, f, indent=2)
 

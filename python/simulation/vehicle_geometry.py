@@ -3,7 +3,7 @@
 import math
 from typing import Tuple
 
-from vehicle_constants import (
+from simulation.vehicle_constants import (
     BRAKE_DISTANCE,
     M_PER_DEG_LAT,
     M_PER_DEG_LON,
@@ -12,7 +12,7 @@ from vehicle_constants import (
     MIN_SPEED,
     SAFE_GAP,
 )
-from vehicle_model import Vehicle, VehicleState
+from simulation.vehicle_model import Vehicle, VehicleState
 
 
 def _seg_dir_meters(fn, tn) -> Tuple[float, float, bool]:

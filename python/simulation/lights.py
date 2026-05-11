@@ -486,6 +486,54 @@ class TrafficLightManager:
             return self._groups.get(light.group_id)
         return None
 
+    def get_groups(self) -> Dict[int, IntersectionGroup]:
+        return dict(self._groups)
+
+    def get_group_lights(self, group_id: int,
+                         phase: Optional[str] = None) -> List[TrafficLight]:
+        result: List[TrafficLight] = []
+        for light in self._lights.values():
+            if light.group_id != group_id:
+                continue
+            if phase is not None and light.group_phase != phase:
+                continue
+            result.append(light)
+        return result
+
+    def request_phase_switch(self, group_id: int) -> bool:
+        """Force la phase verte d'un groupe à passer au jaune."""
+        if group_id not in self._groups:
+            return False
+
+        switched = False
+        for light in self._lights.values():
+            if light.group_id != group_id:
+                continue
+            if light.state == LightState.GREEN:
+                light.force_state(LightState.YELLOW)
+                switched = True
+        return switched
+
+    def extend_green(self, group_id: int, seconds: float = 5.0) -> bool:
+        """Prolonge la phase verte courante d'un groupe.
+
+        On retire `seconds` au temps déjà écoulé dans la phase, ce qui repousse
+        la transition vers le jaune. Retourne True si au moins un feu a été
+        prolongé. N'a pas d'effet si on n'est pas en phase verte.
+        """
+        if group_id not in self._groups:
+            return False
+
+        extended = False
+        for light in self._lights.values():
+            if light.group_id != group_id:
+                continue
+            if light.state != LightState.GREEN:
+                continue
+            light.time_in_phase = max(0.0, light.time_in_phase - seconds)
+            extended = True
+        return extended
+
     @property
     def simulation_time(self) -> float:
         return self._simulation_time

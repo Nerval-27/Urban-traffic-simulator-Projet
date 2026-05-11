@@ -4,7 +4,7 @@ import math
 import sys
 from typing import Optional
 
-from vehicle import VehicleState
+from simulation.vehicle import VehicleState
 
 
 class Renderer:
@@ -38,12 +38,14 @@ class Renderer:
         self.light_manager        = None
         self.graph                = None
         self.metrics              = None
+        self.rl_controller        = None
         self.traffic_mode: str    = "fixed"
         self.simulation_time: float = 0.0
         self.sim_speed: float     = 1.0  # multiplicateur de vitesse
 
         # Véhicule sélectionné à la souris.
         self.selected_vehicle_id: Optional[int] = None
+        self.selected_group_id: Optional[int] = None
 
 
     def _get_bounding_box(self):
@@ -73,6 +75,16 @@ class Renderer:
         py = (lat - mid_lat) * scale_y + self.offset_y
         return int(px), int(py)
 
+    def pixel_to_gps(self, px, py):
+        """Inverse de gps_to_pixel : retourne (lat, lon) pour un pixel donné."""
+        mid_lat = (self.min_lat + self.max_lat) / 2
+        mid_lon = (self.min_lon + self.max_lon) / 2
+        scale_x =  self.zoom * math.cos(math.radians(mid_lat))
+        scale_y = -self.zoom
+        lon = (px - self.offset_x) / scale_x + mid_lon
+        lat = (py - self.offset_y) / scale_y + mid_lat
+        return lat, lon
+
 
 
     def draw(self):
@@ -84,7 +96,9 @@ class Renderer:
         self._draw_traffic_lights()
         self._draw_vehicles()
         self._draw_selected_path()
+        self._draw_group_highlight()
         self._draw_hud()
+        self._draw_group_inspector()
         self._draw_legend()
 
         pygame.display.flip()
@@ -135,12 +149,132 @@ class Renderer:
                 inner = pygame.Rect(pos[0] - 4, pos[1] - 4, 8, 8)
                 pygame.draw.rect(self.screen, (8, 8, 10), outer)
                 pygame.draw.rect(self.screen, color, inner)
+
+                # Surbrillance des feux que l'agent vient de SWITCH
+                self._draw_rl_switch_overlay(light, pos)
         else:
-            # Affichage simple quand le gestionnaire n'est pas encore branché.
             for signal in self.network.feux:
                 pos = self.gps_to_pixel(signal.lat, signal.lon)
                 pygame.draw.rect(self.screen, (220, 50, 50),
                                  (pos[0] - 4, pos[1] - 4, 8, 8))
+
+    def _draw_rl_switch_overlay(self, light, pos):
+        """Anneau cyan pulsant pendant ~3s après un SWITCH de l'agent."""
+        if self.rl_controller is None or light.group_id is None:
+            return
+
+        elapsed = self.rl_controller.time_since_switch(light.group_id)
+        if elapsed is None:
+            return
+
+        fade_duration = 3.0
+        if elapsed > fade_duration:
+            return
+
+        alpha_ratio = 1.0 - (elapsed / fade_duration)
+        radius = int(10 + 4 * alpha_ratio)
+        thickness = max(1, int(2 + alpha_ratio))
+        # Cyan vif qui s'estompe progressivement (composantes clampées 0..255)
+        ring_color = (
+            min(255, int(80 * alpha_ratio + 30)),
+            min(255, int(220 * alpha_ratio + 35)),
+            min(255, int(255 * alpha_ratio + 40)),
+        )
+        pygame.draw.circle(self.screen, ring_color, pos, radius, thickness)
+
+    def _draw_group_highlight(self):
+        """Cercle jaune autour du carrefour sélectionné."""
+        if self.selected_group_id is None or self.light_manager is None:
+            return
+        grp = self.light_manager.get_groups().get(self.selected_group_id)
+        if grp is None:
+            return
+        cx, cy = self.gps_to_pixel(grp.center_lat, grp.center_lon)
+        pygame.draw.circle(self.screen, (255, 220, 80), (cx, cy), 28, 3)
+        pygame.draw.circle(self.screen, (255, 220, 80), (cx, cy), 4)
+
+    def _draw_group_inspector(self):
+        """Panneau d'inspection détaillée du carrefour sélectionné."""
+        if self.selected_group_id is None or self.light_manager is None:
+            return
+        if self.font is None:
+            return
+
+        gid = self.selected_group_id
+        grp = self.light_manager.get_groups().get(gid)
+        if grp is None:
+            return
+
+        lights_A = self.light_manager.get_group_lights(gid, "A")
+        lights_B = self.light_manager.get_group_lights(gid, "B")
+
+        # On résume l'état de chaque phase
+        def phase_summary(lights):
+            if not lights:
+                return "—"
+            l = lights[0]
+            return (f"{l.state.value:<6} "
+                    f"({l.time_in_phase:5.1f}s / "
+                    f"reste {l.time_remaining:5.1f}s)")
+
+        lines = [
+            f"CARREFOUR #{gid}",
+            f"GPS : {grp.center_lat:.5f}, {grp.center_lon:.5f}",
+            f"Feux : {len(lights_A)} (phase A)  +  {len(lights_B)} (phase B)",
+            f"Phase A : {phase_summary(lights_A)}",
+            f"Phase B : {phase_summary(lights_B)}",
+        ]
+
+        # Files d'attente courantes (depuis les métriques)
+        if self.metrics is not None and self.metrics.latest_observation is not None:
+            obs_by_id = self.metrics.latest_observation.lights
+            queue_A = sum(obs_by_id[l.node_id].queue_length
+                          for l in lights_A if l.node_id in obs_by_id)
+            queue_B = sum(obs_by_id[l.node_id].queue_length
+                          for l in lights_B if l.node_id in obs_by_id)
+            wait_A = max((obs_by_id[l.node_id].oldest_wait_s
+                          for l in lights_A if l.node_id in obs_by_id),
+                         default=0.0)
+            wait_B = max((obs_by_id[l.node_id].oldest_wait_s
+                          for l in lights_B if l.node_id in obs_by_id),
+                         default=0.0)
+            lines.append(f"File A : {queue_A:>3} véh   "
+                         f"attente max : {wait_A:5.1f}s")
+            lines.append(f"File B : {queue_B:>3} véh   "
+                         f"attente max : {wait_B:5.1f}s")
+
+        # Infos agent RL si présent
+        if self.rl_controller is not None:
+            elapsed = self.rl_controller.time_since_switch(gid)
+            if elapsed is None:
+                lines.append("Agent RL : aucun SWITCH récent")
+            else:
+                lines.append(f"Agent RL : SWITCH il y a {elapsed:.1f}s")
+
+        lines.append("")
+        lines.append("Clic droit pour désélectionner")
+
+        # Rendu du panneau en bas-droite
+        text_surfs = [
+            self.font.render(line, True, (220, 225, 240))
+            for line in lines
+        ]
+        bg_width  = max(s.get_width() for s in text_surfs) + 20
+        bg_height = sum(s.get_height() for s in text_surfs) + 14
+        x = self.width - bg_width - 10
+        y = self.height - bg_height - 30
+
+        bg = pygame.Surface((bg_width, bg_height))
+        bg.set_alpha(200)
+        bg.fill((10, 12, 18))
+        self.screen.blit(bg, (x, y))
+        pygame.draw.rect(self.screen, (255, 220, 80),
+                         (x, y, bg_width, bg_height), 1)
+
+        cy = y + 7
+        for surf in text_surfs:
+            self.screen.blit(surf, (x + 10, cy))
+            cy += surf.get_height()
 
     def _draw_crossings(self):
         for crossing in self.network.passages:
@@ -248,6 +382,17 @@ class Renderer:
                     f"ρ max : {live['max_saturation']:.2f}  |  "
                     f"Pression max : {live['max_pressure']:.1f}"
                 )
+            if self.rl_controller is not None:
+                rl_stats = self.rl_controller.stats()
+                hud_lines.append(
+                    f"Agent RL  |  "
+                    f"Q-table : {rl_stats['qtable_size']} états  |  "
+                    f"KEEP : {rl_stats['keep_count']}  |  "
+                    f"SWITCH : {rl_stats['switch_count']} "
+                    f"({rl_stats['switch_ratio'] * 100:.0f}%)  |  "
+                    f"prochaine décision dans "
+                    f"{max(0.0, rl_stats['step_dt'] - rl_stats['since_decision']):.1f}s"
+                )
         else:
             hud_text = (
                 f"Temps : {mins:02d}:{secs:02d}  |  "
@@ -271,7 +416,10 @@ class Renderer:
             self.screen.blit(surf, (15, y))
             y += surf.get_height()
 
-        keys_text = "WASD/Flèches: pan  |  Molette: zoom  |  R: reset vue  |  +/-: vitesse  |  N: nouveau véhicule  |  Échap: quitter"
+        keys_text = ("WASD/Flèches: pan  |  Molette: zoom  |  R: reset vue  |  "
+                     "+/-: vitesse  |  N: nouveau véhicule  |  "
+                     "Clic gauche: inspecter feu/voiture  |  Clic droit: désélectionner  |  "
+                     "Échap: quitter")
         k_surf = self.font_small.render(keys_text, True, (130, 135, 150))
         self.screen.blit(k_surf, (10, self.height - 20))
 
@@ -337,7 +485,11 @@ class Renderer:
                 elif event.button == 5:
                     self.zoom /= 1.15
                 elif event.button == 1:
-                    self._try_select_vehicle(event.pos)
+                    if not self._try_select_vehicle(event.pos):
+                        self._try_select_group(event.pos)
+                elif event.button == 3:
+                    self.selected_vehicle_id = None
+                    self.selected_group_id = None
 
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
@@ -359,10 +511,10 @@ class Renderer:
 
         return actions
 
-    def _try_select_vehicle(self, mouse_pos):
-        """Sélectionne le véhicule le plus proche du clic."""
+    def _try_select_vehicle(self, mouse_pos) -> bool:
+        """Sélectionne le véhicule le plus proche du clic. True si trouvé."""
         if self.vehicle_manager is None:
-            return
+            return False
         best_id   = None
         best_dist = 15  # pixels
         for vid, v in self.vehicle_manager.vehicles.items():
@@ -371,7 +523,32 @@ class Renderer:
             if d < best_dist:
                 best_dist = d
                 best_id = vid
-        self.selected_vehicle_id = best_id
+        if best_id is not None:
+            self.selected_vehicle_id = best_id
+            self.selected_group_id = None
+            return True
+        return False
+
+    def _try_select_group(self, mouse_pos) -> bool:
+        """Sélectionne le carrefour (IntersectionGroup) le plus proche du clic."""
+        if self.light_manager is None:
+            return False
+        groups = self.light_manager.get_groups()
+        if not groups:
+            return False
+        best_id   = None
+        best_dist = 60  # pixels
+        for gid, grp in groups.items():
+            gx, gy = self.gps_to_pixel(grp.center_lat, grp.center_lon)
+            d = math.hypot(gx - mouse_pos[0], gy - mouse_pos[1])
+            if d < best_dist:
+                best_dist = d
+                best_id = gid
+        if best_id is not None:
+            self.selected_group_id = best_id
+            self.selected_vehicle_id = None
+            return True
+        return False
 
    
 

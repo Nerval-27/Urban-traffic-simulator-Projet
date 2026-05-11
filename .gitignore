@@ -1,8 +1,6 @@
 
 .DS_Store
 Thumbs.db
-
-
 __pycache__/
 *.py[cod]
 *.pyo
@@ -14,22 +12,31 @@ __pycache__/
 .coverage
 htmlcov/
 
+.venv/
+venv/
+env/
 
-
-
+# Editeurs / IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.toc
+*.out
+*.aex
+_minted-*
+
+results/
 
 *.log
 logs/
-
-
-results/
-resuts/
-
-
 *.tmp
 *.bak

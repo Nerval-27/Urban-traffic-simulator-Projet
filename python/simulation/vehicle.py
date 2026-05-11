@@ -3,9 +3,9 @@
 import random
 from typing import Dict, List, Optional, Set, Tuple
 
-from graph import RoadGraph, haversine
-from traffic_light_manager import TrafficLightManager
-from vehicle_constants import (
+from simulation.graph import RoadGraph, haversine
+from simulation.lights import TrafficLightManager
+from simulation.vehicle_constants import (
     CONGESTION_BRAKING_PENALTY,
     CONGESTION_QUEUE_PENALTY,
     CONGESTION_ROAD_FACTOR,
@@ -16,11 +16,11 @@ from vehicle_constants import (
     MIN_SPEED,
     QUEUE_RELEASE_COOLDOWN,
 )
-from vehicle_geometry import _apply_speed, _speed_for_gap
-from vehicle_intersections import VehicleIntersectionMixin
-from vehicle_model import Vehicle, VehicleState
-from vehicle_motion import VehicleMotionMixin
-from vehicle_queues import VehicleQueueMixin
+from simulation.vehicle_geometry import _apply_speed, _speed_for_gap
+from simulation.vehicle_intersections import VehicleIntersectionMixin
+from simulation.vehicle_model import Vehicle, VehicleState
+from simulation.vehicle_motion import VehicleMotionMixin
+from simulation.vehicle_queues import VehicleQueueMixin
 
 
 class VehicleManager(VehicleQueueMixin,
