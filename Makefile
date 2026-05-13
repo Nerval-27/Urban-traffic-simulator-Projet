@@ -13,13 +13,15 @@ MAP_CLEAN   := $(DATA_DIR)/map_clean.json
 REQ_FILE    := $(SRC_DIR)/requirements.txt
 
 .DEFAULT_GOAL := help
-RL_EPISODES   ?= 30
-RL_MAX_TIME   ?= 120
-RL_VEHICLES   ?= 80
+RL_EPISODES   ?= 80
+RL_MAX_TIME   ?= 180
+RL_VEHICLES   ?= 100
+RL_SEED_BASE  ?= 42
 
 BENCH_TIME     ?= 300
 BENCH_VEHICLES ?= 100
 BENCH_QTABLE   ?= results/q_table.json
+BENCH_SEEDS    ?= 42,43,44
 
 .PHONY: help venv install setup fetch build data run console clean reset-venv check test rl-demo rl-train rl-bench rl-run rl-all all
 
@@ -47,10 +49,10 @@ help:
 	@echo "Apprentissage par renforcement :"
 	@echo "  make rl-demo    Test rapide de l'environnement RL (politique aléatoire)"
 	@echo "  make rl-train   Entraîner l'agent Q-learning"
-	@echo "                  Variables : RL_EPISODES=$(RL_EPISODES) RL_MAX_TIME=$(RL_MAX_TIME) RL_VEHICLES=$(RL_VEHICLES)"
-	@echo "                  Exemple   : make rl-train RL_EPISODES=50 RL_MAX_TIME=300"
+	@echo "                  Variables : RL_EPISODES=$(RL_EPISODES) RL_MAX_TIME=$(RL_MAX_TIME) RL_VEHICLES=$(RL_VEHICLES) RL_SEED_BASE=$(RL_SEED_BASE)"
+	@echo "                  Exemple   : make rl-train RL_EPISODES=200 RL_MAX_TIME=300 RL_VEHICLES=100"
 	@echo "  make rl-bench   Comparer Baseline (cycles fixes) vs RL (Q-learning)"
-	@echo "                  Variables : BENCH_TIME=$(BENCH_TIME) BENCH_VEHICLES=$(BENCH_VEHICLES) BENCH_QTABLE=$(BENCH_QTABLE)"
+	@echo "                  Variables : BENCH_TIME=$(BENCH_TIME) BENCH_VEHICLES=$(BENCH_VEHICLES) BENCH_SEEDS=$(BENCH_SEEDS)"
 	@echo "  make rl-all     Pipeline complet : entraînement + benchmark"
 	@echo ""
 	@echo "Maintenance :"
@@ -145,7 +147,8 @@ rl-train: install
 	fi
 	@echo " Entraînement Q-learning : $(RL_EPISODES) épisodes de $(RL_MAX_TIME)s"
 	@cd $(SRC_DIR) && $(abspath $(VENV_PYTHON)) -m rl.train $(RL_EPISODES) \
-	    --max-time $(RL_MAX_TIME) --vehicles $(RL_VEHICLES)
+	    --max-time $(RL_MAX_TIME) --vehicles $(RL_VEHICLES) \
+	    --seed-base $(RL_SEED_BASE)
 
 rl-bench: install
 	@if [ ! -f "$(MAP_CLEAN)" ]; then \
@@ -160,7 +163,8 @@ rl-bench: install
 	@echo " Benchmark Baseline vs RL : $(BENCH_TIME)s, $(BENCH_VEHICLES) véhicules"
 	@cd $(SRC_DIR) && $(abspath $(VENV_PYTHON)) -m rl.benchmark \
 	    --qtable $(abspath $(BENCH_QTABLE)) \
-	    --max-time $(BENCH_TIME) --vehicles $(BENCH_VEHICLES)
+	    --max-time $(BENCH_TIME) --vehicles $(BENCH_VEHICLES) \
+	    --seeds $(BENCH_SEEDS)
 
 rl-run: install
 	@if [ ! -f "$(MAP_CLEAN)" ]; then \

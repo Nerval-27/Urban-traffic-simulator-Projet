@@ -10,6 +10,7 @@ from rl.env import (
     NB_ACTIONS as ENV_NB_ACTIONS,
     LONG_WAIT, default_map_path,
 )
+from rl.train import episode_seed
 
 
 class TestQLearningAgent(unittest.TestCase):
@@ -99,15 +100,21 @@ class TestRLEnv(unittest.TestCase):
     def test_observation_a_bonnes_cles(self):
         obs = self.env.reset()
         sample = next(iter(obs.values()))
-        attendu = {"queue_A", "queue_B", "phase", "state",
-                   "time_in_phase", "waiting_long", "state_tuple"}
+        attendu = {
+            "queue_A", "queue_B", "approach_A", "approach_B",
+            "arrival_A", "arrival_B", "service_A", "service_B",
+            "saturation_A", "saturation_B", "pressure_A", "pressure_B",
+            "oldest_wait_A", "oldest_wait_B", "phase", "state", "stage",
+            "time_in_phase", "time_remaining", "waiting_long",
+            "switch_requested", "state_tuple",
+        }
         self.assertEqual(set(sample.keys()), attendu)
 
     def test_state_tuple_est_4uplet_entiers(self):
         obs = self.env.reset()
         sample = next(iter(obs.values()))
         st = sample["state_tuple"]
-        self.assertEqual(len(st), 4)
+        self.assertEqual(len(st), 8)
         for v in st:
             self.assertIsInstance(v, int)
 
@@ -126,6 +133,62 @@ class TestRLEnv(unittest.TestCase):
 
     def test_long_wait_constant(self):
         self.assertEqual(LONG_WAIT, 30.0)
+
+    def test_seed_change_a_chaque_episode(self):
+        self.assertEqual(episode_seed(42, 1), 42)
+        self.assertEqual(episode_seed(42, 2), 43)
+        self.assertEqual(episode_seed(100, 5), 104)
+
+    def test_penalite_plus_forte_si_file_explose(self):
+        self.env.reset()
+        obs = {
+            "queue_A": 4,
+            "queue_B": 0,
+            "pressure_A": 0.0,
+            "pressure_B": 0.0,
+        }
+        before = {"carrefour_test": {"queue": 0, "pressure": 0.0}}
+
+        penalty = self.env._worsening_penalty(
+            "carrefour_test",
+            obs,
+            before,
+        )
+
+        self.assertGreater(penalty, 4 * 1.5)
+
+    def test_phases_conflictuelles_jamais_vertes_ensemble(self):
+        self.env.reset()
+
+        for _ in range(120):
+            for gid in self.env.group_ids()[::9]:
+                self.env.light_manager.request_phase_switch(gid)
+            self.env.light_manager.update(0.5)
+            self._assert_no_conflicting_green()
+
+    def test_extension_garde_les_phases_synchronisees(self):
+        self.env.reset()
+
+        for _ in range(80):
+            for gid in self.env.group_ids()[::11]:
+                self.env.light_manager.extend_green(gid, 5.0)
+            self.env.light_manager.update(0.5)
+            self._assert_no_conflicting_green()
+
+    def _assert_no_conflicting_green(self):
+        manager = self.env.light_manager
+        for gid in self.env.group_ids():
+            lights_A = manager.get_group_lights(gid, "A")
+            lights_B = manager.get_group_lights(gid, "B")
+            if not lights_A or not lights_B:
+                continue
+
+            green_A = any(light.is_green() for light in lights_A)
+            green_B = any(light.is_green() for light in lights_B)
+            self.assertFalse(
+                green_A and green_B,
+                f"Phases A et B vertes ensemble au carrefour {gid}",
+            )
 
 
 if __name__ == "__main__":

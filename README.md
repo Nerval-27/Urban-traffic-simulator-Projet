@@ -1,196 +1,312 @@
 # Simulateur de trafic urbain - Paris 13e
 
-Simulation de trafic sur le reseau routier reel du 13e arrondissement de
-Paris (donnees OSM), avec un agent Q-learning qui apprend a piloter les
-feux de circulation.
+Ce projet simule la circulation sur une partie du reseau routier reel du
+13e arrondissement de Paris. Les donnees viennent d'OpenStreetMap, puis sont
+nettoyees pour construire un graphe routier utilisable par le simulateur.
 
-## Resultats
+Le programme fait circuler des vehicules, gere les feux, les files d'attente,
+les intersections, les routes a sens unique et les routes a double sens. Une
+partie apprentissage par renforcement permet ensuite de comparer des feux fixes
+avec des feux adaptatifs bases sur du Q-learning.
 
-Apres 60 episodes d'entrainement (180s simules par episode), l'agent
-fait mieux que les 3 cibles fixees dans le rapport :
+Le projet est fonctionnel, mais les feux intelligents ne sont pas encore
+parfaits. Ils ameliorent nettement le debit et souvent les files, mais le gain
+sur le temps moyen de trajet reste encore trop faible dans les derniers tests.
 
-| Metrique               | Baseline | RL       | Variation | Cible  |
-|------------------------|---------:|---------:|----------:|-------:|
-| Temps moyen de trajet  | 166.1 s  | 129.3 s  | -22.1%    | -15%   |
-| File moyenne           | 35.3 veh | 2.1 veh  | -94.2%    | -20%   |
-| Debit                  | 8.5 v/min| 31.7 v/min| +274.4%  | +10%   |
+## Etat actuel
 
-Sur les 10 carrefours les plus bloques au depart, 9 finissent avec
-une file de 0 et le 10e gagne 68%.
+Dernier entrainement long teste :
 
-## Lancer
-
-```
-make setup       installe le venv et les dependances
-make data        telecharge les donnees OSM (1ere fois seulement)
-
-make run         lance la GUI Pygame avec cycles fixes
-make rl-run      lance la GUI Pygame avec l'agent RL
-make console     simulation 10s sans GUI
-
-make rl-demo     test rapide avec actions au hasard
-make rl-train    entraine l'agent
-make rl-bench    compare baseline vs RL et ecrit les recommandations
-make rl-all      train + bench enchaines
-
-make test        lance les 13 tests
-make check       verifie la syntaxe Python
-make help        liste toutes les commandes
+```text
+300 episodes
+300 s simulees par episode
+100 vehicules cibles
+1172 etats visites sur 61440 possibles
 ```
 
-On peut changer les valeurs par defaut :
+Dernier benchmark multi-seeds avec `results/q_table.json` :
 
-```
-make rl-train  RL_EPISODES=60  RL_MAX_TIME=180  RL_VEHICLES=100
-make rl-bench  BENCH_TIME=300  BENCH_VEHICLES=100
+| Metrique              | Baseline | RL       | Gain observe | Cible |
+|-----------------------|---------:|---------:|-------------:|------:|
+| Temps moyen de trajet | 169.721 s | 167.925 s | +1.1%  | +15% |
+| File moyenne          | 34.151 veh | 27.329 veh | +20.0% | +20% |
+| Debit                 | 8.024 veh/min | 10.973 veh/min | +36.8% | +10% |
+
+Verdict actuel : le benchmark global reste en echec, surtout a cause du temps
+moyen de trajet. Le debit est clairement meilleur avec le RL. La file moyenne
+est presque au seuil, mais l'arrondi masque le fait que la valeur reelle reste
+legerement sous la cible.
+
+`results/q_table_best.json` a aussi ete teste. Il donne un meilleur gain sur le
+temps moyen de trajet, mais il est moins bon sur les files et le debit. Pour le
+moment, `results/q_table.json` est donc la table la plus interessante.
+
+## Lancer le projet
+
+```bash
+make setup
+make data
+make run
 ```
 
-## Arborescence
+Commandes utiles :
 
+```bash
+make run        # simulation avec feux fixes
+make rl-run     # simulation avec l'agent Q-learning
+make console    # simulation courte sans interface graphique
+make test       # tests unitaires
+make check      # verification de la syntaxe Python
 ```
+
+Commandes pour le Q-learning :
+
+```bash
+make rl-demo
+make rl-train
+make rl-bench
+make rl-all
+```
+
+Exemple d'entrainement plus serieux :
+
+```bash
+make rl-train RL_EPISODES=300 RL_MAX_TIME=300 RL_VEHICLES=100
+```
+
+Exemple de benchmark sur plusieurs seeds :
+
+```bash
+make rl-bench BENCH_QTABLE=results/q_table.json BENCH_TIME=300 BENCH_VEHICLES=100 BENCH_SEEDS=42,43,44,45,46
+```
+
+Pour tester la meilleure table sauvegardee pendant l'entrainement :
+
+```bash
+make rl-bench BENCH_QTABLE=results/q_table_best.json BENCH_TIME=300 BENCH_VEHICLES=100 BENCH_SEEDS=42,43,44,45,46
+```
+
+## Organisation du code
+
+```text
 python/
-  simulation/      moteur de simulation
-    models.py, loader.py, graph.py, utils.py
-    lights.py            feux de circulation + cycles A/B
-    metrics.py           mesures (debit, files, attentes)
-    vehicle.py           VehicleManager
-    vehicle_*.py         physique des vehicules (6 fichiers)
+  simulation/
+    graph.py              graphe routier et Dijkstra
+    lights.py             feux fixes, groupes de carrefours, securite des phases
+    metrics.py            mesures de trafic
+    vehicle.py            gestionnaire des vehicules
+    vehicle_*.py          mouvement, files, intersections, geometrie
+    loader.py, models.py  chargement des donnees
+
   gui/
-    app.py               boucle Pygame
-    renderer.py          dessin de la carte / vehicules / feux
+    app.py                boucle Pygame
+    renderer.py           affichage carte, vehicules, feux, HUD
+
   rl/
-    env.py               environnement RL (reset/step) + RLController
-    agent.py             agent Q-learning
-    train.py             entrainement
-    benchmark.py         comparaison baseline vs RL
-    analysis.py          mesure des durees + recommandations
-    demo.py              test rapide
+    agent.py              agent Q-learning
+    env.py                environnement RL et controleur pour la GUI
+    train.py              entrainement
+    benchmark.py          comparaison feux fixes / feux RL
+    analysis.py           recommandations de cycles
+    demo.py               essai rapide de l'environnement
+
   data_tools/
-    fetch_osm.py         telecharge depuis Overpass API
-    clean_json.py        nettoie le JSON
-  tests/                 tests unitaires
-  main.py                mode console
+    fetch_osm.py          telechargement Overpass
+    clean_json.py         nettoyage des donnees OSM
 
-data/                    donnees OSM brutes + nettoyees
-results/                 sorties JSON
-report/                  rapport LaTeX
-Makefile                 toutes les commandes
+  tests/
+    test_rl.py            tests unitaires
 ```
 
-## Comment marche le RL
+Les fichiers generes par l'entrainement et le benchmark sont places dans
+`results/`. Ce dossier est ignore par Git.
 
-### Etat (un par carrefour)
+## Fonctionnement de la simulation
 
-4 nombres entiers (240 combinaisons possibles au total) :
-- nombre de voitures dans la file phase A     (0, 1-2, 3-5, ou 6+)
-- nombre de voitures dans la file phase B     (idem)
-- phase qui est verte ou jaune en ce moment   (5 valeurs : A vert, A jaune, B vert, B jaune, tout rouge)
-- depuis combien de temps on est dans la phase  (court, moyen, long)
+Le reseau est charge depuis `data/map_clean.json`. Le graphe contient les noeuds
+routiers, les arcs, les distances et les informations de sens de circulation.
+Les vehicules choisissent un trajet avec Dijkstra, puis avancent sur les arcs du
+graphe.
 
-### Actions
+Les vehicules gerent plusieurs situations :
 
-L'agent decide toutes les 5 secondes simulees, parmi :
-- KEEP   : on laisse le cycle se faire normalement
-- SWITCH : on coupe la phase verte (passe au jaune plus tot)
-- EXTEND : on prolonge la phase verte de 5 secondes
+- suivi du vehicule devant ;
+- arret aux feux rouges et orange ;
+- file d'attente devant les feux ;
+- reservation simple des intersections ;
+- detection des conflits dans les zones de carrefour ;
+- prise en compte des routes a sens unique et a double sens.
 
-### Recompense
+Le simulateur reste volontairement simple. Il ne cherche pas a reproduire toute
+la complexite d'une vraie circulation urbaine, mais il donne une base assez riche
+pour comparer plusieurs strategies de feux.
 
+## Feux de circulation
+
+Les feux classiques utilisent des cycles fixes. Les feux d'un meme carrefour
+sont regroupes en phases A/B pour eviter de donner le vert a deux directions
+conflictuelles.
+
+Le controleur de feux impose aussi des regles de securite :
+
+- vert minimal ;
+- jaune obligatoire ;
+- courte phase tout rouge ;
+- vert maximal ;
+- pas de passage direct d'une phase verte conflictuelle a une autre.
+
+Ces regles restent actives meme quand le Q-learning demande un changement de
+phase. L'agent peut donc proposer une action, mais le controleur garde la main
+sur la securite.
+
+## Q-learning
+
+L'agent prend une decision toutes les 5 secondes simulees pour chaque groupe de
+feux.
+
+Actions possibles :
+
+```text
+KEEP    garder le cycle courant
+SWITCH  demander un changement de phase
+EXTEND  prolonger le vert courant de 5 secondes
 ```
-penalite_attente = 2.5 * voitures_au_rouge
-penalite_passage = 0.2 * voitures_au_vert
-penalite_long    = 1.0 * nombre_d_attentes_de_plus_de_30s
-bonus            = 0.5 * voitures_arrivees_pendant_le_pas
 
-reward = -penalite_attente - penalite_passage - penalite_long + bonus
+L'etat observe par l'agent contient 8 valeurs discretisees :
+
+```text
+file phase A
+file phase B
+saturation phase A
+saturation phase B
+pression phase A
+pression phase B
+phase courante
+temps passe dans la phase
 ```
 
-L'idee : on punit surtout les voitures bloquees au rouge (celles que
-SWITCH ou EXTEND peuvent aider), pas celles qui passent deja au vert.
+La Q-table est partagee entre les carrefours. Cela veut dire qu'une situation
+apprise sur un carrefour peut servir sur les autres.
 
-### Table Q
+Formule de mise a jour :
 
-On a une seule table Q pour les 250 carrefours du reseau. Chaque case
-contient 3 valeurs :
-
-```
-Q[(file_A, file_B, phase, temps)] = [valeur_KEEP, valeur_SWITCH, valeur_EXTEND]
-```
-
-Comme l'etat est decrit pareil pour tous les carrefours, ce qui est
-appris a un carrefour sert aux autres.
-
-Mise a jour de la table Q :
-```
+```text
 Q(s,a) = Q(s,a) + alpha * (reward + gamma * max(Q(s')) - Q(s,a))
 ```
-Avec alpha=0.1, gamma=0.9, et epsilon qui passe de 1.0 a 0.05 au fil
-des episodes.
 
-## Sorties dans `results/`
+Parametres actuels de l'entrainement :
 
-| Fichier                    | Contenu                                              |
-|----------------------------|------------------------------------------------------|
-| `q_table.json`             | Table Q apprise (en JSON, lisible)                  |
-| `benchmark.json`           | Comparaison baseline vs RL sur les 3 metriques      |
-| `recommended_cycles.json`  | Pour chaque carrefour : duree de phase recommandee  |
-| `fixed_*.json`             | Snapshots de la GUI en mode cycles fixes            |
-| `rl_*.json`                | Snapshots de la GUI en mode RL                      |
-
-Exemple d'entree dans `recommended_cycles.json` :
-
-```json
-"carrefour_12": {
-  "current_fixed":  {"green_A": 35, "yellow_A": 4, "red_A": 39},
-  "rl_observed":    {"green_A_avg": 22.3, "green_A_n": 7},
-  "recommended":    {"green_A": 22, "yellow_A": 4, "red_A": 28},
-  "verdict":        "RL recommande : phase A raccourcie de 13s (35s -> 22s)",
-  "performance":    {"avg_queue_baseline": 0.84,
-                     "avg_queue_rl":       0.19,
-                     "improvement_pct":    78.0}
-}
+```text
+alpha = 0.1
+gamma = 0.9
+epsilon initial = 1.0
+epsilon minimal = 0.08
+epsilon_decay = 0.985
 ```
 
-## Controles dans la GUI
+Chaque episode utilise une seed differente. C'est important, car l'agent ne doit
+pas apprendre uniquement un seul scenario de circulation.
 
-| Touche                    | Action                                       |
-|---------------------------|----------------------------------------------|
-| WASD ou fleches           | bouge la vue                                 |
-| Molette                   | zoom                                         |
-| R                         | revient au zoom de depart                    |
-| `+` / `-`                 | accelere / ralentit la simulation            |
-| N                         | spawn un vehicule a la main                  |
-| Clic gauche               | selectionne un vehicule ou un carrefour      |
-| Clic droit                | deselectionne                                |
-| Echap                     | quitte (et ecrit les stats)                  |
+## Recompense RL
 
-En mode RL (`make rl-run`), un cercle bleu s'allume autour des feux
-que l'agent vient de toucher. Le HUD affiche le nombre de decisions
-KEEP / SWITCH / EXTEND prises depuis le debut.
+La recompense cherche a eviter les longues files et a faire passer plus de
+vehicules. Elle tient compte de :
+
+- la pression du cote rouge ;
+- la pression du cote vert ;
+- le temps d'attente maximal ;
+- la saturation des files ;
+- le temps moyen passe par les vehicules dans le reseau ;
+- la proportion de vehicules arretes ;
+- les carrefours qui empirent entre deux decisions ;
+- les actions inutiles ou prises au mauvais moment.
+
+L'objectif n'est donc pas seulement de changer les feux souvent. L'agent doit
+apprendre quand il vaut mieux garder une phase, quand il faut changer, et quand
+il faut prolonger un vert.
+
+## Benchmark
+
+Le benchmark compare deux conditions :
+
+```text
+Baseline : feux fixes
+RL       : feux controles par la Q-table
+```
+
+Les deux conditions sont lancees sur les memes seeds. Le benchmark mesure :
+
+- temps moyen de trajet ;
+- file moyenne ;
+- debit ;
+- carrefours ameliores ;
+- carrefours qui empirent.
+
+Le verdict global est valide seulement si les trois cibles sont atteintes en
+meme temps. Dans l'etat actuel, le debit passe largement, les files sont proches
+du seuil, mais le temps moyen de trajet reste insuffisant.
+
+## Fichiers dans `results/`
+
+```text
+q_table.json             derniere Q-table entrainee
+q_table_best.json        meilleure Q-table observee pendant l'entrainement
+benchmark.json           detail du dernier benchmark
+recommended_cycles.json  recommandations de cycles par carrefour
+```
+
+Ces fichiers changent apres les entrainements et les benchmarks.
 
 ## Dependances
 
-Listees dans `python/requirements.txt` :
+Le projet utilise :
 
-- `pygame`     pour la GUI
-- `requests`   pour appeler l'API Overpass
-- `matplotlib` (peu utilise)
+- `pygame` pour l'interface graphique ;
+- `requests` pour telecharger les donnees OSM avec Overpass ;
+- `matplotlib`, peu utilise actuellement.
 
-Tout est en Python standard. Pas de TensorFlow, pas de PyTorch, pas
-de gym. La table Q est un dictionnaire Python sauvegarde en JSON.
+La simulation et le Q-learning restent en Python classique. Il n'y a pas de
+TensorFlow, pas de PyTorch et pas de Gym.
+
+L'API Overpass est utilisee seulement pour recuperer les donnees OSM avec
+`make data` ou `make fetch`. Une fois `data/map_clean.json` present, la
+simulation fonctionne avec les fichiers locaux.
 
 ## Tests
 
-Les 13 tests verifient :
-- creation de l'agent, choix d'action, mise a jour, sauvegarde et
-  chargement de la table Q
-- environnement RL : reset, step, format des observations, constantes
+Les tests couvrent surtout la partie RL et la securite des feux :
 
-Lancement : `make test` (~2 secondes).
+- creation et sauvegarde de l'agent Q-learning ;
+- choix d'action et mise a jour de la Q-table ;
+- format des observations de l'environnement RL ;
+- changement de seed pendant l'entrainement ;
+- penalite quand une file empire brusquement ;
+- absence de phases conflictuelles vertes en meme temps.
+
+Lancement :
+
+```bash
+make test
+```
+
+## Limites connues
+
+Le projet est utilisable pour une demonstration et pour comparer les strategies
+de feux, mais il reste des limites :
+
+- le Q-learning ne reduit pas encore assez le temps moyen de trajet ;
+- certains carrefours peuvent encore empirer avec la politique RL ;
+- la coordination entre carrefours voisins reste limitee ;
+- le modele de conduite reste simplifie ;
+- les resultats dependent beaucoup de l'entrainement lance.
+
+La suite logique serait de renforcer la recompense sur le temps de trajet, de
+mieux proteger les carrefours qui empirent et d'ajouter une coordination entre
+carrefours proches.
 
 ## Auteurs
 
-- GBAGUIDI Nerval (nerval.gbaguidi@etu.u-paris.fr)
-- LENGRAI Jordan (jordan.lengrai@etu.u-paris.fr)
+- GBAGUIDI Nerval
+- LENGRAI Jordan
 
 Programmation avancee 2025, Universite Paris Cite.
