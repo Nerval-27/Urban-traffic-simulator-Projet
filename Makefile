@@ -147,7 +147,8 @@ rl-train: install
 	fi
 	@echo " Entraînement Q-learning : $(RL_EPISODES) épisodes de $(RL_MAX_TIME)s"
 	@cd $(SRC_DIR) && $(abspath $(VENV_PYTHON)) -m rl.train $(RL_EPISODES) \
-	    --max-time $(RL_MAX_TIME) --vehicles $(RL_VEHICLES)
+	    --max-time $(RL_MAX_TIME) --vehicles $(RL_VEHICLES) \
+	    --seed-base $(RL_SEED_BASE)
 
 rl-bench: install
 	@if [ ! -f "$(MAP_CLEAN)" ]; then \
@@ -162,7 +163,8 @@ rl-bench: install
 	@echo " Benchmark Baseline vs RL : $(BENCH_TIME)s, $(BENCH_VEHICLES) véhicules"
 	@cd $(SRC_DIR) && $(abspath $(VENV_PYTHON)) -m rl.benchmark \
 	    --qtable $(abspath $(BENCH_QTABLE)) \
-	    --max-time $(BENCH_TIME) --vehicles $(BENCH_VEHICLES)
+	    --max-time $(BENCH_TIME) --vehicles $(BENCH_VEHICLES) \
+	    --seeds $(BENCH_SEEDS)
 
 rl-run: install
 	@if [ ! -f "$(MAP_CLEAN)" ]; then \

@@ -125,5 +125,65 @@ class TestRLEnv(unittest.TestCase):
         self.assertEqual(LONG_WAIT, 30.0)
 
 
+class TestBenchmarkVerdict(unittest.TestCase):
+    """Verifie que le verdict est nuance et pas trompeur."""
+
+    def setUp(self):
+        from rl.benchmark import _build_verdict
+        self.build = _build_verdict
+
+    def _row(self, improvement, target, passed):
+        return {"improvement": improvement, "target": target, "passed": passed}
+
+    def test_succes_global_quand_tout_passe(self):
+        rows = [
+            self._row(0.20, 0.15, True),
+            self._row(0.30, 0.20, True),
+            self._row(0.40, 0.10, True),
+        ]
+        v = self.build(rows)
+        self.assertEqual(v["verdict"], "SUCCES GLOBAL")
+        self.assertEqual(v["passed"], 3)
+        self.assertTrue(v["all_pass"])
+
+    def test_succes_majoritaire_si_2_sur_3_passent_et_tout_progresse(self):
+        rows = [
+            self._row(0.10, 0.15, False),  # FAIL mais positif
+            self._row(0.30, 0.20, True),
+            self._row(0.40, 0.10, True),
+        ]
+        v = self.build(rows)
+        self.assertEqual(v["verdict"], "SUCCES MAJORITAIRE")
+        self.assertEqual(v["passed"], 2)
+
+    def test_progres_partiel_si_1_sur_3_et_tout_progresse(self):
+        rows = [
+            self._row(0.05, 0.15, False),
+            self._row(0.10, 0.20, False),
+            self._row(0.40, 0.10, True),
+        ]
+        v = self.build(rows)
+        self.assertEqual(v["verdict"], "PROGRES PARTIEL")
+        self.assertEqual(v["passed"], 1)
+
+    def test_progres_detecte_si_aucune_cible_mais_tout_dans_le_bon_sens(self):
+        rows = [
+            self._row(0.05, 0.15, False),
+            self._row(0.10, 0.20, False),
+            self._row(0.05, 0.10, False),
+        ]
+        v = self.build(rows)
+        self.assertEqual(v["verdict"], "PROGRES DETECTE (sous cible)")
+
+    def test_echec_si_une_metrique_regresse(self):
+        rows = [
+            self._row(0.30, 0.15, True),
+            self._row(-0.05, 0.20, False),  # regression !
+            self._row(0.40, 0.10, True),
+        ]
+        v = self.build(rows)
+        self.assertEqual(v["verdict"], "ECHEC")
+
+
 if __name__ == "__main__":
     unittest.main()
