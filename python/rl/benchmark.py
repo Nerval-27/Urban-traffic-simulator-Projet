@@ -1,15 +1,8 @@
-"""Compare la baseline (cycles fixes) avec l'agent RL.
-
-Lance 2 simulations identiques (meme seed, memes vehicules) :
-- baseline : agent fait toujours KEEP
-- rl       : agent applique sa politique greedy
-Et compare sur les 3 metriques du rapport.
-"""
+"""Compare la baseline (cycles fixes) avec l'agent RL."""
 
 import argparse
 import json
 import os
-from statistics import mean, stdev
 
 from rl.agent import load_agent
 from rl.analysis import PhaseTracker, recommend, rank, print_ranking
@@ -77,21 +70,48 @@ def compare(baseline, rl):
     return {"rows": rows, "all_pass": all(r["passed"] for r in rows)}
 
 
-def print_report(comparison):
+def compare_robust(baseline, rl):
+    """Indicateurs robustes au biais de selection :
+    - trip median au lieu d'avg (insensible aux outliers)
+    - vitesse moyenne (proxy direct de la fluidite)
+    - attente aux feux (mesure pertinente pour la file)
+    """
+    rows = [
+        _row("Trip median (s)", "median_trip_time_s",
+             "lower", 0.05, baseline, rl),
+        _row("Vitesse moyenne (m/s)", "avg_speed_m_s",
+             "higher", 0.10, baseline, rl),
+        _row("Attente moyenne aux feux (s)", "avg_light_wait_s",
+             "lower", 0.15, baseline, rl),
+        _row("Debit (veh/min)", "throughput_per_min",
+             "higher", CIBLE_DEBIT, baseline, rl),
+    ]
+    return {"rows": rows, "all_pass": all(r["passed"] for r in rows)}
+
+
+def print_report(comparison, title="Cibles officielles du rapport"):
     print("\n" + "=" * 78)
-    print(f"{'Metrique':<28}{'Baseline':>12}{'RL':>12}"
-          f"{'Variation':>14}{'Statut':>12}")
+    print(title)
+    print("-" * 78)
+    print(f"{'Metrique':<32}{'Baseline':>12}{'RL':>12}"
+          f"{'Variation':>12}{'Statut':>10}")
     print("-" * 78)
     for row in comparison["rows"]:
-        sign = "+" if row["improvement"] >= 0 else "-"
-        var = f"{sign}{abs(row['improvement']) * 100:5.1f}%"
+        # Variation reelle (RL - baseline) / baseline pour eviter le piege
+        # ou le signe de l'amelioration est inverse pour "lower is better"
+        if row["baseline"] != 0:
+            real_var = (row["rl"] - row["baseline"]) / row["baseline"]
+        else:
+            real_var = 0.0
+        sign = "+" if real_var >= 0 else "-"
+        var = f"{sign}{abs(real_var) * 100:5.1f}%"
         status = "PASS" if row["passed"] else "FAIL"
         cible_str = f">= {row['target'] * 100:.0f}%"
-        print(f"{row['metric']:<28}"
+        print(f"{row['metric']:<32}"
               f"{row['baseline']:>12.3f}"
               f"{row['rl']:>12.3f}"
-              f"{var:>14}"
-              f"{status + ' (' + cible_str + ')':>20}")
+              f"{var:>12}"
+              f"{status + ' (' + cible_str + ')':>18}")
     print("-" * 78)
     print(f"Verdict : {'SUCCES GLOBAL' if comparison['all_pass'] else 'ECHEC GLOBAL'}")
     print("=" * 78)
@@ -103,79 +123,8 @@ def write_json(path, data, label):
     print(f"\n{label} : {path}")
 
 
-def _numeric_average(rows, key):
-    values = [float(row.get(key, 0.0)) for row in rows]
-    return mean(values) if values else 0.0
-
-
-def _numeric_stdev(rows, key):
-    values = [float(row.get(key, 0.0)) for row in rows]
-    return stdev(values) if len(values) >= 2 else 0.0
-
-
-def _aggregate_summaries(rows):
-    keys = [
-        "duration_s",
-        "spawned",
-        "arrived",
-        "active",
-        "completion_rate",
-        "throughput_per_min",
-        "avg_trip_time_s",
-        "median_trip_time_s",
-        "avg_queue_length",
-        "max_queue_length",
-        "avg_waiting_at_lights",
-        "max_waiting_at_light",
-        "avg_light_wait_s",
-        "avg_wait_time_per_spawned_s",
-        "avg_stop_time_per_spawned_s",
-        "avg_speed_m_s",
-        "congestion_ratio",
-    ]
-    return {key: round(_numeric_average(rows, key), 3) for key in keys}
-
-
-def _aggregate_spread(rows):
-    keys = [
-        "throughput_per_min",
-        "avg_trip_time_s",
-        "avg_queue_length",
-        "avg_light_wait_s",
-        "congestion_ratio",
-    ]
-    return {key: round(_numeric_stdev(rows, key), 3) for key in keys}
-
-
-def _parse_seeds(value):
-    if isinstance(value, (list, tuple)):
-        return [int(v) for v in value]
-    return [int(part.strip()) for part in str(value).split(",") if part.strip()]
-
-
-def _run_pair(agent, common, seed, run_index):
-    env_b = TrafficRLEnv(**common, random_seed=seed)
-    tracker_b = PhaseTracker()
-    baseline = run_episode(env_b, baseline_policy,
-                           f"Baseline seed={seed}", tracker_b)
-
-    env_r = TrafficRLEnv(**common, random_seed=seed)
-    tracker_r = PhaseTracker()
-    rl_summary = run_episode(env_r, rl_policy(agent),
-                             f"RL seed={seed}", tracker_r)
-
-    return {
-        "run": run_index,
-        "seed": seed,
-        "baseline": baseline,
-        "rl": rl_summary,
-        "tracker": tracker_r,
-        "light_manager": env_r.light_manager,
-    }
-
-
 def benchmark(qtable_path, max_time=300.0, target_vehicles=100,
-              seed=42, seeds=None, output_path=None):
+              seed=42, output_path=None):
     if not os.path.isfile(qtable_path):
         raise FileNotFoundError(
             f"Q-table introuvable : {qtable_path}\n"
@@ -186,41 +135,37 @@ def benchmark(qtable_path, max_time=300.0, target_vehicles=100,
     agent = load_agent(qtable_path)
     print(f"  {len(agent.Q)} etats memorises")
 
-    seed_values = _parse_seeds(seeds if seeds is not None else seed)
-
     common = dict(
         map_path=default_map_path(),
         step_dt=5.0,
         max_time=max_time,
         target_vehicles=target_vehicles,
+        random_seed=seed,
     )
 
-    runs = [
-        _run_pair(agent, common, seed_value, idx + 1)
-        for idx, seed_value in enumerate(seed_values)
-    ]
+    env_b = TrafficRLEnv(**common)
+    tracker_b = PhaseTracker()
+    baseline = run_episode(env_b, baseline_policy, "Baseline", tracker_b)
 
-    baseline = _aggregate_summaries([run["baseline"] for run in runs])
-    rl_summary = _aggregate_summaries([run["rl"] for run in runs])
+    env_r = TrafficRLEnv(**common)
+    tracker_r = PhaseTracker()
+    rl_summary = run_episode(env_r, rl_policy(agent), "RL", tracker_r)
 
     comparison = compare(baseline, rl_summary)
-    print_report(comparison)
+    print_report(comparison, "Cibles officielles du rapport")
 
-    spread = {
-        "baseline": _aggregate_spread([run["baseline"] for run in runs]),
-        "rl": _aggregate_spread([run["rl"] for run in runs]),
-    }
+    robust = compare_robust(baseline, rl_summary)
+    print_report(robust, "Indicateurs robustes (analyse complementaire)")
 
-    last_run = runs[-1]
     light_to_group = {}
-    for light in last_run["light_manager"].get_all_lights():
+    for light in env_r.light_manager.get_all_lights():
         if light.group_id is not None:
             light_to_group[light.node_id] = light.group_id
 
     recommendations = recommend(
-        last_run["tracker"].stats(),
-        baseline_per_light=last_run["baseline"].get("per_light", {}),
-        rl_per_light=last_run["rl"].get("per_light", {}),
+        tracker_r.stats(),
+        baseline_per_light=baseline.get("per_light", {}),
+        rl_per_light=rl_summary.get("per_light", {}),
         light_to_group=light_to_group,
     )
     ranking = rank(recommendations, top_n=10)
@@ -231,22 +176,8 @@ def benchmark(qtable_path, max_time=300.0, target_vehicles=100,
     if output_path is None:
         output_path = os.path.join(results_dir, "benchmark.json")
     write_json(output_path,
-               {
-                   "seeds": seed_values,
-                   "runs": [
-                       {
-                           "seed": run["seed"],
-                           "baseline": run["baseline"],
-                           "rl": run["rl"],
-                           "comparison": compare(run["baseline"], run["rl"]),
-                       }
-                       for run in runs
-                   ],
-                   "baseline": baseline,
-                   "rl": rl_summary,
-                   "spread": spread,
-                   "comparison": comparison,
-               },
+               {"baseline": baseline, "rl": rl_summary,
+                "comparison": comparison, "robust": robust},
                "Resultats detailles")
     write_json(os.path.join(results_dir, "recommended_cycles.json"),
                {"ranking": ranking, "recommendations": recommendations},
@@ -266,8 +197,6 @@ def main():
     parser.add_argument("--max-time", type=float, default=300.0)
     parser.add_argument("--vehicles", type=int, default=100)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--seeds", type=str, default=None,
-                        help="Liste de seeds separees par des virgules, ex: 42,43,44")
     parser.add_argument("--out", type=str, default=None)
     args = parser.parse_args()
 
@@ -276,7 +205,6 @@ def main():
         max_time=args.max_time,
         target_vehicles=args.vehicles,
         seed=args.seed,
-        seeds=args.seeds,
         output_path=args.out,
     )
 

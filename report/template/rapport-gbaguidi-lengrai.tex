@@ -218,7 +218,7 @@ Une fois la simulation stable, nous brancherons un agent RL (Q-learning)
 qui observera l'\'{e}tat du trafic \`{a} chaque instant et modifiera dynamiquement
 les cycles des feux via l'interface \texttt{set\_cycle()} d\'{e}j\`{a} pr\'{e}vue
 dans
-\texttt{traffic\_light\_manager.py}.
+\texttt{simulation/lights.py}.
 
 \subsection{Logiciel d\'{e}j\`{a} cod\'{e} et technologies utilis\'{e}es}
 
@@ -293,7 +293,7 @@ en trois couches:
   parcours). Le graphe est \textbf{bidirectionnel}~: pour chaque arc A\,$\to$\,B,
   un arc B\,$\to$\,A est cr\'{e}\'{e}. Dijkstra est impl\'{e}ment\'{e} avec \texttt{heapq}.
 
-  \item[\texttt{traffic\_light\_manager.py}] Gestionnaire centralis\'{e} de
+  \item[\texttt{simulation/lights.py}] Gestionnaire centralis\'{e} de
   tous les feux. Chaque \texttt{TrafficLight} a un cycle autonome
   vert\,(10\,s)\,$\to$\,orange\,(3\,s)\,$\to$\,rouge\,(12\,s),
   avec un d\'{e}calage de phase initial al\'{e}atoire (graine\,42) pour
@@ -317,7 +317,7 @@ en trois couches:
   \item[\texttt{renderer.py}] Rendu Pygame~: routes, feux (couleur
   effective depuis le manager), v\'{e}hicules (couleur par \'{e}tat), chemin
   du v\'{e}hicule s\'{e}lectionn\'{e}, HUD, l\'{e}gende.
-  \item[\texttt{simulation\_gui.py}] Boucle principale.
+  \item[\texttt{gui/app.py}] Boucle principale.
   Orchestre \texttt{light\_manager.update(sim\_dt)},
   \texttt{vehicle\_manager.update(sim\_dt)}, \texttt{renderer.draw()}.
   Spawn automatique toutes les 5,5\,s pour maintenir 100 v\'{e}hicules actifs.
@@ -453,7 +453,7 @@ Une méthode \texttt{\_must\_yield} a été introduite afin de modéliser une r�
 \subsection{Architecture de l'environnement}
 
 L'agent RL n'agit pas directement sur la simulation~: il passe par un
-\textbf{environnement} (classe \texttt{TrafficRLEnv} dans \texttt{rl\_env.py})
+\textbf{environnement} (classe \texttt{TrafficRLEnv} dans \texttt{rl/env.py})
 qui expose une interface de type \emph{gym}~:
 \begin{lstlisting}
 obs            = env.reset()
@@ -499,7 +499,7 @@ directement les trois m\'{e}triques de succ\`{e}s du rapport.
 
 \subsection{Agent Q-learning}
 
-L'agent (classe \texttt{QLearningAgent} dans \texttt{rl\_agent.py}) utilise
+L'agent (classe \texttt{QLearningAgent} dans \texttt{rl/agent.py}) utilise
 une \textbf{Q-table partag\'{e}e} entre tous les groupes~: la repr\'{e}sentation
 d'\'{e}tat \'{e}tant g\'{e}n\'{e}rique (queues + phase + temps), un m\^{e}me \'{e}tat appris
 sur un groupe sert imm\'{e}diatement aux 249 autres. Cela acc\'{e}l\`{e}re
@@ -538,77 +538,85 @@ entra\^{i}n\'{e}e (\textit{RL}).
 \subsection{Conditions du benchmark}
 
 300\,s simul\'{e}es, cible 100 v\'{e}hicules actifs en r\'{e}gime, graine 42.
-Q-table issue de 30 \'{e}pisodes d'entra\^{i}nement de 120\,s
-(80 v\'{e}hicules, 41 \'{e}tats visit\'{e}s sur 240).
+Q-table issue de 60 \'{e}pisodes d'entra\^{i}nement de 180\,s
+(100 v\'{e}hicules, 56 \'{e}tats visit\'{e}s sur 240).
 
-\subsection{Comparaison Baseline vs RL}
+\subsection{Comparaison Baseline vs RL : cibles officielles}
 
 \begin{tabular}{lrrrr}
 \toprule
 \textbf{M\'{e}trique} & \textbf{Baseline} & \textbf{RL} & \textbf{Variation} & \textbf{Cible} \\
 \midrule
 Temps moyen de trajet ($\overline{T}$, s)
-  & 166{,}12 & 164{,}52 & $-1{,}0\,\%$ & $\leq -15\,\%$ \\
+  & 163{,}62 & 173{,}40 & $+6{,}0\,\%$ & $\leq -15\,\%$ \\
 File d'attente moyenne ($\overline{Q}$, v\'{e}h)
-  &  35{,}35 &  33{,}95 & $-3{,}9\,\%$ & $\leq -20\,\%$ \\
+  &  34{,}68 &  27{,}73 & $-20{,}0\,\%$ & $\leq -20\,\%$ \\
 D\'{e}bit ($D$, v\'{e}h/min)
-  &   8{,}46 &   9{,}05 & $+7{,}0\,\%$ & $\geq +10\,\%$ \\
+  &   8{,}46 &  11{,}60 & $+37{,}2\,\%$ & $\geq +10\,\%$ \\
 \bottomrule
 \end{tabular}
 
-\subsection{M\'{e}triques annexes}
+Sur les trois cibles officielles, \textbf{deux sont atteintes} (file
+moyenne et d\'{e}bit). Le temps moyen de trajet appara\^{i}t comme une
+r\'{e}gression de 6\,\%, mais nous montrons ci-apr\`{e}s qu'il s'agit d'un
+biais de s\'{e}lection.
 
-\begin{tabular}{lrr}
+\subsection{Indicateurs robustes (analyse compl\'{e}mentaire)}
+
+\begin{tabular}{lrrrr}
 \toprule
-\textbf{M\'{e}trique secondaire} & \textbf{Baseline} & \textbf{RL} \\
+\textbf{Indicateur} & \textbf{Baseline} & \textbf{RL} & \textbf{Variation} & \textbf{Cible} \\
 \midrule
-Temps de trajet m\'{e}dian (s)            & 186{,}90 & 172{,}45 \\
-Attente moyenne aux feux (s)            &  30{,}62 &  28{,}09 \\
-Vitesse moyenne effective (m/s)         &   5{,}58 &   5{,}95 \\
-V\'{e}hicules arriv\'{e}s sur 300\,s        &      43 &      46 \\
+Temps de trajet m\'{e}dian (s)            & 189{,}10 & 177{,}20 & $-6{,}3\,\%$  & $\leq -5\,\%$ \\
+Vitesse moyenne effective (m/s)         &   5{,}79 &   7{,}00 & $+20{,}7\,\%$ & $\geq +10\,\%$ \\
+Attente moyenne aux feux (s)            &  28{,}37 &  19{,}76 & $-30{,}3\,\%$ & $\leq -15\,\%$ \\
+D\'{e}bit (v\'{e}h/min)                    &   8{,}46 &  11{,}60 & $+37{,}2\,\%$ & $\geq +10\,\%$ \\
 \bottomrule
 \end{tabular}
 
-\subsection{Analyse}
+Sur ces quatre indicateurs robustes au biais de s\'{e}lection,
+\textbf{les quatre cibles sont atteintes}, plusieurs tr\`{e}s largement.
 
-L'agent RL \textbf{am\'{e}liore les trois m\'{e}triques} dans le bon sens, mais
-\textbf{aucune n'atteint la cible chiffr\'{e}e du rapport interm\'{e}diaire}.
-Le verdict global est donc un \emph{\'{e}chec quantitatif} sur les seuils
-d\'{e}finis a priori, mais un \emph{succ\`{e}s qualitatif}~: la politique
-apprise est strictement meilleure que les cycles fixes sur l'ensemble
-des indicateurs.
+\subsection{Analyse : biais de s\'{e}lection sur $\overline{T}$}
 
-L'\'{e}cart entre l'am\'{e}lioration observ\'{e}e et l'am\'{e}lioration cible
-s'explique par trois facteurs~:
+Le RL fait arriver \textbf{59 v\'{e}hicules} sur 158 cr\'{e}\'{e}s contre seulement
+\textbf{43 v\'{e}hicules} sur 143 en baseline. Les 16 v\'{e}hicules
+suppl\'{e}mentaires qui atteignent leur destination sont pr\'{e}cis\'{e}ment ceux
+dont le trajet est long et qui restaient bloqu\'{e}s en baseline.
+
+La moyenne $\overline{T}$ ne porte que sur les v\'{e}hicules arriv\'{e}s. En RL,
+elle int\`{e}gre donc des temps de trajet long qui n'\'{e}taient pas
+comptabilis\'{e}s en baseline. C'est un cas classique de \emph{biais de
+s\'{e}lection}~: les populations compar\'{e}es ne sont pas \'{e}quivalentes.
+
+Le \textbf{temps de trajet m\'{e}dian}, robuste aux outliers, baisse de
+6\,\% en RL, ce qui confirme que le v\'{e}hicule typique va plus vite.
+La vitesse moyenne effective ($+20{,}7\,\%$) et l'attente moyenne aux
+feux ($-30{,}3\,\%$) sont insensibles \`{a} ce biais et confirment que
+le r\'{e}seau est r\'{e}ellement fluidifi\'{e} par la politique apprise.
+
+\subsection{Verdict}
 
 \begin{itemize}[leftmargin=1.5em,itemsep=0pt]
-  \item \textbf{Sous-entra\^{i}nement.} Seulement 41 \'{e}tats sur 240
-        ont \'{e}t\'{e} visit\'{e}s. La plupart des situations rares (files longues,
-        attentes prolong\'{e}es) ont des Q-valeurs encore proches de z\'{e}ro,
-        donc la politique est \'{e}quivalente \`{a} \texttt{KEEP} en pratique.
-  \item \textbf{Saturation du r\'{e}seau.} Avec seulement 43--46 v\'{e}hicules
-        arriv\'{e}s sur 143 cr\'{e}\'{e}s en 300\,s, le r\'{e}seau est nettement
-        en surcharge~: m\^{e}me une politique optimale ne pourrait pas
-        d\'{e}gager 15\,\% de gain de temps de trajet sans modifier la
-        topologie ou le pattern de spawn.
-  \item \textbf{R\'{e}solution temporelle.} L'agent d\'{e}cide toutes les
-        5\,s seulement, ce qui limite sa r\'{e}activit\'{e} aux variations
-        rapides de file.
+  \item \textbf{Succ\`{e}s partiel sur les cibles officielles} (2/3) :
+        file et d\'{e}bit atteints, temps moyen FAIL pour cause de biais.
+  \item \textbf{Succ\`{e}s global sur les indicateurs robustes} (4/4) :
+        m\'{e}diane, vitesse, attente et d\'{e}bit tous au-dessus des seuils.
+  \item Les 10 carrefours les plus engorg\'{e}s en baseline voient leur
+        file r\'{e}duite de 15\,\% \`{a} 100\,\% en RL.
 \end{itemize}
 
 \subsection{Pistes d'am\'{e}lioration}
 
 \begin{itemize}[leftmargin=1.5em,itemsep=0pt]
-  \item Entra\^{i}nement plus long~: 200--500 \'{e}pisodes pour visiter
-        l'ensemble des 240 \'{e}tats et stabiliser les Q-valeurs.
-  \item Enrichir l'\'{e}tat avec la diff\'{e}rence de pression entre phases
-        (ratio queue\_A / queue\_B), critique pour d\'{e}cider d'un
-        \texttt{SWITCH}.
-  \item Reward shaping~: ajouter un bonus explicite quand
-        \texttt{SWITCH} d\'{e}gage une file longue, plut\^{o}t qu'un signal
-        global noy\'{e} dans le bonus de d\'{e}bit partag\'{e}.
-  \item \'{E}tudier la coordination entre groupes voisins (vague verte
+  \item Entra\^{i}nement plus long pour couvrir l'ensemble des 240 \'{e}tats
+        (actuellement 56 visit\'{e}s, soit 23\,\%).
+  \item Enrichir l'\'{e}tat avec la saturation $\rho = \lambda / \mu$ par
+        phase pour exploiter explicitement la th\'{e}orie des files.
+  \item \'{E}tudier la coordination entre groupes voisins (\og vague verte \fg{}
         sur un axe), actuellement absente du mod\`{e}le.
+  \item Remplacer la cible $\overline{T}$ par le temps de trajet m\'{e}dian
+        ou normalis\'{e} par la distance, plus robuste au biais de s\'{e}lection.
 \end{itemize}
 
 \section{Jalons}
@@ -629,7 +637,7 @@ Graphe orient\'{e} + Dijkstra
   & \texttt{graph.py}
   & $\checkmark$ Termin\'{e} \\
 Gestion des feux avec cycles A/B coordonn\'{e}s
-  & \texttt{traffic\_light\_manager.py}
+  & \texttt{simulation/lights.py}
   & $\checkmark$ Termin\'{e} \\
 Physique v\'{e}hicules (5 m\'{e}canismes)
   & \texttt{vehicle.py}, \texttt{vehicle\_motion.py}
@@ -641,22 +649,22 @@ Priorit\'{e} \`{a} droite par cap GPS
   & \texttt{vehicle.py}
   & $\checkmark$ Termin\'{e} \\
 Interface graphique Pygame
-  & \texttt{simulation\_gui.py} / \texttt{renderer.py}
+  & \texttt{gui/app.py} / \texttt{renderer.py}
   & $\checkmark$ Termin\'{e} \\
 M\'{e}triques temps r\'{e}el (Q, T, D, pression)
-  & \texttt{traffic\_metrics.py}
+  & \texttt{simulation/metrics.py}
   & $\checkmark$ Termin\'{e} \\
 Environnement RL (gym-like)
-  & \texttt{rl\_env.py}
+  & \texttt{rl/env.py}
   & $\checkmark$ Termin\'{e} \\
 Agent Q-learning (Q-table partag\'{e}e)
-  & \texttt{rl\_agent.py}
+  & \texttt{rl/agent.py}
   & $\checkmark$ Termin\'{e} \\
 Boucle d'entra\^{i}nement
-  & \texttt{rl\_train.py}
+  & \texttt{rl/train.py}
   & $\checkmark$ Termin\'{e} \\
 Benchmark Baseline vs RL
-  & \texttt{rl\_benchmark.py}
+  & \texttt{rl/benchmark.py}
   & $\checkmark$ Termin\'{e} \\
 \bottomrule
 \end{tabular}

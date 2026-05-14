@@ -20,8 +20,8 @@ YELLOW_B           = 4.0
 RED_B_BEFORE       = PHASE_B_OFFSET                     # 39s
 RED_B_AFTER        = CYCLE_TOTAL - RED_B_BEFORE - GREEN_B - YELLOW_B  # 12s
 
-ALL_RED_TIME       = 2.0
-MIN_GREEN_TIME     = 12.0
+ALL_RED_TIME       = 1.0
+MIN_GREEN_TIME     = 6.0
 MAX_GREEN_TIME     = 70.0
 
 INTERSECTION_RADIUS = 25.0
