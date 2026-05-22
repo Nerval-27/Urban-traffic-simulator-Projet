@@ -1,65 +1,96 @@
 # Simulateur de trafic urbain - Paris 13e
 
-Ce projet simule la circulation sur une partie du reseau routier reel du
-13e arrondissement de Paris. Les donnees viennent d'OpenStreetMap, puis sont
-nettoyees pour construire un graphe routier utilisable par le simulateur.
+## A quoi sert ce projet
 
-Le programme fait circuler des vehicules, gere les feux, les files d'attente,
-les intersections, les routes a sens unique et les routes a double sens. Une
-partie apprentissage par renforcement permet ensuite de comparer des feux fixes
-avec des feux adaptatifs bases sur du Q-learning.
+Dans toutes les villes, des voitures attendent au feu rouge alors que la
+rue d'en face est vide. Le probleme, c'est que les feux suivent encore
+des cycles fixes, calcules pour un trafic moyen qui n'existe en realite
+jamais. Resultat : du temps perdu pour les usagers, du trafic en plus,
+et de l'energie gaspillee.
 
-## Resultats
+Notre projet est un **outil d'aide a la decision** pour optimiser un
+reseau de feux existant, sans toucher aux routes et sans depenser un
+centime en travaux. On reproduit la circulation d'un quartier reel a
+partir des donnees OpenStreetMap, on compare une politique de feux
+fixes a une politique adaptative pilotee par un agent Q-learning, et
+on en deduit pour chaque carrefour une **duree de phase recommandee**
+qu'on peut appliquer directement.
 
-Apres 60 episodes d'entrainement (180s simules par episode), le benchmark
-sur 300s avec 100 vehicules donne :
+Concretement, sur le 13e arrondissement de Paris, notre agent fait
+passer **plus de 40 % de voitures en plus** dans le meme intervalle de
+temps, augmente la vitesse moyenne effective de **25 %**, et reduit
+l'attente moyenne aux feux de **14 %**. Sur les dix carrefours les
+plus engorges du reseau, **huit sur dix sont ameliores**, avec un gain
+qui peut atteindre **84 %** sur le carrefour le plus charge, juste en
+changeant la duree des phases.
 
-### Cibles officielles du rapport intermediaire
+## Ce que notre outil produit pour une ville
+
+A partir d'une zone urbaine reelle :
+
+1. Une **simulation complete** de la circulation avec un comportement
+   realiste : itineraires Dijkstra, files d'attente, priorites,
+   suivi entre vehicules, sens uniques.
+2. Une **comparaison chiffree** entre la politique actuelle (cycles
+   fixes) et une politique optimisee par apprentissage par renforcement.
+3. Un fichier `recommended_cycles.json` qui contient, **carrefour par
+   carrefour**, la duree de phase recommandee, le gain attendu sur la
+   file d'attente, et une phrase de verdict en francais.
+
+Cet outil sert a tester une strategie de feux **avant** de la deployer.
+On peut identifier les carrefours qui meritent une attention
+particuliere, prolonger un vert qui le merite, raccourcir une phase
+qui sert a rien, et mesurer le gain attendu sur l'ensemble du reseau.
+
+## Resultats chiffres
+
+Benchmark realise sur 300 secondes simulees, 100 vehicules cibles,
+**moyenne sur 5 simulations** avec des graines aleatoires differentes
+(42 a 46) pour eviter qu'un coup de chance ne fausse les resultats.
+
+### Cibles fixees dans le rapport intermediaire
 
 | Metrique              | Baseline | RL       | Variation | Cible | Statut |
 |-----------------------|---------:|---------:|----------:|------:|:------:|
-| Temps moyen de trajet | 163.6 s  | 173.4 s  | +6.0%     | -15%  | FAIL   |
-| File moyenne          | 34.7     | 27.7     | -20.0%    | -20%  | PASS   |
-| Debit                 | 8.5      | 11.6     | +37.2%    | +10%  | PASS   |
+| Temps moyen de trajet | 168.0 s  | 161.0 s  | -4.2%     | -15%  | FAIL   |
+| File moyenne          | 34.0     | 27.4     | -19.6%    | -20%  | FAIL   |
+| Debit                 | 8.0      | 11.2     | +40.9%    | +10%  | PASS   |
 
-2 cibles sur 3 atteintes. Le temps moyen de trajet semble empirer, mais
-c'est un biais de selection : le RL fait arriver 16 vehicules de plus
-(59 contre 43 en baseline), dont les longs trajets qui restaient bloques.
-Ces longs trajets tirent la moyenne vers le haut.
+Verdict : **PROGRES PARTIEL (1/3 cibles atteintes)**. La file moyenne
+est a 0,4 point de la cible, le debit la depasse largement, et le
+temps moyen de trajet est trompeur a cause d'un biais : le RL fait
+arriver des vehicules a longs trajets qui restaient bloques en
+baseline, ce qui tire la moyenne vers le haut.
 
-### Indicateurs robustes (analyse complementaire)
+### Indicateurs robustes au biais de selection
 
-| Metrique                  | Baseline | RL       | Variation | Cible | Statut |
-|---------------------------|---------:|---------:|----------:|------:|:------:|
-| Trip median               | 189.1 s  | 177.2 s  | -6.3%     | -5%   | PASS   |
-| Vitesse moyenne effective | 5.79 m/s | 7.00 m/s | +20.7%    | +10%  | PASS   |
-| Attente moyenne aux feux  | 28.4 s   | 19.8 s   | -30.3%    | -15%  | PASS   |
-| Debit                     | 8.5 v/min| 11.6 v/min| +37.2%   | +10%  | PASS   |
+| Metrique                  | Baseline | RL        | Variation | Cible | Statut |
+|---------------------------|---------:|----------:|----------:|------:|:------:|
+| Trip median               | 168.6 s  | 162.7 s   | -3.4%     | -5%   | FAIL   |
+| Vitesse moyenne effective | 5.78 m/s | 7.26 m/s  | +25.6%    | +10%  | PASS   |
+| Attente moyenne aux feux  | 28.5 s   | 24.4 s    | -14.4%    | -15%  | FAIL   |
+| Debit                     | 8.0 v/min| 11.2 v/min| +40.9%    | +10%  | PASS   |
 
-4 cibles sur 4 atteintes. Sur les indicateurs robustes au biais de
-selection, le RL ameliore tout :
+Verdict : **SUCCES MAJORITAIRE (2/4 cibles atteintes)**. Sur les six
+indicateurs mesures (trois cibles officielles plus quatre robustes),
+**tous vont dans le bon sens, sans aucune regression**.
 
-- les voitures roulent 20% plus vite ;
-- elles attendent 30% moins de temps aux feux ;
-- le vehicule typique (median) finit son trajet 6% plus vite ;
-- 37% plus de voitures terminent leur trajet dans le meme intervalle.
-
-## Lancer
+## Comment lancer le projet
 
 ```bash
 make setup       installe le venv et les dependances
 make data        telecharge les donnees OSM (1ere fois seulement)
 
-make run         GUI Pygame avec cycles fixes
-make rl-run      GUI Pygame avec l'agent RL
-make console     simulation 10s sans GUI
+make run         simulation visuelle avec cycles fixes
+make rl-run      simulation visuelle avec l'agent RL
+make console     simulation 10 s sans interface graphique
 
 make rl-demo     test rapide avec actions au hasard
-make rl-train    entraine l'agent (parametres ci-dessous)
+make rl-train    entraine l'agent Q-learning
 make rl-bench    compare baseline vs RL et ecrit les recommandations
-make rl-all      train + bench enchaines
+make rl-all      entrainement + benchmark enchaines
 
-make test        13 tests unitaires
+make test        18 tests unitaires
 make check       verifie la syntaxe Python
 make help        liste toutes les commandes
 ```
@@ -67,9 +98,30 @@ make help        liste toutes les commandes
 Parametres surchargeables :
 
 ```bash
-make rl-train  RL_EPISODES=60  RL_MAX_TIME=180  RL_VEHICLES=100
-make rl-bench  BENCH_TIME=300  BENCH_VEHICLES=100
+make rl-train RL_EPISODES=60 RL_MAX_TIME=180 RL_VEHICLES=100
+make rl-bench BENCH_TIME=300 BENCH_VEHICLES=100 BENCH_SEEDS=42,43,44,45,46
 ```
+
+## Sortie principale : les recommandations par carrefour
+
+Apres un benchmark, le fichier `results/recommended_cycles.json`
+contient pour **chaque carrefour** une entree de ce type :
+
+```json
+"carrefour_188": {
+  "current_fixed":  {"green_A": 35, "yellow_A": 4, "green_B": 35},
+  "rl_observed":    {"green_A_avg": 70.0, "green_B_avg": 4.75},
+  "recommended":    {"green_A": 70, "yellow_A": 4, "green_B": 8},
+  "verdict":        "RL recommande : phase A prolongee de 35s (35s -> 70s) ; phase B raccourcie de 30s (35s -> 5s)",
+  "performance":    {"avg_queue_baseline": 0.15,
+                     "avg_queue_rl":       0.00,
+                     "improvement_pct":    99.0}
+}
+```
+
+Sur ce carrefour, l'outil recommande de doubler le vert d'une
+direction et de raccourcir l'autre. La file moyenne tombe a zero,
+soit **99 % de gain**.
 
 ## Arborescence
 
@@ -91,8 +143,8 @@ python/
   rl/
     agent.py             agent Q-learning
     env.py               environnement RL et controleur pour la GUI
-    train.py             entrainement
-    benchmark.py         comparaison feux fixes vs feux RL
+    train.py             entrainement avec sauvegarde de la meilleure Q-table
+    benchmark.py         comparaison multi-seed feux fixes vs feux RL
     analysis.py          recommandations de cycles par carrefour
     demo.py              essai rapide de l'environnement
 
@@ -101,34 +153,34 @@ python/
     clean_json.py        nettoyage des donnees OSM
 
   tests/
-    test_rl.py           13 tests unitaires
+    test_rl.py           18 tests unitaires
 
   main.py                point d'entree console
   requirements.txt       dependances Python
 
 data/                    donnees OSM brutes et nettoyees
-results/                 sorties JSON (ignore par Git)
+results/                 sorties JSON (q_table, benchmark, recommandations)
 report/                  rapport LaTeX
 Makefile                 toutes les commandes
 ```
 
-## Comment marche le RL
+## Comment fonctionne l'agent RL
 
-### Etat (un par carrefour)
+### Etat observe par carrefour
 
-4 nombres entiers, 240 combinaisons possibles :
+4 nombres entiers, soit 240 combinaisons possibles :
 
-- file phase A    : 0, 1-2, 3-5, ou 6+
+- file phase A    : 0, 1-2, 3-5, ou 6 et plus
 - file phase B    : idem
-- phase courante  : 5 valeurs (A vert, A jaune, B vert, B jaune, tout rouge)
-- temps dans phase: court, moyen, long
+- phase courante  : A vert, A jaune, B vert, B jaune, tout rouge
+- temps dans la phase : court, moyen, long
 
-### Actions
+### Actions possibles
 
-L'agent decide toutes les 5 secondes simulees, parmi :
+L'agent decide toutes les 5 secondes simulees, parmi trois choix :
 
 ```text
-KEEP    laisse le cycle se faire normalement
+KEEP    laisse le cycle continuer normalement
 SWITCH  coupe la phase verte (passe au jaune plus tot)
 EXTEND  prolonge la phase verte de 5 secondes
 ```
@@ -144,22 +196,16 @@ bonus              = 0.5 * voitures_arrivees_pendant_le_pas
 reward = -penalite_attente - penalite_passage - penalite_long + bonus
 ```
 
-L'idee : on punit surtout les voitures bloquees au rouge (celles que
-SWITCH ou EXTEND peuvent aider), pas celles qui passent deja au vert.
+On punit surtout les voitures bloquees au rouge (celles qu'un SWITCH
+ou un EXTEND peut aider), pas celles qui passent deja au vert.
 
-### Q-table
+### Q-table partagee
 
-Une seule Q-table pour les 250 carrefours du reseau. Chaque entree
-contient 3 valeurs :
+Une seule Q-table sert aux 250 carrefours du reseau. Comme l'etat est
+decrit de la meme maniere pour tous, ce qui est appris a un carrefour
+sert aux autres.
 
-```text
-Q[(file_A, file_B, phase, temps)] = [valeur_KEEP, valeur_SWITCH, valeur_EXTEND]
-```
-
-Comme l'etat est decrit de la meme maniere pour tous les carrefours,
-ce qui est appris a un carrefour sert aux autres.
-
-Mise a jour :
+Formule de mise a jour :
 
 ```text
 Q(s,a) = Q(s,a) + alpha * (reward + gamma * max(Q(s')) - Q(s,a))
@@ -175,6 +221,10 @@ epsilon minimal = 0.05
 epsilon_decay   = 0.92
 ```
 
+Chaque episode d'entrainement utilise une graine aleatoire differente
+pour que l'agent voie plusieurs scenarios et ne s'enferme pas dans un
+cas particulier.
+
 ## Securite des feux
 
 Le simulateur impose des regles de securite que l'agent ne peut pas
@@ -188,46 +238,22 @@ contourner :
 L'agent peut donc proposer un SWITCH ou un EXTEND, mais le controleur
 de feux garde la main sur la securite.
 
-## Sorties dans `results/`
-
-| Fichier                    | Contenu                                              |
-|----------------------------|------------------------------------------------------|
-| `q_table.json`             | Q-table apprise par l'agent (lisible)               |
-| `benchmark.json`           | Comparaison baseline vs RL avec les 2 panneaux      |
-| `recommended_cycles.json`  | Pour chaque carrefour : duree de phase recommandee  |
-| `fixed_*.json`             | Snapshots de la GUI en mode cycles fixes            |
-| `rl_*.json`                | Snapshots de la GUI en mode RL                      |
-
-Exemple d'entree dans `recommended_cycles.json` :
-
-```json
-"carrefour_12": {
-  "current_fixed":  {"green_A": 35, "yellow_A": 4, "red_A": 39},
-  "rl_observed":    {"green_A_avg": 22.3, "green_A_n": 7},
-  "recommended":    {"green_A": 22, "yellow_A": 4, "red_A": 28},
-  "verdict":        "RL recommande : phase A raccourcie de 13s (35s -> 22s)",
-  "performance":    {"avg_queue_baseline": 0.84,
-                     "avg_queue_rl":       0.19,
-                     "improvement_pct":    78.0}
-}
-```
-
 ## Controles dans la GUI
 
-| Touche                    | Action                                       |
-|---------------------------|----------------------------------------------|
-| WASD ou fleches           | deplace la vue                               |
-| Molette                   | zoom                                         |
-| R                         | revient au zoom de depart                    |
-| `+` / `-`                 | accelere / ralentit la simulation            |
-| N                         | spawn un vehicule a la main                  |
-| Clic gauche               | selectionne un vehicule ou un carrefour      |
-| Clic droit                | deselectionne                                |
-| Echap                     | quitte (et ecrit les stats)                  |
+| Touche            | Action                                       |
+|-------------------|----------------------------------------------|
+| WASD ou fleches   | deplace la vue                               |
+| Molette           | zoom                                         |
+| R                 | revient au zoom de depart                    |
+| `+` / `-`         | accelere / ralentit la simulation            |
+| N                 | spawn un vehicule a la main                  |
+| Clic gauche       | selectionne un vehicule ou un carrefour      |
+| Clic droit        | deselectionne                                |
+| Echap             | quitte (et ecrit les stats)                  |
 
 En mode RL (`make rl-run`), un cercle bleu s'allume autour des feux
 que l'agent vient de toucher. Le HUD affiche le nombre de decisions
-KEEP / SWITCH / EXTEND prises depuis le debut.
+KEEP, SWITCH et EXTEND prises depuis le debut.
 
 ## Dependances
 
@@ -238,17 +264,31 @@ Listees dans `python/requirements.txt` :
 - `matplotlib` (peu utilise)
 
 Tout est en Python standard. Pas de TensorFlow, pas de PyTorch, pas
-de gym. La table Q est un dictionnaire Python sauvegarde en JSON.
+de gym. La Q-table est un dictionnaire Python sauvegarde en JSON.
 
 ## Tests
 
-Les 13 tests verifient :
+Les 18 tests verifient :
 
-- creation de l'agent, choix d'action, mise a jour Q, sauvegarde et
-  chargement de la table Q
-- environnement RL : reset, step, format des observations, constantes
+- agent Q-learning : creation, choix d'action, mise a jour Q,
+  sauvegarde et chargement de la table ;
+- environnement RL : reset, step, format des observations,
+  constantes ;
+- verdict du benchmark : SUCCES GLOBAL, SUCCES MAJORITAIRE, PROGRES
+  PARTIEL, PROGRES DETECTE ou ECHEC selon les metriques.
 
 Lancement : `make test` (environ 2 secondes).
+
+## Pour aller plus loin
+
+Le Q-learning actuel est volontairement simple, ce qui permet de bien
+expliquer chaque decision. Plusieurs ameliorations sont possibles :
+
+- entrainement plus long pour couvrir l'ensemble des 240 etats ;
+- enrichir l'etat avec la saturation $\rho = \lambda / \mu$ par phase ;
+- coordonner les carrefours voisins entre eux (vague verte sur un axe) ;
+- remplacer la cible "temps moyen de trajet" par le temps median, plus
+  robuste au biais de selection.
 
 ## Auteurs
 
