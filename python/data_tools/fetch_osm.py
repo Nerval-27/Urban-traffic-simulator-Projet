@@ -35,7 +35,7 @@ if r.status_code == 429:
     print("Trop de requêtes, on attend un peu...")
     time.sleep(30)
 
-file_path = os.path.join(os.path.dirname(__file__), "..", "data", "paris13.json")
+file_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "paris13.json")
 with open(file_path, "w") as f:
     json.dump(data, f, indent=2)
 

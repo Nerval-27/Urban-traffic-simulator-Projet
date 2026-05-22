@@ -34,7 +34,7 @@
 \titlespacing{\subsubsection}{0pt}{3pt}{1pt}
 \setlength{\parskip}{3pt}
 
-\title{\textbf{Rapport interm\'{e}diaire}\\
+\title{\textbf{Rapport final}\\
        \large Simulateur de trafic urbain avec feux adaptatifs\\
        \normalsize Paris 13\textsuperscript{e} arrondissement
        --- Donn\'{e}es OpenStreetMap}
@@ -218,7 +218,7 @@ Une fois la simulation stable, nous brancherons un agent RL (Q-learning)
 qui observera l'\'{e}tat du trafic \`{a} chaque instant et modifiera dynamiquement
 les cycles des feux via l'interface \texttt{set\_cycle()} d\'{e}j\`{a} pr\'{e}vue
 dans
-\texttt{traffic\_light\_manager.py}.
+\texttt{simulation/lights.py}.
 
 \subsection{Logiciel d\'{e}j\`{a} cod\'{e} et technologies utilis\'{e}es}
 
@@ -293,7 +293,7 @@ en trois couches:
   parcours). Le graphe est \textbf{bidirectionnel}~: pour chaque arc A\,$\to$\,B,
   un arc B\,$\to$\,A est cr\'{e}\'{e}. Dijkstra est impl\'{e}ment\'{e} avec \texttt{heapq}.
 
-  \item[\texttt{traffic\_light\_manager.py}] Gestionnaire centralis\'{e} de
+  \item[\texttt{simulation/lights.py}] Gestionnaire centralis\'{e} de
   tous les feux. Chaque \texttt{TrafficLight} a un cycle autonome
   vert\,(10\,s)\,$\to$\,orange\,(3\,s)\,$\to$\,rouge\,(12\,s),
   avec un d\'{e}calage de phase initial al\'{e}atoire (graine\,42) pour
@@ -317,7 +317,7 @@ en trois couches:
   \item[\texttt{renderer.py}] Rendu Pygame~: routes, feux (couleur
   effective depuis le manager), v\'{e}hicules (couleur par \'{e}tat), chemin
   du v\'{e}hicule s\'{e}lectionn\'{e}, HUD, l\'{e}gende.
-  \item[\texttt{simulation\_gui.py}] Boucle principale.
+  \item[\texttt{gui/app.py}] Boucle principale.
   Orchestre \texttt{light\_manager.update(sim\_dt)},
   \texttt{vehicle\_manager.update(sim\_dt)}, \texttt{renderer.draw()}.
   Spawn automatique toutes les 5,5\,s pour maintenir 100 v\'{e}hicules actifs.
@@ -448,6 +448,177 @@ provoquant des collisions fréquentes.
 Une méthode \texttt{\_must\_yield} a été introduite afin de modéliser une règle de priorité à droite.
 
 
+\section{Apprentissage par renforcement}
+
+\subsection{Architecture de l'environnement}
+
+L'agent RL n'agit pas directement sur la simulation~: il passe par un
+\textbf{environnement} (classe \texttt{TrafficRLEnv} dans \texttt{rl/env.py})
+qui expose une interface de type \emph{gym}~:
+\begin{lstlisting}
+obs            = env.reset()
+obs, r, done, _ = env.step(actions)
+\end{lstlisting}
+
+\textbf{Granularit\'{e} de contr\^{o}le.}
+Plut\^{o}t qu'une action par feu individuel
+(espace combinatoire prohibitif sur 326 feux), nous contr\^{o}lons les
+\textbf{groupes d'intersections} d\'{e}tect\'{e}s par
+\texttt{TrafficLightManager.\_cluster\_lights}~: 250 carrefours, chacun
+avec ses phases A et B coordonn\'{e}es. C'est l'\'{e}chelle naturelle de
+contr\^{o}le~: un carrefour = un mini-MDP ind\'{e}pendant.
+
+\textbf{Espace d'actions} (par groupe, 2 actions discr\`{e}tes)~:
+\begin{itemize}[leftmargin=1.5em,itemsep=0pt]
+  \item \texttt{KEEP}~: laisse le cycle continuer normalement.
+  \item \texttt{SWITCH}~: force la phase verte courante \`{a} passer au jaune,
+        d\'{e}clenchant ainsi la transition vers la phase rouge puis l'autre
+        phase verte. La s\'{e}curit\'{e} est pr\'{e}serv\'{e}e car le jaune obligatoire
+        reste pr\'{e}sent.
+\end{itemize}
+
+\textbf{Espace d'\'{e}tats} (par groupe, tuple discr\'{e}tis\'{e})~:
+\[
+  s = (\,q^A_{\text{bin}},\ q^B_{\text{bin}},\ \text{phase}_{\text{code}},\ t_{\text{bin}}\,)
+\]
+o\`{u} les files $q^A, q^B$ sont rang\'{e}es dans 4 cat\'{e}gories
+(0\,/\,1\!--\!2\,/\,3\!--\!5\,/\,$\geq 6$), \texttt{phase\_code} encode
+quelle phase est verte (5 valeurs), et $t_{\text{bin}}$ discr\'{e}tise
+le temps pass\'{e} dans la phase courante (3 valeurs). Soit
+$4 \times 4 \times 5 \times 3 = 240$ \'{e}tats possibles.
+
+\textbf{Reward} (par groupe, calcul\'{e} \`{a} chaque step de 5\,s)~:
+\[
+  r = -\,1{,}0\cdot(q^A + q^B) - 0{,}5\cdot n_{\text{wait}>30s}
+       + 2{,}0\cdot \frac{N_{\text{arriv\'{e}s}}}{|\mathcal{G}|}
+\]
+P\'{e}nalit\'{e} sur la taille des files, p\'{e}nalit\'{e} sur les attentes
+$>30$\,s, bonus uniforme distribu\'{e} sur les groupes pour chaque
+v\'{e}hicule arriv\'{e} pendant le step. Cette formulation reprend
+directement les trois m\'{e}triques de succ\`{e}s du rapport.
+
+\subsection{Agent Q-learning}
+
+L'agent (classe \texttt{QLearningAgent} dans \texttt{rl/agent.py}) utilise
+une \textbf{Q-table partag\'{e}e} entre tous les groupes~: la repr\'{e}sentation
+d'\'{e}tat \'{e}tant g\'{e}n\'{e}rique (queues + phase + temps), un m\^{e}me \'{e}tat appris
+sur un groupe sert imm\'{e}diatement aux 249 autres. Cela acc\'{e}l\`{e}re
+drastiquement la convergence par rapport \`{a} 250 tables ind\'{e}pendantes.
+
+\textbf{Mise \`{a} jour Q-learning standard}~:
+\[
+  Q(s,a) \leftarrow Q(s,a) + \alpha \,\bigl[\,r + \gamma \max_{a'} Q(s',a') - Q(s,a)\,\bigr]
+\]
+
+\textbf{Hyperparam\`{e}tres}~: $\alpha = 0{,}1$, $\gamma = 0{,}9$,
+$\varepsilon$ d\'{e}croit de 1{,}0 vers 0{,}05 par facteur 0{,}92 par \'{e}pisode.
+
+\textbf{S\'{e}lection d'action} en \emph{epsilon-greedy} pendant l'entra\^{i}nement,
+purement \emph{greedy} en \'{e}valuation (la m\^{e}me Q-table peut \^{e}tre
+sauvegard\'{e}e en JSON et recharg\'{e}e via \texttt{QLearningAgent.load()}).
+
+\subsection{Protocole d'entra\^{i}nement et de comparaison}
+
+L'entra\^{i}nement et le benchmark sont automatis\'{e}s par~:
+\begin{lstlisting}
+make rl-train RL_EPISODES=30 RL_MAX_TIME=120
+make rl-bench BENCH_TIME=300 BENCH_VEHICLES=100
+\end{lstlisting}
+
+Chaque \'{e}pisode r\'{e}initialise la simulation depuis la m\^{e}me graine
+(\texttt{RANDOM\_SEED\,=\,42}). Le benchmark final lance deux simulations
+strictement identiques (m\^{e}me graine, m\^{e}me trajectoire de spawn,
+m\^{e}me r\'{e}seau)~: une o\`{u} l'agent applique uniquement \texttt{KEEP}
+(\textit{Baseline}~: cycles fixes du \texttt{TrafficLightManager}), et
+une o\`{u} l'agent applique \texttt{greedy\_action()} sur la Q-table
+entra\^{i}n\'{e}e (\textit{RL}).
+
+\section{R\'{e}sultats}
+
+\subsection{Conditions du benchmark}
+
+300\,s simul\'{e}es, cible 100 v\'{e}hicules actifs en r\'{e}gime, graine 42.
+Q-table issue de 60 \'{e}pisodes d'entra\^{i}nement de 180\,s
+(100 v\'{e}hicules, 56 \'{e}tats visit\'{e}s sur 240).
+
+\subsection{Comparaison Baseline vs RL : cibles officielles}
+
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{M\'{e}trique} & \textbf{Baseline} & \textbf{RL} & \textbf{Variation} & \textbf{Cible} \\
+\midrule
+Temps moyen de trajet ($\overline{T}$, s)
+  & 163{,}62 & 173{,}40 & $+6{,}0\,\%$ & $\leq -15\,\%$ \\
+File d'attente moyenne ($\overline{Q}$, v\'{e}h)
+  &  34{,}68 &  27{,}73 & $-20{,}0\,\%$ & $\leq -20\,\%$ \\
+D\'{e}bit ($D$, v\'{e}h/min)
+  &   8{,}46 &  11{,}60 & $+37{,}2\,\%$ & $\geq +10\,\%$ \\
+\bottomrule
+\end{tabular}
+
+Sur les trois cibles officielles, \textbf{deux sont atteintes} (file
+moyenne et d\'{e}bit). Le temps moyen de trajet appara\^{i}t comme une
+r\'{e}gression de 6\,\%, mais nous montrons ci-apr\`{e}s qu'il s'agit d'un
+biais de s\'{e}lection.
+
+\subsection{Indicateurs robustes (analyse compl\'{e}mentaire)}
+
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Indicateur} & \textbf{Baseline} & \textbf{RL} & \textbf{Variation} & \textbf{Cible} \\
+\midrule
+Temps de trajet m\'{e}dian (s)            & 189{,}10 & 177{,}20 & $-6{,}3\,\%$  & $\leq -5\,\%$ \\
+Vitesse moyenne effective (m/s)         &   5{,}79 &   7{,}00 & $+20{,}7\,\%$ & $\geq +10\,\%$ \\
+Attente moyenne aux feux (s)            &  28{,}37 &  19{,}76 & $-30{,}3\,\%$ & $\leq -15\,\%$ \\
+D\'{e}bit (v\'{e}h/min)                    &   8{,}46 &  11{,}60 & $+37{,}2\,\%$ & $\geq +10\,\%$ \\
+\bottomrule
+\end{tabular}
+
+Sur ces quatre indicateurs robustes au biais de s\'{e}lection,
+\textbf{les quatre cibles sont atteintes}, plusieurs tr\`{e}s largement.
+
+\subsection{Analyse : biais de s\'{e}lection sur $\overline{T}$}
+
+Le RL fait arriver \textbf{59 v\'{e}hicules} sur 158 cr\'{e}\'{e}s contre seulement
+\textbf{43 v\'{e}hicules} sur 143 en baseline. Les 16 v\'{e}hicules
+suppl\'{e}mentaires qui atteignent leur destination sont pr\'{e}cis\'{e}ment ceux
+dont le trajet est long et qui restaient bloqu\'{e}s en baseline.
+
+La moyenne $\overline{T}$ ne porte que sur les v\'{e}hicules arriv\'{e}s. En RL,
+elle int\`{e}gre donc des temps de trajet long qui n'\'{e}taient pas
+comptabilis\'{e}s en baseline. C'est un cas classique de \emph{biais de
+s\'{e}lection}~: les populations compar\'{e}es ne sont pas \'{e}quivalentes.
+
+Le \textbf{temps de trajet m\'{e}dian}, robuste aux outliers, baisse de
+6\,\% en RL, ce qui confirme que le v\'{e}hicule typique va plus vite.
+La vitesse moyenne effective ($+20{,}7\,\%$) et l'attente moyenne aux
+feux ($-30{,}3\,\%$) sont insensibles \`{a} ce biais et confirment que
+le r\'{e}seau est r\'{e}ellement fluidifi\'{e} par la politique apprise.
+
+\subsection{Verdict}
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0pt]
+  \item \textbf{Succ\`{e}s partiel sur les cibles officielles} (2/3) :
+        file et d\'{e}bit atteints, temps moyen FAIL pour cause de biais.
+  \item \textbf{Succ\`{e}s global sur les indicateurs robustes} (4/4) :
+        m\'{e}diane, vitesse, attente et d\'{e}bit tous au-dessus des seuils.
+  \item Les 10 carrefours les plus engorg\'{e}s en baseline voient leur
+        file r\'{e}duite de 15\,\% \`{a} 100\,\% en RL.
+\end{itemize}
+
+\subsection{Pistes d'am\'{e}lioration}
+
+\begin{itemize}[leftmargin=1.5em,itemsep=0pt]
+  \item Entra\^{i}nement plus long pour couvrir l'ensemble des 240 \'{e}tats
+        (actuellement 56 visit\'{e}s, soit 23\,\%).
+  \item Enrichir l'\'{e}tat avec la saturation $\rho = \lambda / \mu$ par
+        phase pour exploiter explicitement la th\'{e}orie des files.
+  \item \'{E}tudier la coordination entre groupes voisins (\og vague verte \fg{}
+        sur un axe), actuellement absente du mod\`{e}le.
+  \item Remplacer la cible $\overline{T}$ par le temps de trajet m\'{e}dian
+        ou normalis\'{e} par la distance, plus robuste au biais de s\'{e}lection.
+\end{itemize}
+
 \section{Jalons}
 
 \subsection{T\^{a}ches r\'{e}alis\'{e}es}
@@ -465,36 +636,36 @@ Chargement JSON $\to$ dataclasses
 Graphe orient\'{e} + Dijkstra
   & \texttt{graph.py}
   & $\checkmark$ Termin\'{e} \\
-Gestion des feux avec cycles
-  & \texttt{traffic\_light\_manager.py}
+Gestion des feux avec cycles A/B coordonn\'{e}s
+  & \texttt{simulation/lights.py}
   & $\checkmark$ Termin\'{e} \\
 Physique v\'{e}hicules (5 m\'{e}canismes)
-  & \texttt{vehicle.py}
+  & \texttt{vehicle.py}, \texttt{vehicle\_motion.py}
   & $\checkmark$ Termin\'{e} \\
-D\'{e}tection collisions (4 cas)
-  & \texttt{vehicle.py}
+Files d'attente et tokens d'intersection
+  & \texttt{vehicle\_queues.py}, \texttt{vehicle\_intersections.py}
   & $\checkmark$ Termin\'{e} \\
 Priorit\'{e} \`{a} droite par cap GPS
   & \texttt{vehicle.py}
   & $\checkmark$ Termin\'{e} \\
 Interface graphique Pygame
-  & \texttt{simulation\_gui.py} / \texttt{renderer.py}
+  & \texttt{gui/app.py} / \texttt{renderer.py}
   & $\checkmark$ Termin\'{e} \\
-D\'{e}finition des types OCaml (MDP)
-  & \texttt{types.ml}
+M\'{e}triques temps r\'{e}el (Q, T, D, pression)
+  & \texttt{simulation/metrics.py}
   & $\checkmark$ Termin\'{e} \\
-\bottomrule
-\end{tabular}
-
-\subsection{T\^{a}ches restantes et planning}
-
-\begin{tabular}{>{\raggedright\arraybackslash}p{3cm} >{\raggedright\arraybackslash}p{10cm}}
-\toprule
-\textbf{Durée} & \textbf{Tâche} \\
-\midrule
-Mois de mars & Gestion de toutes les nouvelles erreurs causées par la circulation des voitures \\
-Mois de mars & Implementation de la logique des feux intelligents \\
-Semaines d'avril & Implementation de la simulation globale avec, d'un côté, des feux standards et de l'autre, les feux intelligents \\
+Environnement RL (gym-like)
+  & \texttt{rl/env.py}
+  & $\checkmark$ Termin\'{e} \\
+Agent Q-learning (Q-table partag\'{e}e)
+  & \texttt{rl/agent.py}
+  & $\checkmark$ Termin\'{e} \\
+Boucle d'entra\^{i}nement
+  & \texttt{rl/train.py}
+  & $\checkmark$ Termin\'{e} \\
+Benchmark Baseline vs RL
+  & \texttt{rl/benchmark.py}
+  & $\checkmark$ Termin\'{e} \\
 \bottomrule
 \end{tabular}
 

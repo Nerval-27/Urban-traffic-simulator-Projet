@@ -1,8 +1,10 @@
 import heapq
 import math
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
-from models import Network, Road
+from typing import Callable, Dict, List, Optional, Tuple
+from simulation.models import Network, Road
+
+TRAFFIC_SIGNAL_ATTACH_MAX_DIST = 25.0
 
 
 @dataclass
@@ -10,9 +12,8 @@ class GraphNode:
     node_id: int
     lat: float
     lon: float
-    # Indique si ce nœud possède un feu de circulation
+    # Feu rattaché à ce point du graphe, si présent.
     has_traffic_light: bool = False
-    # ID du feu associé (pour interroger le TrafficLightManager)
     traffic_light_id: Optional[int] = None
 
 
@@ -20,12 +21,12 @@ class GraphNode:
 class GraphEdge:
     from_node: int
     to_node: int
-    road_id: int          # ID de la Way OSM d'origine
-    road_name: str        # Nom de la rue (pour affichage/debug)
-    distance: float       # Distance en mètres
-    speed_limit: float    # Vitesse limite en m/s
-    weight: float         # Poids = distance / speed_limit (temps estimé en secondes)
-    # Liste ordonnée des nodes OSM traversés (pour dessiner le chemin exact)
+    road_id: int          # identifiant de la rue OSM
+    road_name: str        # nom affiché de la rue
+    distance: float       # mètres
+    speed_limit: float    # m/s
+    weight: float         # temps estimé en secondes
+    # Points intermédiaires de la rue, utiles pour garder le tracé.
     intermediate_nodes: List[int] = field(default_factory=list)
 
 
@@ -44,26 +45,20 @@ class RoadGraph:
             for nid in road.nodes:
                 road_node_ids.add(nid)
 
-        # 2. Créer les GraphNodes uniquement pour ces nodes-là
+        # Nodes conservés dans le graphe routier.
         for nid in road_node_ids:
             if nid in network.nodes:
                 lat, lon = network.nodes[nid]
                 self.nodes[nid] = GraphNode(node_id=nid, lat=lat, lon=lon)
                 self.edges[nid] = []
 
-        # 3. Marquer les nœuds qui ont un feu de circulation
-        #    On cherche le node routier le plus proche de chaque feu OSM
-        for signal in network.feux:
-            closest = self._find_closest_node(signal.lat, signal.lon)
-            if closest is not None:
-                self.nodes[closest].has_traffic_light = True
-                self.nodes[closest].traffic_light_id = signal.id
-
-        # 4. Construire les arcs depuis les routes
         for road in network.roads:
             self._add_road_edges(road)
 
-        # 5. Liste des nodes valides pour le spawn = nodes avec au moins 1 arc sortant
+        # Les feux sont rattachés après les arcs pour mieux repérer les carrefours.
+        self._attach_traffic_signals(network)
+
+        # Points possibles pour créer des véhicules.
         self._spawn_nodes: List[int] = [
             nid for nid, edges in self.edges.items() if len(edges) > 0
         ]
@@ -81,7 +76,6 @@ class RoadGraph:
             n_from = nlist[i]
             n_to   = nlist[i + 1]
 
-            # Les deux nœuds doivent exister dans le graphe
             if n_from not in self.nodes or n_to not in self.nodes:
                 continue
 
@@ -123,18 +117,16 @@ class RoadGraph:
 
 
 
-    def dijkstra(self, source, target):
+    def dijkstra(self, source, target,
+                 edge_penalty: Optional[Callable[[GraphEdge], float]] = None):
         if source not in self.nodes or target not in self.nodes:
             return None
 
-        # dist[nid] = meilleur temps connu pour atteindre nid
         dist: Dict[int, float] = {nid: math.inf for nid in self.nodes}
         dist[source] = 0.0
 
-        # prev[nid] = nœud précédent sur le chemin optimal
         prev: Dict[int, Optional[int]] = {nid: None for nid in self.nodes}
 
-        # Priority queue : (coût, node_id)
         pq = [(0.0, source)]
 
         visited = set()
@@ -153,15 +145,15 @@ class RoadGraph:
                 v = edge.to_node
                 if v in visited:
                     continue
-                new_cost = cost + edge.weight
+                penalty = edge_penalty(edge) if edge_penalty else 0.0
+                new_cost = cost + edge.weight + max(0.0, penalty)
                 if new_cost < dist[v]:
                     dist[v] = new_cost
                     prev[v] = u
                     heapq.heappush(pq, (new_cost, v))
 
-        # Reconstruction du chemin
         if dist[target] == math.inf:
-            return None  # Pas de chemin
+            return None
 
         path = []
         cur = target
@@ -181,15 +173,76 @@ class RoadGraph:
         return coords
 
 
-    def _find_closest_node(self, lat, lon):
+    def _find_closest_node(self, lat, lon, max_distance: float = math.inf):
         best_id = None
-        best_dist = math.inf
+        best_dist = max_distance
         for nid, node in self.nodes.items():
             d = haversine(lat, lon, node.lat, node.lon)
             if d < best_dist:
                 best_dist = d
                 best_id = nid
         return best_id
+
+    def _attach_traffic_signals(self, network) -> None:
+        road_degrees = self._compute_road_degrees()
+        for signal in network.feux:
+            closest = signal.id if signal.id in self.nodes else None
+            if closest is None:
+                closest = self._find_closest_signal_node(
+                    signal.lat, signal.lon,
+                    max_distance=TRAFFIC_SIGNAL_ATTACH_MAX_DIST,
+                    road_degrees=road_degrees,
+                )
+            if closest is not None:
+                self.nodes[closest].has_traffic_light = True
+                self.nodes[closest].traffic_light_id = signal.id
+
+    def _find_closest_signal_node(self, lat, lon,
+                                  max_distance: float = math.inf,
+                                  road_degrees: Optional[Dict[int, int]] = None):
+        road_degrees = road_degrees or self._compute_road_degrees()
+        # On préfère un vrai carrefour quand le feu OSM est légèrement décalé.
+        closest_intersection = self._find_closest_connected_node(
+            lat, lon,
+            max_distance=max_distance,
+            require_intersection=True,
+            road_degrees=road_degrees,
+        )
+        if closest_intersection is not None:
+            return closest_intersection
+
+        return self._find_closest_connected_node(
+            lat, lon,
+            max_distance=max_distance,
+            require_intersection=False,
+            road_degrees=road_degrees,
+        )
+
+    def _find_closest_connected_node(self, lat, lon,
+                                     max_distance: float = math.inf,
+                                     require_intersection: bool = False,
+                                     road_degrees: Optional[Dict[int, int]] = None):
+        road_degrees = road_degrees or self._compute_road_degrees()
+        best_id = None
+        best_dist = max_distance
+        for nid, node in self.nodes.items():
+            degree = road_degrees.get(nid, 0)
+            if degree <= 0:
+                continue
+            if require_intersection and degree < 3:
+                continue
+            d = haversine(lat, lon, node.lat, node.lon)
+            if d < best_dist:
+                best_dist = d
+                best_id = nid
+        return best_id
+
+    def _compute_road_degrees(self) -> Dict[int, int]:
+        neighbors: Dict[int, set] = {nid: set() for nid in self.nodes}
+        for edge in self.all_edges:
+            neighbors.setdefault(edge.from_node, set()).add(edge.to_node)
+            neighbors.setdefault(edge.to_node, set()).add(edge.from_node)
+        return {nid: len(vals) for nid, vals in neighbors.items()}
 
     def get_random_node_ids(self, count, rng):
         """Retourne une liste de node_ids aléatoires pour le spawn."""

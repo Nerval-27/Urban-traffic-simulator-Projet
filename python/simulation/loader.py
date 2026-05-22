@@ -1,5 +1,5 @@
 import json
-from models import Road, Intersection, Network, TrafficSignal, PedestrianCrossing
+from simulation.models import Road, Intersection, Network, TrafficSignal, PedestrianCrossing
 
 def parse_road(data):
     """Convertit un dictionnaire JSON en objet Road."""

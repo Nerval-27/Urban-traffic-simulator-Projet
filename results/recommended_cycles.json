@@ -1,0 +1,6881 @@
+{
+  "ranking": {
+    "top_improved": [
+      {
+        "carrefour": "carrefour_19",
+        "baseline": 0.33,
+        "rl": 0.0,
+        "improvement": 100.0
+      },
+      {
+        "carrefour": "carrefour_31",
+        "baseline": 0.07,
+        "rl": 0.0,
+        "improvement": 100.0
+      },
+      {
+        "carrefour": "carrefour_34",
+        "baseline": 0.18,
+        "rl": 0.0,
+        "improvement": 100.0
+      },
+      {
+        "carrefour": "carrefour_40",
+        "baseline": 0.25,
+        "rl": 0.0,
+        "improvement": 100.0
+      },
+      {
+        "carrefour": "carrefour_50",
+        "baseline": 0.06,
+        "rl": 0.0,
+        "improvement": 100.0
+      },
+      {
+        "carrefour": "carrefour_58",
+        "baseline": 0.1,
+        "rl": 0.0,
+        "improvement": 100.0
+      },
+      {
+        "carrefour": "carrefour_63",
+        "baseline": 0.14,
+        "rl": 0.0,
+        "improvement": 100.0
+      },
+      {
+        "carrefour": "carrefour_73",
+        "baseline": 0.05,
+        "rl": 0.0,
+        "improvement": 100.0
+      },
+      {
+        "carrefour": "carrefour_78",
+        "baseline": 0.03,
+        "rl": 0.0,
+        "improvement": 100.0
+      },
+      {
+        "carrefour": "carrefour_89",
+        "baseline": 0.07,
+        "rl": 0.0,
+        "improvement": 100.0
+      }
+    ],
+    "top_problematic": [
+      {
+        "carrefour": "carrefour_1",
+        "baseline": 0.91,
+        "rl": 0.15,
+        "improvement": 83.7
+      },
+      {
+        "carrefour": "carrefour_37",
+        "baseline": 0.72,
+        "rl": 0.37,
+        "improvement": 49.2
+      },
+      {
+        "carrefour": "carrefour_0",
+        "baseline": 0.71,
+        "rl": 0.29,
+        "improvement": 58.6
+      },
+      {
+        "carrefour": "carrefour_12",
+        "baseline": 0.62,
+        "rl": 0.52,
+        "improvement": 15.5
+      },
+      {
+        "carrefour": "carrefour_107",
+        "baseline": 0.59,
+        "rl": 0.95,
+        "improvement": -62.4
+      },
+      {
+        "carrefour": "carrefour_14",
+        "baseline": 0.57,
+        "rl": 0.12,
+        "improvement": 79.8
+      },
+      {
+        "carrefour": "carrefour_16",
+        "baseline": 0.54,
+        "rl": 0.19,
+        "improvement": 64.6
+      },
+      {
+        "carrefour": "carrefour_15",
+        "baseline": 0.53,
+        "rl": 0.31,
+        "improvement": 41.9
+      },
+      {
+        "carrefour": "carrefour_23",
+        "baseline": 0.53,
+        "rl": 0.68,
+        "improvement": -28.5
+      },
+      {
+        "carrefour": "carrefour_133",
+        "baseline": 0.47,
+        "rl": 0.15,
+        "improvement": 67.6
+      }
+    ],
+    "total_analyzed": 250
+  },
+  "recommendations": {
+    "carrefour_0": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.71,
+        "avg_queue_rl": 0.29,
+        "improvement_pct": 58.6
+      }
+    },
+    "carrefour_1": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.91,
+        "avg_queue_rl": 0.15,
+        "improvement_pct": 83.7
+      }
+    },
+    "carrefour_2": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 63.95,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 64,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 29s (baseline 35s -> 64s)",
+      "performance": {
+        "avg_queue_baseline": 0.44,
+        "avg_queue_rl": 0.11,
+        "improvement_pct": 74.5
+      }
+    },
+    "carrefour_3": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.42,
+        "avg_queue_rl": 0.3,
+        "improvement_pct": 28.9
+      }
+    },
+    "carrefour_4": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.06,
+        "avg_queue_rl": 0.52,
+        "improvement_pct": -803.5
+      }
+    },
+    "carrefour_5": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 69.95,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.46,
+        "avg_queue_rl": 0.47,
+        "improvement_pct": -1.7
+      }
+    },
+    "carrefour_6": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.02,
+        "avg_queue_rl": 0.01,
+        "improvement_pct": 37.5
+      }
+    },
+    "carrefour_7": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 64.63,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 65,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 30s (baseline 35s -> 65s)",
+      "performance": {
+        "avg_queue_baseline": 0.36,
+        "avg_queue_rl": 0.45,
+        "improvement_pct": -25.6
+      }
+    },
+    "carrefour_8": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.21,
+        "avg_queue_rl": 0.23,
+        "improvement_pct": -6.1
+      }
+    },
+    "carrefour_9": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 3,
+        "green_B_avg": 9.23,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 13,
+        "green_B": 9,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s) ; phase B raccourcie de 26s (baseline 35s -> 9s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.01,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_10": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.26,
+        "avg_queue_rl": 0.26,
+        "improvement_pct": 1.1
+      }
+    },
+    "carrefour_11": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 58.25,
+        "green_A_n": 4,
+        "green_B_avg": 6.03,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 58,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 23s (baseline 35s -> 58s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.18,
+        "avg_queue_rl": 0.07,
+        "improvement_pct": 62.2
+      }
+    },
+    "carrefour_12": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 35.83,
+        "green_A_n": 6,
+        "green_B_avg": 6.1,
+        "green_B_n": 5
+      },
+      "recommended": {
+        "green_A": 36,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A ~= baseline (36s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.62,
+        "avg_queue_rl": 0.52,
+        "improvement_pct": 15.5
+      }
+    },
+    "carrefour_13": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 63.63,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 64,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 29s (baseline 35s -> 64s)",
+      "performance": {
+        "avg_queue_baseline": 0.22,
+        "avg_queue_rl": 0.12,
+        "improvement_pct": 45.4
+      }
+    },
+    "carrefour_14": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.57,
+        "avg_queue_rl": 0.12,
+        "improvement_pct": 79.8
+      }
+    },
+    "carrefour_15": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.53,
+        "avg_queue_rl": 0.31,
+        "improvement_pct": 41.9
+      }
+    },
+    "carrefour_16": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.54,
+        "avg_queue_rl": 0.19,
+        "improvement_pct": 64.6
+      }
+    },
+    "carrefour_17": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.35,
+        "avg_queue_rl": 0.46,
+        "improvement_pct": -30.7
+      }
+    },
+    "carrefour_18": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 32.2,
+        "green_A_n": 5,
+        "green_B_avg": 6.1,
+        "green_B_n": 5
+      },
+      "recommended": {
+        "green_A": 32,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A raccourcie de 3s (baseline 35s -> 32s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.39,
+        "avg_queue_rl": 0.43,
+        "improvement_pct": -9.4
+      }
+    },
+    "carrefour_19": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.33,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_20": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 67.45,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 67,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 32s (baseline 35s -> 67s)",
+      "performance": {
+        "avg_queue_baseline": 0.35,
+        "avg_queue_rl": 0.18,
+        "improvement_pct": 48.0
+      }
+    },
+    "carrefour_21": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 65.95,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 66,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 31s (baseline 35s -> 66s)",
+      "performance": {
+        "avg_queue_baseline": 0.23,
+        "avg_queue_rl": 0.05,
+        "improvement_pct": 78.7
+      }
+    },
+    "carrefour_22": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.44,
+        "avg_queue_rl": 0.34,
+        "improvement_pct": 22.1
+      }
+    },
+    "carrefour_23": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 34.17,
+        "green_A_n": 6,
+        "green_B_avg": 6.08,
+        "green_B_n": 6
+      },
+      "recommended": {
+        "green_A": 34,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A ~= baseline (34s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.53,
+        "avg_queue_rl": 0.68,
+        "improvement_pct": -28.5
+      }
+    },
+    "carrefour_24": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 63.45,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 63,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 28s (baseline 35s -> 63s)",
+      "performance": {
+        "avg_queue_baseline": 0.24,
+        "avg_queue_rl": 0.25,
+        "improvement_pct": -1.7
+      }
+    },
+    "carrefour_25": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 63.97,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 64,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 29s (baseline 35s -> 64s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_26": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 66.7,
+        "green_A_n": 6,
+        "green_B_avg": 14.0,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 67,
+        "yellow_A": 4,
+        "red_A": 18,
+        "green_B": 14,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 32s (baseline 35s -> 67s) ; phase B raccourcie de 21s (baseline 35s -> 14s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.01,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_27": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.07,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_28": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 64.45,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 64,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 29s (baseline 35s -> 64s)",
+      "performance": {
+        "avg_queue_baseline": 0.41,
+        "avg_queue_rl": 0.14,
+        "improvement_pct": 64.8
+      }
+    },
+    "carrefour_29": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.12,
+        "avg_queue_rl": 0.12,
+        "improvement_pct": -6.1
+      }
+    },
+    "carrefour_30": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 68.45,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 68,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 33s (baseline 35s -> 68s)",
+      "performance": {
+        "avg_queue_baseline": 0.27,
+        "avg_queue_rl": 0.13,
+        "improvement_pct": 51.3
+      }
+    },
+    "carrefour_31": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 59.63,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 60,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 25s (baseline 35s -> 60s)",
+      "performance": {
+        "avg_queue_baseline": 0.07,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_32": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_33": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_34": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.18,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_35": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.33,
+        "avg_queue_rl": 0.17,
+        "improvement_pct": 48.2
+      }
+    },
+    "carrefour_36": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.39,
+        "avg_queue_rl": 0.25,
+        "improvement_pct": 35.6
+      }
+    },
+    "carrefour_37": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.72,
+        "avg_queue_rl": 0.37,
+        "improvement_pct": 49.2
+      }
+    },
+    "carrefour_38": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 63.33,
+        "green_A_n": 3,
+        "green_B_avg": 6.03,
+        "green_B_n": 3
+      },
+      "recommended": {
+        "green_A": 63,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 28s (baseline 35s -> 63s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.02,
+        "avg_queue_rl": 0.02,
+        "improvement_pct": 11.4
+      }
+    },
+    "carrefour_39": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 61.3,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 61,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 26s (baseline 35s -> 61s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_40": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.25,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_41": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.06,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_42": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 66.95,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 67,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 32s (baseline 35s -> 67s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_43": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.4,
+        "avg_queue_rl": 0.39,
+        "improvement_pct": 2.7
+      }
+    },
+    "carrefour_44": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.01,
+        "avg_queue_rl": 0.02,
+        "improvement_pct": -90.9
+      }
+    },
+    "carrefour_45": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.36,
+        "avg_queue_rl": 0.26,
+        "improvement_pct": 28.8
+      }
+    },
+    "carrefour_46": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 69.45,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 69,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 34s (baseline 35s -> 69s)",
+      "performance": {
+        "avg_queue_baseline": 0.12,
+        "avg_queue_rl": 0.17,
+        "improvement_pct": -43.3
+      }
+    },
+    "carrefour_47": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_48": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.1,
+        "avg_queue_rl": 0.13,
+        "improvement_pct": -32.6
+      }
+    },
+    "carrefour_49": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_50": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.06,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_51": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.01,
+        "avg_queue_rl": 0.18,
+        "improvement_pct": -1433.3
+      }
+    },
+    "carrefour_52": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.06,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_53": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.04,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_54": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 58.77,
+        "green_A_n": 4,
+        "green_B_avg": 5.2,
+        "green_B_n": 5
+      },
+      "recommended": {
+        "green_A": 59,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 24s (baseline 35s -> 59s) ; phase B raccourcie de 30s (baseline 35s -> 5s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.07,
+        "improvement_pct": -3250.0
+      }
+    },
+    "carrefour_55": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 69.7,
+        "green_A_n": 3,
+        "green_B_avg": 5.5,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.12,
+        "avg_queue_rl": 0.04,
+        "improvement_pct": 69.3
+      }
+    },
+    "carrefour_56": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 34.17,
+        "green_A_n": 6,
+        "green_B_avg": 6.08,
+        "green_B_n": 6
+      },
+      "recommended": {
+        "green_A": 34,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A ~= baseline (34s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.32,
+        "avg_queue_rl": 0.34,
+        "improvement_pct": -5.1
+      }
+    },
+    "carrefour_57": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 63.3,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 63,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 28s (baseline 35s -> 63s)",
+      "performance": {
+        "avg_queue_baseline": 0.16,
+        "avg_queue_rl": 0.27,
+        "improvement_pct": -62.8
+      }
+    },
+    "carrefour_58": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.1,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_59": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.08,
+        "avg_queue_rl": 0.01,
+        "improvement_pct": 91.6
+      }
+    },
+    "carrefour_60": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_61": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.1,
+        "avg_queue_rl": 0.25,
+        "improvement_pct": -160.4
+      }
+    },
+    "carrefour_62": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 58.97,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 59,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 24s (baseline 35s -> 59s)",
+      "performance": {
+        "avg_queue_baseline": 0.04,
+        "avg_queue_rl": 0.25,
+        "improvement_pct": -578.4
+      }
+    },
+    "carrefour_63": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 67.45,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 67,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 32s (baseline 35s -> 67s)",
+      "performance": {
+        "avg_queue_baseline": 0.14,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_64": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.05,
+        "avg_queue_rl": 0.14,
+        "improvement_pct": -163.0
+      }
+    },
+    "carrefour_65": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 61.3,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 61,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 26s (baseline 35s -> 61s)",
+      "performance": {
+        "avg_queue_baseline": 0.2,
+        "avg_queue_rl": 0.49,
+        "improvement_pct": -146.0
+      }
+    },
+    "carrefour_66": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.07,
+        "avg_queue_rl": 0.07,
+        "improvement_pct": 4.1
+      }
+    },
+    "carrefour_67": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 67.95,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 68,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 33s (baseline 35s -> 68s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_68": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 62.97,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 63,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 28s (baseline 35s -> 63s)",
+      "performance": {
+        "avg_queue_baseline": 0.22,
+        "avg_queue_rl": 0.17,
+        "improvement_pct": 21.2
+      }
+    },
+    "carrefour_69": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.14,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_70": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_71": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 45.2,
+        "green_A_n": 5,
+        "green_B_avg": 6.06,
+        "green_B_n": 5
+      },
+      "recommended": {
+        "green_A": 45,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 10s (baseline 35s -> 45s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.12,
+        "avg_queue_rl": 0.11,
+        "improvement_pct": 10.8
+      }
+    },
+    "carrefour_72": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 61.97,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 62,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 27s (baseline 35s -> 62s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_73": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 62.98,
+        "green_A_n": 4,
+        "green_B_avg": 6.0,
+        "green_B_n": 3
+      },
+      "recommended": {
+        "green_A": 63,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 28s (baseline 35s -> 63s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.05,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_74": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.15,
+        "avg_queue_rl": 0.04,
+        "improvement_pct": 73.2
+      }
+    },
+    "carrefour_75": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 36.67,
+        "green_A_n": 6,
+        "green_B_avg": 6.08,
+        "green_B_n": 5
+      },
+      "recommended": {
+        "green_A": 37,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A ~= baseline (37s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.15,
+        "avg_queue_rl": 0.17,
+        "improvement_pct": -9.5
+      }
+    },
+    "carrefour_76": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.4,
+        "avg_queue_rl": 0.25,
+        "improvement_pct": 37.8
+      }
+    },
+    "carrefour_77": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 61.47,
+        "green_A_n": 4,
+        "green_B_avg": 6.0,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 61,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 26s (baseline 35s -> 61s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_78": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 65.3,
+        "green_A_n": 9,
+        "green_B_avg": 6.0,
+        "green_B_n": 3
+      },
+      "recommended": {
+        "green_A": 65,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 30s (baseline 35s -> 65s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.03,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_79": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 58.0,
+        "green_A_n": 4,
+        "green_B_avg": 6.03,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 58,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 23s (baseline 35s -> 58s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.02,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_80": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 57.0,
+        "green_A_n": 4,
+        "green_B_avg": 6.03,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 57,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 22s (baseline 35s -> 57s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.13,
+        "avg_queue_rl": 0.07,
+        "improvement_pct": 44.5
+      }
+    },
+    "carrefour_81": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_82": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 67.63,
+        "green_A_n": 3,
+        "green_B_avg": 6.0,
+        "green_B_n": 3
+      },
+      "recommended": {
+        "green_A": 68,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 33s (baseline 35s -> 68s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.01,
+        "avg_queue_rl": 0.03,
+        "improvement_pct": -121.7
+      }
+    },
+    "carrefour_83": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 66.3,
+        "green_A_n": 3,
+        "green_B_avg": 6.0,
+        "green_B_n": 3
+      },
+      "recommended": {
+        "green_A": 66,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 31s (baseline 35s -> 66s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_84": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 45.52,
+        "green_A_n": 4,
+        "green_B_avg": 6.07,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 46,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 11s (baseline 35s -> 46s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.02,
+        "avg_queue_rl": 0.12,
+        "improvement_pct": -481.0
+      }
+    },
+    "carrefour_85": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 63.45,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 63,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 28s (baseline 35s -> 63s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.08,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_86": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 64.97,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 65,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 30s (baseline 35s -> 65s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_87": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 45.5,
+        "green_A_n": 4,
+        "green_B_avg": 6.05,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 46,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 11s (baseline 35s -> 46s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.21,
+        "avg_queue_rl": 0.11,
+        "improvement_pct": 45.2
+      }
+    },
+    "carrefour_88": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 60.5,
+        "green_A_n": 4,
+        "green_B_avg": 6.03,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 60,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 25s (baseline 35s -> 60s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.02,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_89": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 62.73,
+        "green_A_n": 4,
+        "green_B_avg": 6.0,
+        "green_B_n": 3
+      },
+      "recommended": {
+        "green_A": 63,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 28s (baseline 35s -> 63s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.07,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_90": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 67.95,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 68,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 33s (baseline 35s -> 68s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.15,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_91": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.12,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_92": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 58.63,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 59,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 24s (baseline 35s -> 59s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.22,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_93": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 61.63,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 62,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 27s (baseline 35s -> 62s)",
+      "performance": {
+        "avg_queue_baseline": 0.11,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_94": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 3,
+        "green_B_avg": 11.48,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 15,
+        "green_B": 11,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s) ; phase B raccourcie de 24s (baseline 35s -> 11s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.01,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_95": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_96": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 69.63,
+        "green_A_n": 9,
+        "green_B_avg": 6.0,
+        "green_B_n": 3
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_97": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 3,
+        "green_B_avg": 4.98,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s) ; phase B raccourcie de 30s (baseline 35s -> 5s)",
+      "performance": {
+        "avg_queue_baseline": 0.05,
+        "avg_queue_rl": 0.02,
+        "improvement_pct": 62.1
+      }
+    },
+    "carrefour_98": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 68.45,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 68,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 33s (baseline 35s -> 68s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_99": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_100": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 46.82,
+        "green_A_n": 5,
+        "green_B_avg": 6.07,
+        "green_B_n": 8
+      },
+      "recommended": {
+        "green_A": 47,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 12s (baseline 35s -> 47s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.08,
+        "avg_queue_rl": 0.1,
+        "improvement_pct": -23.7
+      }
+    },
+    "carrefour_101": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 59.3,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 59,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 24s (baseline 35s -> 59s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_102": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 59.27,
+        "green_A_n": 8,
+        "green_B_avg": 6.03,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 59,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 24s (baseline 35s -> 59s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.04,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_103": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 63.3,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 63,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 28s (baseline 35s -> 63s)",
+      "performance": {
+        "avg_queue_baseline": 0.17,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_104": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 55.03,
+        "green_A_n": 3,
+        "green_B_avg": 11.5,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 55,
+        "yellow_A": 4,
+        "red_A": 16,
+        "green_B": 12,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 20s (baseline 35s -> 55s) ; phase B raccourcie de 23s (baseline 35s -> 12s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.03,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_105": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.19,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_106": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.05,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_107": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 63.63,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 64,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 29s (baseline 35s -> 64s)",
+      "performance": {
+        "avg_queue_baseline": 0.59,
+        "avg_queue_rl": 0.95,
+        "improvement_pct": -62.4
+      }
+    },
+    "carrefour_108": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_109": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 62.97,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 63,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 28s (baseline 35s -> 63s)",
+      "performance": {
+        "avg_queue_baseline": 0.06,
+        "avg_queue_rl": 0.17,
+        "improvement_pct": -210.7
+      }
+    },
+    "carrefour_110": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 63.97,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 64,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 29s (baseline 35s -> 64s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_111": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 51.0,
+        "green_A_n": 4,
+        "green_B_avg": 6.06,
+        "green_B_n": 5
+      },
+      "recommended": {
+        "green_A": 51,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 16s (baseline 35s -> 51s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.11,
+        "avg_queue_rl": 0.09,
+        "improvement_pct": 16.2
+      }
+    },
+    "carrefour_112": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 59.97,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 60,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 25s (baseline 35s -> 60s)",
+      "performance": {
+        "avg_queue_baseline": 0.15,
+        "avg_queue_rl": 0.16,
+        "improvement_pct": -5.3
+      }
+    },
+    "carrefour_113": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.38,
+        "avg_queue_rl": 0.23,
+        "improvement_pct": 38.5
+      }
+    },
+    "carrefour_114": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.21,
+        "avg_queue_rl": 0.44,
+        "improvement_pct": -112.5
+      }
+    },
+    "carrefour_115": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.03,
+        "avg_queue_rl": 0.14,
+        "improvement_pct": -425.9
+      }
+    },
+    "carrefour_116": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 54.52,
+        "green_A_n": 4,
+        "green_B_avg": 6.05,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 55,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 20s (baseline 35s -> 55s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.03,
+        "avg_queue_rl": 0.1,
+        "improvement_pct": -214.8
+      }
+    },
+    "carrefour_117": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 62.63,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 63,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 28s (baseline 35s -> 63s)",
+      "performance": {
+        "avg_queue_baseline": 0.09,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_118": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 65.45,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 65,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 30s (baseline 35s -> 65s)",
+      "performance": {
+        "avg_queue_baseline": 0.03,
+        "avg_queue_rl": 0.35,
+        "improvement_pct": -1135.7
+      }
+    },
+    "carrefour_119": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 64.45,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 64,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 29s (baseline 35s -> 64s)",
+      "performance": {
+        "avg_queue_baseline": 0.26,
+        "avg_queue_rl": 0.57,
+        "improvement_pct": -117.9
+      }
+    },
+    "carrefour_120": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.05,
+        "avg_queue_rl": 0.07,
+        "improvement_pct": -45.1
+      }
+    },
+    "carrefour_121": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 65.45,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 65,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 30s (baseline 35s -> 65s)",
+      "performance": {
+        "avg_queue_baseline": 0.05,
+        "avg_queue_rl": 0.17,
+        "improvement_pct": -213.0
+      }
+    },
+    "carrefour_122": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_123": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.28,
+        "avg_queue_rl": 0.26,
+        "improvement_pct": 5.1
+      }
+    },
+    "carrefour_124": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 62.63,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 63,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 28s (baseline 35s -> 63s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_125": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.02,
+        "avg_queue_rl": 0.02,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_126": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 60.5,
+        "green_A_n": 4,
+        "green_B_avg": 4.77,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 60,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 25s (baseline 35s -> 60s) ; phase B raccourcie de 30s (baseline 35s -> 5s)",
+      "performance": {
+        "avg_queue_baseline": 0.04,
+        "avg_queue_rl": 0.01,
+        "improvement_pct": 66.3
+      }
+    },
+    "carrefour_127": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 3,
+        "green_B_avg": 4.75,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s) ; phase B raccourcie de 30s (baseline 35s -> 5s)",
+      "performance": {
+        "avg_queue_baseline": 0.01,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_128": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 62.73,
+        "green_A_n": 4,
+        "green_B_avg": 6.0,
+        "green_B_n": 3
+      },
+      "recommended": {
+        "green_A": 63,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 28s (baseline 35s -> 63s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_129": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 66.97,
+        "green_A_n": 3,
+        "green_B_avg": 6.0,
+        "green_B_n": 3
+      },
+      "recommended": {
+        "green_A": 67,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 32s (baseline 35s -> 67s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.2,
+        "avg_queue_rl": 0.06,
+        "improvement_pct": 71.0
+      }
+    },
+    "carrefour_130": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.16,
+        "avg_queue_rl": 0.36,
+        "improvement_pct": -129.9
+      }
+    },
+    "carrefour_131": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_132": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.03,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_133": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 43.2,
+        "green_A_n": 5,
+        "green_B_avg": 6.08,
+        "green_B_n": 5
+      },
+      "recommended": {
+        "green_A": 43,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 8s (baseline 35s -> 43s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.47,
+        "avg_queue_rl": 0.15,
+        "improvement_pct": 67.6
+      }
+    },
+    "carrefour_134": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.13,
+        "avg_queue_rl": 0.12,
+        "improvement_pct": 5.3
+      }
+    },
+    "carrefour_135": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 32.35,
+        "green_A_n": 12,
+        "green_B_avg": 7.73,
+        "green_B_n": 6
+      },
+      "recommended": {
+        "green_A": 32,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A raccourcie de 3s (baseline 35s -> 32s) ; phase B raccourcie de 27s (baseline 35s -> 8s)",
+      "performance": {
+        "avg_queue_baseline": 0.18,
+        "avg_queue_rl": 0.3,
+        "improvement_pct": -66.9
+      }
+    },
+    "carrefour_136": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 63.63,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 64,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 29s (baseline 35s -> 64s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_137": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_138": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_139": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.18,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_140": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 55.7,
+        "green_A_n": 3,
+        "green_B_avg": 9.0,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 56,
+        "yellow_A": 4,
+        "red_A": 13,
+        "green_B": 9,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 21s (baseline 35s -> 56s) ; phase B raccourcie de 26s (baseline 35s -> 9s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.04,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_141": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 3,
+        "green_B_avg": 5.48,
+        "green_B_n": 8
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s) ; phase B raccourcie de 30s (baseline 35s -> 5s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_142": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 63.63,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 64,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 29s (baseline 35s -> 64s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_143": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 61.3,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 61,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 26s (baseline 35s -> 61s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_144": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 63.95,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 64,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 29s (baseline 35s -> 64s)",
+      "performance": {
+        "avg_queue_baseline": 0.41,
+        "avg_queue_rl": 0.35,
+        "improvement_pct": 15.2
+      }
+    },
+    "carrefour_145": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 59.97,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 60,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 25s (baseline 35s -> 60s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_146": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 64.7,
+        "green_A_n": 3,
+        "green_B_avg": 6.03,
+        "green_B_n": 3
+      },
+      "recommended": {
+        "green_A": 65,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 30s (baseline 35s -> 65s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.06,
+        "avg_queue_rl": 0.02,
+        "improvement_pct": 64.8
+      }
+    },
+    "carrefour_147": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 51.0,
+        "green_A_n": 4,
+        "green_B_avg": 6.03,
+        "green_B_n": 8
+      },
+      "recommended": {
+        "green_A": 51,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 16s (baseline 35s -> 51s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.03,
+        "avg_queue_rl": 0.02,
+        "improvement_pct": 15.1
+      }
+    },
+    "carrefour_148": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 67.45,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 67,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 32s (baseline 35s -> 67s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.12,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_149": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.07,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_150": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.28,
+        "avg_queue_rl": 0.11,
+        "improvement_pct": 61.6
+      }
+    },
+    "carrefour_151": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.15,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_152": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.01,
+        "avg_queue_rl": 0.2,
+        "improvement_pct": -1423.1
+      }
+    },
+    "carrefour_153": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.17,
+        "avg_queue_rl": 0.12,
+        "improvement_pct": 30.8
+      }
+    },
+    "carrefour_154": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_155": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.16,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_156": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 58.97,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 59,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 24s (baseline 35s -> 59s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_157": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 69.95,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.24,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_158": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.13,
+        "avg_queue_rl": 0.13,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_159": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.07,
+        "avg_queue_rl": 0.01,
+        "improvement_pct": 90.7
+      }
+    },
+    "carrefour_160": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.1,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_161": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 68.63,
+        "green_A_n": 3,
+        "green_B_avg": 6.0,
+        "green_B_n": 3
+      },
+      "recommended": {
+        "green_A": 69,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 34s (baseline 35s -> 69s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.08,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_162": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_163": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_164": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_165": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 3,
+        "green_B_avg": 6.0,
+        "green_B_n": 3
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.01,
+        "avg_queue_rl": 0.01,
+        "improvement_pct": 20.0
+      }
+    },
+    "carrefour_166": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.07,
+        "avg_queue_rl": 0.09,
+        "improvement_pct": -37.3
+      }
+    },
+    "carrefour_167": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 61.97,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 62,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 27s (baseline 35s -> 62s)",
+      "performance": {
+        "avg_queue_baseline": 0.12,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_168": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_169": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 59.3,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 59,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 24s (baseline 35s -> 59s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_170": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 64.63,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 65,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 30s (baseline 35s -> 65s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_171": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_172": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 68.97,
+        "green_A_n": 3,
+        "green_B_avg": 6.0,
+        "green_B_n": 3
+      },
+      "recommended": {
+        "green_A": 69,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 34s (baseline 35s -> 69s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_173": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.07,
+        "avg_queue_rl": 0.07,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_174": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_175": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_176": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.03,
+        "avg_queue_rl": 0.03,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_177": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 63.63,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 64,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 29s (baseline 35s -> 64s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_178": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 61.97,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 62,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 27s (baseline 35s -> 62s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_179": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.07,
+        "avg_queue_rl": 0.07,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_180": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_181": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.18,
+        "avg_queue_rl": 0.17,
+        "improvement_pct": 4.4
+      }
+    },
+    "carrefour_182": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 59.97,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 60,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 25s (baseline 35s -> 60s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_183": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_184": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 58.5,
+        "green_A_n": 4,
+        "green_B_avg": 6.03,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 58,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 23s (baseline 35s -> 58s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.05,
+        "avg_queue_rl": 0.04,
+        "improvement_pct": 23.5
+      }
+    },
+    "carrefour_185": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 3,
+        "green_B_avg": 6.0,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_186": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 38.4,
+        "green_A_n": 5,
+        "green_B_avg": 6.06,
+        "green_B_n": 5
+      },
+      "recommended": {
+        "green_A": 38,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 3s (baseline 35s -> 38s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.23,
+        "avg_queue_rl": 0.14,
+        "improvement_pct": 39.7
+      }
+    },
+    "carrefour_187": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 55.0,
+        "green_A_n": 4,
+        "green_B_avg": 6.03,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 55,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 20s (baseline 35s -> 55s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.02,
+        "avg_queue_rl": 0.01,
+        "improvement_pct": 54.2
+      }
+    },
+    "carrefour_188": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 3,
+        "green_B_avg": 4.75,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s) ; phase B raccourcie de 30s (baseline 35s -> 5s)",
+      "performance": {
+        "avg_queue_baseline": 0.15,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 99.0
+      }
+    },
+    "carrefour_189": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.21,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_190": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_191": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_192": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_193": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 62.63,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 63,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 28s (baseline 35s -> 63s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.04,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_194": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 66.45,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 66,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 31s (baseline 35s -> 66s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.02,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_195": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 69.95,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_196": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.45,
+        "avg_queue_rl": 0.13,
+        "improvement_pct": 70.3
+      }
+    },
+    "carrefour_197": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 59.3,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 59,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 24s (baseline 35s -> 59s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_198": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.1,
+        "avg_queue_rl": 0.01,
+        "improvement_pct": 89.3
+      }
+    },
+    "carrefour_199": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 69.45,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 69,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 34s (baseline 35s -> 69s)",
+      "performance": {
+        "avg_queue_baseline": 0.02,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_200": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 49.52,
+        "green_A_n": 4,
+        "green_B_avg": 6.05,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 50,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 15s (baseline 35s -> 50s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.05,
+        "avg_queue_rl": 0.05,
+        "improvement_pct": -4.2
+      }
+    },
+    "carrefour_201": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 63.3,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 63,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 28s (baseline 35s -> 63s)",
+      "performance": {
+        "avg_queue_baseline": 0.15,
+        "avg_queue_rl": 0.32,
+        "improvement_pct": -103.9
+      }
+    },
+    "carrefour_202": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 61.97,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 62,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 27s (baseline 35s -> 62s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_203": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.14,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_204": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 60.97,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 61,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 26s (baseline 35s -> 61s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_205": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 59.27,
+        "green_A_n": 4,
+        "green_B_avg": 6.03,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 59,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 24s (baseline 35s -> 59s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.06,
+        "avg_queue_rl": 0.05,
+        "improvement_pct": 15.0
+      }
+    },
+    "carrefour_206": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_207": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 67.45,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 67,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 32s (baseline 35s -> 67s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_208": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_209": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 62.23,
+        "green_A_n": 8,
+        "green_B_avg": 6.0,
+        "green_B_n": 3
+      },
+      "recommended": {
+        "green_A": 62,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 27s (baseline 35s -> 62s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.11,
+        "avg_queue_rl": 0.03,
+        "improvement_pct": 72.6
+      }
+    },
+    "carrefour_210": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.18,
+        "avg_queue_rl": 0.18,
+        "improvement_pct": 1.1
+      }
+    },
+    "carrefour_211": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.26,
+        "avg_queue_rl": 0.02,
+        "improvement_pct": 92.3
+      }
+    },
+    "carrefour_212": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 64.95,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 65,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 30s (baseline 35s -> 65s)",
+      "performance": {
+        "avg_queue_baseline": 0.02,
+        "avg_queue_rl": 0.13,
+        "improvement_pct": -568.4
+      }
+    },
+    "carrefour_213": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 60.63,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 61,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 26s (baseline 35s -> 61s)",
+      "performance": {
+        "avg_queue_baseline": 0.18,
+        "avg_queue_rl": 0.18,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_214": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 58.97,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 59,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 24s (baseline 35s -> 59s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_215": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 61.97,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 62,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 27s (baseline 35s -> 62s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_216": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_217": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 61.97,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 62,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 27s (baseline 35s -> 62s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_218": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_219": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 6,
+        "green_B_avg": 6.03,
+        "green_B_n": 8
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.08,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_220": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 67.45,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 67,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 32s (baseline 35s -> 67s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_221": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_222": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 61.63,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 62,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 27s (baseline 35s -> 62s)",
+      "performance": {
+        "avg_queue_baseline": 0.12,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_223": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 59.97,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 60,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 25s (baseline 35s -> 60s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.1,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_224": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.15,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_225": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.02,
+        "avg_queue_rl": 0.02,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_226": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_227": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.15,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_228": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 69.3,
+        "green_A_n": 3,
+        "green_B_avg": 6.0,
+        "green_B_n": 3
+      },
+      "recommended": {
+        "green_A": 69,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 34s (baseline 35s -> 69s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_229": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 69.97,
+        "green_A_n": 3,
+        "green_B_avg": 6.0,
+        "green_B_n": 3
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_230": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 59.27,
+        "green_A_n": 4,
+        "green_B_avg": 6.03,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 59,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 24s (baseline 35s -> 59s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.04,
+        "avg_queue_rl": 0.02,
+        "improvement_pct": 37.1
+      }
+    },
+    "carrefour_231": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.18,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_232": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_233": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 44.4,
+        "green_A_n": 5,
+        "green_B_avg": 6.06,
+        "green_B_n": 5
+      },
+      "recommended": {
+        "green_A": 44,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 9s (baseline 35s -> 44s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.18,
+        "avg_queue_rl": 0.11,
+        "improvement_pct": 38.8
+      }
+    },
+    "carrefour_234": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 3,
+        "green_B_avg": 11.98,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 16,
+        "green_B": 12,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s) ; phase B raccourcie de 23s (baseline 35s -> 12s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_235": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 61.3,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 61,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 26s (baseline 35s -> 61s)",
+      "performance": {
+        "avg_queue_baseline": 0.02,
+        "avg_queue_rl": 0.11,
+        "improvement_pct": -378.3
+      }
+    },
+    "carrefour_236": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 59.25,
+        "green_A_n": 4,
+        "green_B_avg": 6.03,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 59,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 24s (baseline 35s -> 59s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.01,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_237": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.12,
+        "avg_queue_rl": 0.12,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_238": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 62.67,
+        "green_A_n": 3,
+        "green_B_avg": 5.02,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 63,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 28s (baseline 35s -> 63s) ; phase B raccourcie de 30s (baseline 35s -> 5s)",
+      "performance": {
+        "avg_queue_baseline": 0.1,
+        "avg_queue_rl": 0.02,
+        "improvement_pct": 85.2
+      }
+    },
+    "carrefour_239": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 57.52,
+        "green_A_n": 4,
+        "green_B_avg": 5.62,
+        "green_B_n": 5
+      },
+      "recommended": {
+        "green_A": 58,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 23s (baseline 35s -> 58s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.04,
+        "avg_queue_rl": 0.03,
+        "improvement_pct": 21.1
+      }
+    },
+    "carrefour_240": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.05,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_241": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.09,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_242": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 59.97,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 60,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 25s (baseline 35s -> 60s)",
+      "performance": {
+        "avg_queue_baseline": 0.18,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 100.0
+      }
+    },
+    "carrefour_243": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 60.97,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 61,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 26s (baseline 35s -> 61s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_244": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 65.45,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 65,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 30s (baseline 35s -> 65s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_245": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 48.52,
+        "green_A_n": 4,
+        "green_B_avg": 10.62,
+        "green_B_n": 5
+      },
+      "recommended": {
+        "green_A": 49,
+        "yellow_A": 4,
+        "red_A": 15,
+        "green_B": 11,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 14s (baseline 35s -> 49s) ; phase B raccourcie de 24s (baseline 35s -> 11s)",
+      "performance": {
+        "avg_queue_baseline": 0.03,
+        "avg_queue_rl": 0.1,
+        "improvement_pct": -220.0
+      }
+    },
+    "carrefour_246": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 2,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s)",
+      "performance": {
+        "avg_queue_baseline": 0.27,
+        "avg_queue_rl": 0.2,
+        "improvement_pct": 28.6
+      }
+    },
+    "carrefour_247": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 60.63,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 61,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 26s (baseline 35s -> 61s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_248": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 70.0,
+        "green_A_n": 3,
+        "green_B_avg": 6.03,
+        "green_B_n": 4
+      },
+      "recommended": {
+        "green_A": 70,
+        "yellow_A": 4,
+        "red_A": 12,
+        "green_B": 8,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 35s (baseline 35s -> 70s) ; phase B raccourcie de 29s (baseline 35s -> 6s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    },
+    "carrefour_249": {
+      "current_fixed": {
+        "green_A": 35,
+        "yellow_A": 4,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "rl_observed": {
+        "green_A_avg": 59.3,
+        "green_A_n": 3,
+        "green_B_avg": null,
+        "green_B_n": null
+      },
+      "recommended": {
+        "green_A": 59,
+        "yellow_A": 4,
+        "red_A": 39,
+        "green_B": 35,
+        "yellow_B": 4
+      },
+      "verdict": "RL recommande : phase A prolongee de 24s (baseline 35s -> 59s)",
+      "performance": {
+        "avg_queue_baseline": 0.0,
+        "avg_queue_rl": 0.0,
+        "improvement_pct": 0.0
+      }
+    }
+  }
+}
