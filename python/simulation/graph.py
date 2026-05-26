@@ -20,6 +20,7 @@ TRAFFIC_SIGNAL_ATTACH_MAX_DIST = 25.0
 
 @dataclass
 class GraphNode:
+    """Point routier conserve dans le graphe avec sa position GPS."""
     node_id: int
     lat: float
     lon: float
@@ -30,6 +31,7 @@ class GraphNode:
 
 @dataclass
 class GraphEdge:
+    """Arc oriente entre deux noeuds, pondere par son temps de parcours."""
     from_node: int
     to_node: int
     road_id: int          # identifiant de la rue OSM
@@ -50,6 +52,7 @@ class RoadGraph:
     """
 
     def __init__(self):
+        """Prepare les structures d adjacence du graphe routier."""
         self.nodes: Dict[int, GraphNode] = {}
         self.edges: Dict[int, List[GraphEdge]] = {}  # adjacence
         self.all_edges: List[GraphEdge] = []
@@ -92,6 +95,7 @@ class RoadGraph:
               f"{len(self._spawn_nodes)} nœuds de spawn valides")
 
     def _add_road_edges(self, road):
+        """Ajoute les arcs d une route, dans un ou deux sens selon les donnees."""
         nlist = road.nodes
         if len(nlist) < 2:
             return
@@ -199,6 +203,7 @@ class RoadGraph:
         return path
 
     def get_path_coordinates(self, path):
+        """Convertit une suite de noeuds en coordonnees GPS affichables."""
         coords = []
         for nid in path:
             if nid in self.nodes:
@@ -208,6 +213,7 @@ class RoadGraph:
 
 
     def _find_closest_node(self, lat, lon, max_distance: float = math.inf):
+        """Cherche le noeud routier le plus proche d une position GPS."""
         best_id = None
         best_dist = max_distance
         for nid, node in self.nodes.items():
@@ -218,6 +224,7 @@ class RoadGraph:
         return best_id
 
     def _attach_traffic_signals(self, network) -> None:
+        """Rattache chaque feu OSM au noeud routier qui le represente le mieux."""
         road_degrees = self._compute_road_degrees()
         for signal in network.feux:
             closest = signal.id if signal.id in self.nodes else None
@@ -234,6 +241,7 @@ class RoadGraph:
     def _find_closest_signal_node(self, lat, lon,
                                   max_distance: float = math.inf,
                                   road_degrees: Optional[Dict[int, int]] = None):
+        """Cherche en priorite un carrefour proche pour y placer un feu."""
         road_degrees = road_degrees or self._compute_road_degrees()
         # On préfère un vrai carrefour quand le feu OSM est légèrement décalé.
         closest_intersection = self._find_closest_connected_node(
@@ -256,6 +264,7 @@ class RoadGraph:
                                      max_distance: float = math.inf,
                                      require_intersection: bool = False,
                                      road_degrees: Optional[Dict[int, int]] = None):
+        """Cherche un noeud connecte proche, avec ou sans contrainte de carrefour."""
         road_degrees = road_degrees or self._compute_road_degrees()
         best_id = None
         best_dist = max_distance
@@ -272,6 +281,7 @@ class RoadGraph:
         return best_id
 
     def _compute_road_degrees(self) -> Dict[int, int]:
+        """Compte les directions routieres connectees a chaque noeud."""
         neighbors: Dict[int, set] = {nid: set() for nid in self.nodes}
         for edge in self.all_edges:
             neighbors.setdefault(edge.from_node, set()).add(edge.to_node)
@@ -290,9 +300,11 @@ class RoadGraph:
         return getattr(self, '_spawn_nodes', list(self.nodes.keys()))
 
     def node_count(self) -> int:
+        """Renvoie le nombre de noeuds routiers du graphe."""
         return len(self.nodes)
 
     def edge_count(self) -> int:
+        """Renvoie le nombre total d arcs routiers."""
         return len(self.all_edges)
 
 

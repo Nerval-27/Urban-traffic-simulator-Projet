@@ -47,12 +47,14 @@ Au lancement, le graphe construit actuellement :
 326 feux initialises dans 250 carrefours
 ```
 
-## Resultats actuels
+## Resultats actuels — exemple de benchmark
 
-Le dernier benchmark enregistre dans `results/benchmark.json` compare les feux
-fixes et le mode Q-learning sur 5 scenarios : seeds `42`, `43`, `44`, `45` et
+Voici un exemple de benchmark obtenu avec les feux fixes et le mode Q-learning.
+La comparaison est faite sur 5 scenarios : seeds `42`, `43`, `44`, `45` et
 `46`. Chaque scenario dure environ 300 secondes simulees avec une cible de
-100 vehicules actifs.
+100 vehicules actifs. Les valeurs peuvent legerement bouger apres un nouvel
+entrainement, car la Q-table apprise et les trajets tires influencent le
+resultat final.
 
 ### Cibles officielles du rapport
 
@@ -79,7 +81,7 @@ pour atteindre la cible fixee dans le rapport.
 Ces indicateurs montrent que le pilotage adaptatif ameliore la fluidite du
 reseau : plus de vehicules terminent leur trajet, la vitesse moyenne augmente,
 et l'attente moyenne aux feux baisse. Le Q-learning reste perfectible, surtout
-sur le temps de trajet median et certains carrefours encore instables.
+sur le temps de trajet moyen et certains carrefours encore instables.
 
 ## Lancer le projet
 
@@ -361,8 +363,6 @@ Les principaux fichiers de sortie sont :
 | `results/rl_summary.json` | resume d'une simulation en mode RL |
 | `results/*_snapshots.csv` | mesures prises pendant une simulation |
 
-Le dossier `results/` est ignore par Git, car il contient des sorties
-regenerables.
 
 ## Sortie principale : recommandations par carrefour
 

@@ -1,4 +1,7 @@
+"""Exemple tres simple conserve dans le modele de rapport."""
+
 def fibo(n):
+    """Calcule la suite de Fibonacci par recursion simple."""
     if n < 0:
         print("Incorrect input")
     elif n == 0:

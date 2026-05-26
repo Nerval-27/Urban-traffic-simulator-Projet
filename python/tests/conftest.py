@@ -1,3 +1,4 @@
+"""Configuration de chemin pour lancer les tests depuis la racine du projet."""
 import os
 import sys
 

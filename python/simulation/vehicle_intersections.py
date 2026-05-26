@@ -88,6 +88,7 @@ class VehicleIntersectionMixin:
         return self._intersection_yield_speed(v, dist)
 
     def _intersection_yield_speed(self, v: Vehicle, dist: float) -> float:
+        """Calcule la vitesse lente a adopter quand il faut ceder le passage."""
         if dist <= INTER_CLEAR_DIST + 0.5:
             return 0.0
         ratio = max(0.0, (dist - INTER_CLEAR_DIST) /
@@ -96,6 +97,7 @@ class VehicleIntersectionMixin:
 
     def _active_token_owners(self, node_id: int,
                              requester_id: int = -1) -> List[Vehicle]:
+        """Liste les vehicules qui occupent deja le carrefour vise."""
         owners = self._node_tokens.get(node_id, set())
         if not owners:
             return []
@@ -127,6 +129,7 @@ class VehicleIntersectionMixin:
         return active
 
     def _approach_allowed_by_light(self, v: Vehicle, target_nid: int) -> bool:
+        """Verifie si le feu autorise cette approche du carrefour."""
         light = self._light_for_approach(target_nid, v.seg_from)
         if light is None:
             return True
@@ -134,6 +137,7 @@ class VehicleIntersectionMixin:
 
     def _must_yield_at_intersection(self, v: Vehicle, target_nid: int,
                                     my_dist: float) -> bool:
+        """Decide si le vehicule doit laisser passer un autre mouvement."""
         target_node = self.graph.nodes.get(target_nid)
         if target_node is None:
             return False
@@ -177,6 +181,7 @@ class VehicleIntersectionMixin:
         return False
 
     def _turn_kind(self, v: Vehicle, target_nid: int) -> str:
+        """Classe le mouvement en tout droit, gauche, droite ou demi-tour."""
         if v.path_index + 1 >= len(v.path):
             return "end"
 
@@ -202,6 +207,7 @@ class VehicleIntersectionMixin:
         return "right"
 
     def _is_oncoming_approach(self, v: Vehicle, other: Vehicle) -> bool:
+        """Detecte si deux vehicules arrivent face a face."""
         v_from = self.graph.nodes.get(v.seg_from)
         v_to = self.graph.nodes.get(v.seg_to)
         o_from = self.graph.nodes.get(other.seg_from)
@@ -213,12 +219,14 @@ class VehicleIntersectionMixin:
         return (vux * oux + vuy * ouy) <= -0.70
 
     def _next_after_intersection(self, v: Vehicle) -> int:
+        """Renvoie le noeud suivi apres le carrefour dans le trajet du vehicule."""
         if v.path_index + 1 >= len(v.path):
             return -1
         return v.path[v.path_index + 1]
 
     def _movements_conflict(self, v: Vehicle, other: Vehicle,
                             target_nid: int) -> bool:
+        """Teste si deux trajectoires peuvent se gener dans le carrefour."""
         if other.vehicle_id == v.vehicle_id:
             return False
         if other.seg_from == v.seg_from:
@@ -242,6 +250,7 @@ class VehicleIntersectionMixin:
 
     def _is_other_on_right(self, v: Vehicle, other: Vehicle,
                            target_nid: int) -> bool:
+        """Teste la priorite a droite autour du noeud d intersection."""
         inter_node = self.graph.nodes.get(target_nid)
         from_node = self.graph.nodes.get(v.seg_from)
         to_node = self.graph.nodes.get(v.seg_to)
@@ -263,6 +272,7 @@ class VehicleIntersectionMixin:
                 >= math.cos(math.radians(45.0)))
 
     def _token_acquire(self, v: Vehicle, node_id: int) -> None:
+        """Reserve un carrefour pour laisser passer un vehicule."""
         if v.reserved_node != -1 and v.reserved_node != node_id:
             owners = self._node_tokens.get(v.reserved_node)
             if owners is not None:
@@ -273,6 +283,7 @@ class VehicleIntersectionMixin:
         self._node_tokens.setdefault(node_id, set()).add(v.vehicle_id)
 
     def _token_release(self, v: Vehicle) -> None:
+        """Libere la reservation de carrefour portee par un vehicule."""
         if v.reserved_node != -1:
             owners = self._node_tokens.get(v.reserved_node)
             if owners is not None:
@@ -282,11 +293,13 @@ class VehicleIntersectionMixin:
             v.reserved_node = -1
 
     def _get_incoming_sources(self, node_id: int) -> Set[int]:
+        """Renvoie les noeuds amont qui peuvent entrer dans un carrefour."""
         if self._incoming_cache is None:
             return set()
         return self._incoming_cache.get(node_id, set())
 
     def _is_real_intersection_node(self, node_id: int) -> bool:
+        """Verifie si un noeud ressemble a un vrai croisement routier."""
         neighbors = set(self._get_incoming_sources(node_id))
         for edge in self.graph.edges.get(node_id, []):
             neighbors.add(edge.to_node)

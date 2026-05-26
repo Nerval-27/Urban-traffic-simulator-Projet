@@ -1,4 +1,5 @@
 
+
 import sys
 import os
 import random
@@ -10,6 +11,7 @@ from simulation.vehicle import VehicleManager
 
 
 def main():
+    """Charge la carte nettoyee, construit le graphe et affiche un court resume console."""
     print("Traffic Simulator (mode console)\n")
 
     current_dir = os.path.dirname(os.path.abspath(__file__))

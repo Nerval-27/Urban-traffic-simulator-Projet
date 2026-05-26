@@ -146,6 +146,7 @@ class TrafficRLEnv:
     def __init__(self, map_path, step_dt=5.0, sub_dt=0.1, max_time=300.0,
                  initial_vehicles=15, target_vehicles=100, max_vehicles=150,
                  spawn_interval=3.0, random_seed=42):
+        """Prepare l environnement d entrainement autour de la simulation."""
         self.map_path         = map_path
         self.step_dt          = step_dt
         self.sub_dt           = sub_dt
@@ -242,9 +243,11 @@ class TrafficRLEnv:
         return observations, rewards, done, info
 
     def group_ids(self):
+        """Renvoie les identifiants de carrefours controles par l environnement."""
         return list(self._group_ids)
 
     def summary(self):
+        """Renvoie le resume final des metriques de l episode courant."""
         return self.metrics.summary() if self.metrics else {}
 
     def _spawn_more(self):
@@ -305,6 +308,7 @@ class RLController:
     """
 
     def __init__(self, agent, light_manager, metrics, step_dt=5.0):
+        """Branche un agent entraine sur les feux et les metriques de la GUI."""
         self.agent         = agent
         self.light_manager = light_manager
         self.metrics       = metrics
@@ -349,10 +353,12 @@ class RLController:
         self.last_actions = actions
 
     def time_since_switch(self, gid):
+        """Indique depuis combien de temps un groupe n a pas change de phase."""
         ts = self.recent_switches.get(gid)
         return None if ts is None else self._sim_time - ts
 
     def stats(self):
+        """Expose les compteurs de decisions du controleur RL."""
         total = sum(self.action_count.values()) or 1
         return {
             "groups":         len(self._group_ids),

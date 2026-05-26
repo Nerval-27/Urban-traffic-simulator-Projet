@@ -6,6 +6,7 @@ from rl.env import NB_ACTIONS, TrafficRLEnv, default_map_path
 
 
 def main():
+    """Lance une courte demonstration du mode Q-learning dans le terminal."""
     print("Initialisation de l'environnement RL...")
     env = TrafficRLEnv(
         map_path=default_map_path(),

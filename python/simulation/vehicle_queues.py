@@ -75,6 +75,7 @@ class VehicleQueueMixin:
         return self._queue_hold(v, dt)
 
     def _queue_join(self, v: Vehicle, light_nid: int) -> bool:
+        """Ajoute le vehicule dans la file du feu s'il reste une place."""
         if v.seg_from == -1:
             return False
         if v.queue_light_node != -1 and v.queue_light_node != light_nid:
@@ -104,6 +105,7 @@ class VehicleQueueMixin:
         return True
 
     def _queue_remove(self, v: Vehicle) -> None:
+        """Retire un vehicule de sa file et remet ses marqueurs a zero."""
         if v.queue_light_node == -1:
             return
         key = (v.queue_light_node, v.queue_seg_from)
@@ -126,6 +128,7 @@ class VehicleQueueMixin:
             self._queue_compact(key)
 
     def _queue_compact(self, key: Tuple[int, int]) -> None:
+        """Nettoie une file puis recalcule l'ordre des vehicules."""
         light_nid, seg_from = key
         light_node = self.graph.nodes.get(light_nid)
         q = self._queues.get(key, [])
@@ -166,6 +169,7 @@ class VehicleQueueMixin:
 
     def _queue_slot_fits(self, light_nid: int, seg_from: int,
                          slot_index: int) -> bool:
+        """Verifie que la place demandee tient encore sur le segment."""
         light_node = self.graph.nodes.get(light_nid)
         origin_node = self.graph.nodes.get(seg_from)
         if light_node is None or origin_node is None:
@@ -177,6 +181,7 @@ class VehicleQueueMixin:
         return target_dist <= max(STOP_LINE_DIST, seg_len - 0.5)
 
     def _queue_hold(self, v: Vehicle, dt: float) -> bool:
+        """Garde le vehicule a sa position de file tant que le feu bloque."""
         light_nid = v.queue_light_node
         key = (light_nid, v.queue_seg_from)
         self._queue_compact(key)
@@ -228,6 +233,7 @@ class VehicleQueueMixin:
         return True
 
     def _queue_release(self, v: Vehicle, dt: float) -> bool:
+        """Libere progressivement les vehicules quand le feu repasse au vert."""
         reaction_head = 0.8
         reaction_next = 1.0
 
@@ -271,6 +277,7 @@ class VehicleQueueMixin:
 
     def _place_at_slot(self, v: Vehicle, light_nid: int,
                        target_dist: float) -> None:
+        """Place le vehicule a la bonne distance de la ligne d'arret."""
         light_node = self.graph.nodes.get(light_nid)
         origin_node = self.graph.nodes.get(v.queue_seg_from)
         if light_node is None or origin_node is None:

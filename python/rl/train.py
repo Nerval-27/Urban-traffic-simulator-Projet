@@ -147,11 +147,13 @@ def train(nb_episodes=30, max_time=120.0, target_vehicles=80,
 
 
 def _results_dir():
+    """Renvoie le dossier ou les Q-tables et historiques sont sauvegardes."""
     here = os.path.dirname(os.path.abspath(__file__))
     return os.path.normpath(os.path.join(here, "..", "..", "results"))
 
 
 def main():
+    """Lit les options d entrainement puis lance les episodes Q-learning."""
     parser = argparse.ArgumentParser()
     parser.add_argument("episodes", nargs="?", type=int, default=30)
     parser.add_argument("--max-time", type=float, default=120.0)

@@ -40,6 +40,7 @@ def rl_policy(agent):
     """Politique RL : pour chaque carrefour, l'agent prend l'action
     de meilleure Q-valeur (mode greedy, pas d'exploration)."""
     def policy(obs):
+        """Traduit chaque observation de carrefour en action choisie par l'agent."""
         actions = {}
         for gid in obs:
             actions[gid] = agent.greedy_action(obs[gid]["state_tuple"])
@@ -91,6 +92,7 @@ def _row(label, key, sens, cible, baseline, rl):
 
 
 def compare(baseline, rl):
+    """Compare baseline et RL sur les cibles officielles du rapport."""
     rows = [
         _row("Temps moyen de trajet (s)", "avg_trip_time_s",
              "lower", CIBLE_TEMPS_TRAJET, baseline, rl),
@@ -151,6 +153,7 @@ def compare_robust(baseline, rl):
 
 
 def print_report(comparison, title="Cibles officielles du rapport"):
+    """Affiche un tableau lisible pour un groupe de metriques."""
     print("\n" + "=" * 78)
     print(title)
     print("-" * 78)
@@ -181,6 +184,7 @@ def print_report(comparison, title="Cibles officielles du rapport"):
 
 
 def write_json(path, data, label):
+    """Sauvegarde un objet Python en JSON avec un message de confirmation."""
     with open(path, "w") as f:
         json.dump(data, f, indent=2)
     print(f"\n{label} : {path}")
@@ -189,6 +193,7 @@ def write_json(path, data, label):
 # Moyenne et ecart-type d'une serie de summaries (un par seed)
 
 def _average_summaries(summaries):
+    """Moyenne les resumes produits par plusieurs seeds de simulation."""
     keys = [
         "duration_s", "spawned", "arrived", "active",
         "completion_rate", "throughput_per_min",
@@ -207,6 +212,7 @@ def _average_summaries(summaries):
 
 
 def _stdev_summaries(summaries, keys):
+    """Calcule l ecart-type des metriques principales sur plusieurs seeds."""
     out = {}
     for key in keys:
         values = [float(s.get(key, 0.0)) for s in summaries]
@@ -215,6 +221,7 @@ def _stdev_summaries(summaries, keys):
 
 
 def _parse_seeds(value):
+    """Convertit la liste de seeds passee en argument en entiers."""
     if isinstance(value, (list, tuple)):
         return [int(v) for v in value]
     return [int(x.strip()) for x in str(value).split(",") if x.strip()]
@@ -331,11 +338,13 @@ def benchmark(qtable_path, max_time=300.0, target_vehicles=100,
 
 
 def _results_dir():
+    """Renvoie le dossier ou les fichiers de benchmark sont ecrits."""
     here = os.path.dirname(os.path.abspath(__file__))
     return os.path.normpath(os.path.join(here, "..", "..", "results"))
 
 
 def main():
+    """Lit les options de benchmark puis lance la comparaison baseline contre RL."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--qtable", type=str,
                         default=os.path.join(_results_dir(), "q_table.json"))

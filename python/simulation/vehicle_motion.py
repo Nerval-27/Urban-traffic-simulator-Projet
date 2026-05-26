@@ -88,6 +88,7 @@ class VehicleMotionMixin:
         return best
 
     def _light_approach_speed(self, v: Vehicle) -> float:
+        """Calcule la vitesse cible a l approche du prochain feu."""
         for lookahead in range(3):
             idx = v.path_index + lookahead
             if idx >= len(v.path):
@@ -117,6 +118,7 @@ class VehicleMotionMixin:
         return v.max_speed
 
     def _light_for_approach(self, node_id: int, from_node: int):
+        """Retrouve le feu qui controle une approche donnee."""
         if from_node == -1:
             return None
         light = self.light_manager.get_light(node_id)
@@ -127,6 +129,7 @@ class VehicleMotionMixin:
         return light
 
     def _path_distance_to_index(self, v: Vehicle, target_index: int) -> float:
+        """Mesure la distance restante jusqu a un noeud plus loin dans le trajet."""
         if target_index < v.path_index or target_index >= len(v.path):
             return math.inf
 
@@ -145,6 +148,7 @@ class VehicleMotionMixin:
 
     def _red_light_stop_guard(self, v: Vehicle, target_nid: int,
                               dist: float, dt: float) -> bool:
+        """Empeche un vehicule de depasser la ligne d arret au feu rouge."""
         if v.queue_light_node != -1:
             return False
         if v.seg_to != target_nid:
@@ -172,6 +176,7 @@ class VehicleMotionMixin:
 
     def _move_vehicle(self, v: Vehicle, target_node,
                       dist: float, dt: float) -> Tuple[float, bool]:
+        """Avance le vehicule sur son segment et bascule au segment suivant si possible."""
         move = v.speed * dt
         if move <= 0.0:
             return dt, False
@@ -203,6 +208,7 @@ class VehicleMotionMixin:
         return dt, False
 
     def _next_segment_has_space(self, v: Vehicle) -> bool:
+        """Verifie que le segment suivant peut recevoir le vehicule."""
         if v.path_index + 1 >= len(v.path):
             return True
 
@@ -251,6 +257,7 @@ class VehicleMotionMixin:
         return True
 
     def _resolve_same_segment_overlaps(self) -> None:
+        """Separe les vehicules trop proches sur un meme segment."""
         groups: Dict[Tuple[int, int], List[Vehicle]] = {}
         for v in self.vehicles.values():
             if v.state in (VehicleState.ARRIVED, VehicleState.NO_PATH):
@@ -292,6 +299,7 @@ class VehicleMotionMixin:
                 prev_speed = car.speed
 
     def _resolve_adjacent_segment_overlaps(self) -> None:
+        """Evite les chevauchements au passage entre deux segments voisins."""
         by_segment: Dict[Tuple[int, int], List[Vehicle]] = {}
         for v in self.vehicles.values():
             if v.state in (VehicleState.ARRIVED, VehicleState.NO_PATH):
@@ -344,6 +352,7 @@ class VehicleMotionMixin:
 
     def _place_on_current_segment(self, v: Vehicle,
                                   target_dist: float) -> float:
+        """Replace un vehicule a une distance precise de la fin du segment."""
         target_node = self.graph.nodes.get(v.seg_to)
         origin_node = self.graph.nodes.get(v.seg_from)
         if target_node is None or origin_node is None:
@@ -365,6 +374,7 @@ class VehicleMotionMixin:
         return d
 
     def _init_segment(self, v: Vehicle) -> None:
+        """Charge dans le vehicule les informations du segment courant."""
         if v.path_index >= len(v.path):
             return
         curr = v.path[v.path_index - 1] if v.path_index > 0 else v.path[0]
@@ -389,6 +399,7 @@ class VehicleMotionMixin:
                                 if cn and nn else 10.0)
 
     def _spawn_free(self, new_v: Vehicle) -> bool:
+        """Verifie qu'un nouveau vehicule peut apparaitre sans collision."""
         for other in self.vehicles.values():
             if other.vehicle_id == new_v.vehicle_id:
                 continue

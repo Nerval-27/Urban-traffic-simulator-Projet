@@ -1,8 +1,10 @@
+"""Telecharge les donnees OpenStreetMap necessaires a la simulation du 13e arrondissement."""
 import requests
 import json
 import os
 import time
 
+# Requete Overpass : routes, feux et passages pietons du 13e arrondissement.
 query = """
 [out:json];
 area["name"="Paris 13e Arrondissement"]["admin_level"="9"]->.search;
@@ -18,6 +20,7 @@ out skel qt;
 
 print("Envoi requête Overpass (Paris 13e)...")
 
+# Reponse HTTP renvoyee par l'API Overpass.
 r = requests.get(
     "https://overpass-api.de/api/interpreter",
     params={"data": query}
@@ -29,12 +32,14 @@ if r.status_code != 200:
     print("Erreur:", r.text)
     exit()
 
+# Donnees JSON brutes qui seront sauvegardees sans modification.
 data = r.json()
 
 if r.status_code == 429:
     print("Trop de requêtes, on attend un peu...")
     time.sleep(30)
 
+# Chemin du fichier brut utilise ensuite par clean_json.py.
 file_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "paris13.json")
 with open(file_path, "w") as f:
     json.dump(data, f, indent=2)

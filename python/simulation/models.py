@@ -1,10 +1,12 @@
+"""Structures de donnees partagees par le chargement, le graphe et la simulation."""
 
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Tuple, Optional, Dict
 
 
-# Aliases de types
+# Aliases de types : ils restent des int a l'execution, mais rendent
+# les signatures plus lisibles quand on manipule beaucoup d'identifiants.
 IntersectionId = int
 RoadId         = int
 VehicleId      = int
@@ -12,6 +14,7 @@ NodeId         = int
 
 
 class LightColor(Enum):
+    """Couleurs possibles pour un feu dans les donnees de modele."""
     RED    = "Red"
     GREEN  = "Green"
     YELLOW = "Yellow"
@@ -19,6 +22,7 @@ class LightColor(Enum):
 
 @dataclass
 class Road:
+    """Route issue d OpenStreetMap avec son trace et ses proprietes."""
     id: RoadId
     length: float
     speed_limit: float
@@ -30,6 +34,7 @@ class Road:
 
 @dataclass
 class TrafficSignal:
+    """Feu de circulation localise par un identifiant et une position GPS."""
     id: int
     lat: float
     lon: float
@@ -37,6 +42,7 @@ class TrafficSignal:
 
 @dataclass
 class PedestrianCrossing:
+    """Passage pieton localise, avec ou sans regulation par feu."""
     id: int
     lat: float
     lon: float
@@ -45,6 +51,7 @@ class PedestrianCrossing:
 
 @dataclass
 class Intersection:
+    """Carrefour theorique avec ses routes entrantes et sortantes."""
     id: IntersectionId
     lat: float
     lon: float
@@ -55,6 +62,7 @@ class Intersection:
 
 @dataclass
 class Network:
+    """Ensemble des routes, feux, passages pietons et noeuds GPS charges."""
     roads: List[Road]
     intersections: List[Intersection]
     feux: List[TrafficSignal]          = field(default_factory=list)
@@ -64,6 +72,7 @@ class Network:
 
 @dataclass
 class SimConfig:
+    """Configuration minimale d une simulation non graphique."""
     network: Network
     dt: float
     max_time: float

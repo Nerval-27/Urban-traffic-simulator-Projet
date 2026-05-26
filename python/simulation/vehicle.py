@@ -47,6 +47,7 @@ class VehicleManager(VehicleQueueMixin,
 
     def __init__(self, graph: RoadGraph, light_manager: TrafficLightManager,
                  rng: Optional[random.Random] = None):
+        """Prepare les vehicules, les files, les reservations et les index routiers."""
         self.graph = graph
         self.light_manager = light_manager
         self.rng = rng or random.Random(0)
@@ -161,6 +162,7 @@ class VehicleManager(VehicleQueueMixin,
         return vehicle
 
     def spawn_batch(self, count: int) -> int:
+        """Cree plusieurs vehicules en ignorant ceux qui ne trouvent pas de trajet."""
         created = 0
         for _ in range(count):
             if self.spawn_vehicle() is not None:
@@ -209,6 +211,7 @@ class VehicleManager(VehicleQueueMixin,
             )
 
         def penalty(edge) -> float:
+            """Renvoie le surcout actuel de cette arete pour Dijkstra."""
             return (
                 edge_penalties.get((edge.from_node, edge.to_node), 0.0)
                 + road_penalties.get(edge.road_id, 0.0)
@@ -250,6 +253,7 @@ class VehicleManager(VehicleQueueMixin,
         self._resolve_adjacent_segment_overlaps()
 
     def _update_vehicle(self, vehicle: Vehicle, dt: float) -> None:
+        """Fait avancer un vehicule pendant un pas de temps de simulation."""
         remaining = dt
         segs = 0
         steps = 0
@@ -341,12 +345,15 @@ class VehicleManager(VehicleQueueMixin,
         return self._move_vehicle(vehicle, target_node, dist, dt)
 
     def get_vehicle_list(self) -> List[Vehicle]:
+        """Renvoie tous les vehicules connus du gestionnaire."""
         return list(self.vehicles.values())
 
     def get_active_count(self) -> int:
+        """Compte les vehicules encore presents dans le reseau."""
         return len(self.vehicles)
 
     def get_stats(self) -> dict:
+        """Renvoie les compteurs utiles aux metriques et a la GUI."""
         moving = sum(1 for v in self.vehicles.values()
                      if v.state == VehicleState.MOVING)
         stopped = sum(1 for v in self.vehicles.values()
@@ -371,12 +378,14 @@ class VehicleManager(VehicleQueueMixin,
         }
 
     def get_queue_lengths(self) -> Dict[int, int]:
+        """Renvoie les longueurs de files par feu."""
         lengths: Dict[int, int] = {}
         for (light_nid, _), queue in self._queues.items():
             lengths[light_nid] = lengths.get(light_nid, 0) + len(queue)
         return lengths
 
     def get_light_observations(self) -> Dict[int, dict]:
+        """Renvoie les vehicules en attente par feu."""
         observations: Dict[int, dict] = {}
         queue_lengths = self.get_queue_lengths()
 

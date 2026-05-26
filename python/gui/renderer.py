@@ -1,3 +1,4 @@
+"""Affichage Pygame de la carte, des vehicules, des feux et des indicateurs de simulation."""
 
 import pygame
 import math
@@ -8,7 +9,9 @@ from simulation.vehicle import VehicleState
 
 
 class Renderer:
+    """Dessine la simulation et gere les interactions de l utilisateur."""
     def __init__(self, network, width=1280, height=720):
+        """Prepare la fenetre, les couleurs et les variables d affichage."""
         pygame.init()
         self.network = network
         self.width = width
@@ -49,6 +52,7 @@ class Renderer:
 
 
     def _get_bounding_box(self):
+        """Calcule les limites GPS de la carte a partir des noeuds charges."""
         lats = [i.lat for i in self.network.intersections]
         lons = [i.lon for i in self.network.intersections]
         if not lats:
@@ -59,6 +63,7 @@ class Renderer:
         return min(lats), max(lats), min(lons), max(lons)
 
     def _reset_view(self):
+        """Recentre la camera pour afficher toute la zone utile."""
         lat_span = self.max_lat - self.min_lat
         lon_span = self.max_lon - self.min_lon
         span = max(lat_span, lon_span) or 0.01
@@ -67,6 +72,7 @@ class Renderer:
         self.offset_y = self.height / 2.0
 
     def gps_to_pixel(self, lat, lon):
+        """Convertit une latitude et une longitude en position ecran."""
         mid_lat = (self.min_lat + self.max_lat) / 2
         mid_lon = (self.min_lon + self.max_lon) / 2
         scale_x =  self.zoom * math.cos(math.radians(mid_lat))
@@ -88,6 +94,7 @@ class Renderer:
 
 
     def draw(self):
+        """Dessine une image complete de la simulation."""
         self.screen.fill((20, 22, 28))
 
         self._draw_roads()
@@ -104,6 +111,7 @@ class Renderer:
         pygame.display.flip()
 
     def _draw_roads(self):
+        """Trace les rues en distinguant sens unique et double sens."""
         for road in self.network.roads:
             points = []
             for nid in road.nodes:
@@ -135,6 +143,7 @@ class Renderer:
                         pygame.draw.lines(self.screen, (65, 68, 80), False, points_retour, 1)
 
     def _draw_intersections(self):
+        """Affiche les points d intersection principaux de la carte."""
         for inter in self.network.intersections:
             pos = self.gps_to_pixel(inter.lat, inter.lon)
             pygame.draw.circle(self.screen, (80, 82, 95), pos, 2)
@@ -210,6 +219,7 @@ class Renderer:
 
         # On résume l'état de chaque phase
         def phase_summary(lights):
+            """Resume la phase affichee dans le panneau du carrefour."""
             if not lights:
                 return "—"
             l = lights[0]
@@ -277,12 +287,14 @@ class Renderer:
             cy += surf.get_height()
 
     def _draw_crossings(self):
+        """Affiche les passages pietons issus des donnees cartographiques."""
         for crossing in self.network.passages:
             pos = self.gps_to_pixel(crossing.lat, crossing.lon)
             color = (0, 180, 200) if crossing.is_regulated else (140, 140, 140)
             pygame.draw.rect(self.screen, color, (pos[0] - 2, pos[1] - 2, 4, 4), 1)
 
     def _draw_vehicles(self):
+        """Dessine tous les vehicules encore actifs dans la simulation."""
         if self.vehicle_manager is None:
             return
 
@@ -308,6 +320,7 @@ class Renderer:
                                  (pos[0] - 2, pos[1] - 11, 4, 4))
 
     def _vehicle_pixel(self, vehicle):
+        """Calcule la position ecran d un vehicule, meme quand il est range dans une file."""
         pos = self.gps_to_pixel(vehicle.lat, vehicle.lon)
         if self.graph is None or vehicle.seg_oneway:
             return pos
@@ -355,6 +368,7 @@ class Renderer:
 
 
     def _draw_hud(self):
+        """Affiche les informations de temps, vitesse et trafic en haut de l ecran."""
         if self.font is None:
             return
 
@@ -425,6 +439,7 @@ class Renderer:
 
 
     def _draw_legend(self):
+        """Affiche la legende des couleurs et des symboles."""
         if self.font_small is None:
             return
 

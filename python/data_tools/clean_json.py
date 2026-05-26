@@ -1,3 +1,4 @@
+"""Nettoie les donnees OpenStreetMap brutes pour produire la carte utilisee par la simulation."""
 import json
 import sys
 import math
@@ -10,17 +11,21 @@ from simulation.utils import haversine
 if len(sys.argv) < 2:
     exit()
 
+# Fichier brut exporte depuis OpenStreetMap / Overpass.
 osm_file = sys.argv[1]
 
 with open(osm_file, "r") as f:
     osm = json.load(f)
 
+# Liste brute des objets OSM : nodes, ways, feux, passages pietons.
 elements = osm["elements"]
 
+# Index temporaire des noeuds GPS par identifiant OSM.
 nodes = {}
+# Routes OSM conservees avant transformation en format projet.
 ways = []
 
-# Routes gardées pour la circulation automobile.
+# Types de routes gardes pour la circulation automobile.
 CARROSSABLE = [
     "motorway", "trunk", "primary", "secondary",
     "tertiary", "residential", "unclassified", "service"
@@ -62,6 +67,7 @@ intersections = {nid for nid, count in usage.items() if count >= 2}
 
 
 def compute_length(node_list):
+    """Additionne les distances entre les noeuds d une route OSM."""
     total = 0
     for i in range(len(node_list) - 1):
         n1 = nodes[node_list[i]]
@@ -69,7 +75,7 @@ def compute_length(node_list):
         total += haversine(n1["lat"], n1["lon"], n2["lat"], n2["lon"])
     return total
 
-# Vitesses par défaut.
+# Vitesses par defaut par type de route, en metres par seconde.
 VITESSES = {
     "motorway": 33.3, 
     "trunk": 27.7,
@@ -81,6 +87,7 @@ VITESSES = {
     "service": 8.3
 }
 
+# Routes nettoyees qui seront ecrites dans map_clean.json.
 roads = []
 for way in ways:
     way_id = way["id"]
@@ -120,8 +127,10 @@ for way in ways:
 # Construction des intersections.
 
 
+# Liste finale des carrefours detectes.
 intersections_list = []
 
+# Index des carrefours, pratique pour remplir ensuite incoming/outgoing.
 inter_dict = {
     nid: {
         "id": nid,
@@ -160,7 +169,9 @@ intersections_list = list(inter_dict.values())
 
 # Extraction des feux et passages piétons.
 
+# Feux de circulation gardes dans la carte nettoyee.
 signals_list = []
+# Passages pietons gardes dans la carte nettoyee.
 crossings_list = []
 
 for nid, ninfo in nodes.items():
@@ -182,8 +193,10 @@ for nid, ninfo in nodes.items():
 
 
 # Export de la carte nettoyée.
+# Coordonnees GPS de tous les noeuds, avec des cles texte pour le JSON.
 nodes_coords = {str(nid): {"lat": ninfo["lat"], "lon": ninfo["lon"]} for nid, ninfo in nodes.items()}
 
+# Objet final attendu par le loader de la simulation.
 output = {
     "roads": roads,
     "intersections": intersections_list,
@@ -192,6 +205,7 @@ output = {
     "nodes": nodes_coords
 }
 
+# Fichier nettoye lu ensuite par make run, make rl-train et make rl-bench.
 file_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "map_clean.json")
 with open(file_path, "w") as f:
     json.dump(output, f, indent=2)

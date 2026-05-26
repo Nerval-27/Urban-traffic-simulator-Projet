@@ -8,8 +8,9 @@ de verdict en francais ("phase A prolongee de 35 s a 70 s",
 file moyenne du meme carrefour.
 """
 
-
+# Duree verte de reference du cycle fixe, en secondes simulees.
 GREEN_FIXE  = 35
+# Duree jaune de reference, gardee stable dans les recommandations.
 YELLOW_FIXE = 4
 
 
@@ -22,6 +23,7 @@ class PhaseTracker:
     """
 
     def __init__(self):
+        """Prepare les compteurs de duree observes sur les phases de feux."""
         self.light_manager = None
         # node_id -> (etat_precedent, instant_de_debut)
         self.previous = {}
@@ -30,12 +32,14 @@ class PhaseTracker:
         self.sim_time = 0.0
 
     def reset(self, light_manager):
+        """Repart de zero avant une nouvelle simulation de benchmark."""
         self.light_manager = light_manager
         self.previous = {}
         self.records  = {}
         self.sim_time = 0.0
 
     def tick(self, dt):
+        """Avance le suivi des durees de phase pendant la simulation."""
         self.sim_time += dt
         for light in self.light_manager.get_all_lights():
             current = light.state.value
@@ -51,6 +55,7 @@ class PhaseTracker:
                 self.previous[light.node_id] = (current, self.sim_time)
 
     def _add_record(self, light, state, duration):
+        """Enregistre une duree observee pour un feu et une couleur."""
         if light.group_id is None or duration < 0.1:
             return
         gid = light.group_id
@@ -65,6 +70,7 @@ class PhaseTracker:
         self.records[gid][phase][state].append(duration)
 
     def stats(self):
+        """Construit les statistiques de duree par feu et par phase."""
         out = {}
         for gid, phases in self.records.items():
             entry = {}
@@ -79,6 +85,7 @@ class PhaseTracker:
 
 
 def _stats(durations):
+    """Calcule minimum, moyenne et maximum sur une liste de durees."""
     if not durations:
         return {"n": 0, "avg": 0.0, "min": 0.0, "max": 0.0}
     return {
@@ -133,6 +140,7 @@ def recommend(rl_phase_stats, baseline_per_light, rl_per_light, light_to_group):
 
 
 def _queues_per_group(per_light_data, light_to_group):
+    """Regroupe les longueurs de file par carrefour controle."""
     by_group = {}
     for light_id, gid in light_to_group.items():
         if light_id not in per_light_data:
@@ -147,6 +155,7 @@ def _queues_per_group(per_light_data, light_to_group):
 
 def _cycle_propose(green_a, green_b):
     # Le rouge d'une phase = duree de l'autre verte + jaune
+    """Transforme les durees apprises en cycle vert jaune rouge propose."""
     g_a = green_a if green_a is not None else GREEN_FIXE
     g_b = green_b if green_b is not None else GREEN_FIXE
     return {
@@ -159,6 +168,7 @@ def _cycle_propose(green_a, green_b):
 
 
 def _verdict(green_a, green_b):
+    """Donne une phrase courte sur l equilibre des deux phases."""
     if green_a is None and green_b is None:
         return "Pas de donnees"
     parts = []
@@ -178,10 +188,12 @@ def _verdict(green_a, green_b):
 
 
 def _by_improvement(row):
+    """Cle de tri qui met les meilleures ameliorations en premier."""
     return -row["improvement"]
 
 
 def _by_baseline(row):
+    """Cle de tri qui met les carrefours les plus charges en premier."""
     return -row["baseline"]
 
 
@@ -210,7 +222,9 @@ def rank(recommendations, top_n=10):
 
 
 def print_ranking(ranking):
+    """Affiche les classements utiles a lire apres le benchmark."""
     def print_section(title, rows):
+        """Affiche un bloc de classement avec les files baseline et RL."""
         print("\n" + "=" * 78)
         print(title)
         print("-" * 78)

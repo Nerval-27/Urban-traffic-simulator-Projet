@@ -33,12 +33,14 @@ def _seg_dir_meters(fn, tn) -> Tuple[float, float, bool]:
 
 def _dot_to_other_meters(v: Vehicle, other: Vehicle,
                          ux: float, uy: float) -> float:
+    """Projette la position d un autre vehicule sur l axe du segment courant."""
     dx = (other.lon - v.lon) * M_PER_DEG_LON
     dy = (other.lat - v.lat) * M_PER_DEG_LAT
     return dx * ux + dy * uy
 
 
 def _speed_for_gap(gap: float, max_speed: float) -> float:
+    """Calcule une vitesse cible selon l espace disponible devant le vehicule."""
     if gap <= SAFE_GAP:
         return 0.0
     if gap >= BRAKE_DISTANCE:
@@ -47,6 +49,7 @@ def _speed_for_gap(gap: float, max_speed: float) -> float:
 
 
 def _apply_speed(v: Vehicle, desired: float, dt: float) -> None:
+    """Rapproche progressivement la vitesse courante de la vitesse cible."""
     if desired <= 0.0:
         v.speed = max(0.0, v.speed - MAX_DECEL * dt)
         if v.speed < MIN_SPEED:

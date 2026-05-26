@@ -19,31 +19,36 @@ from enum import Enum
 from typing import Dict, List, Optional, Tuple
 
 
-# Durées des cycles, en secondes simulées.
+# Durees des cycles, en secondes simulees.
+CYCLE_TOTAL        = 90.0   # duree totale d'un cycle fixe complet
 
-CYCLE_TOTAL        = 90.0   # durée totale du cycle
-
+# Phase A : premier axe du carrefour.
 GREEN_A            = 35.0
 YELLOW_A           = 4.0
 RED_A              = CYCLE_TOTAL - GREEN_A - YELLOW_A   # 51s
 
+# Phase B : second axe, decale pour ne pas ouvrir les deux directions ensemble.
 PHASE_B_OFFSET     = GREEN_A + YELLOW_A                 # 39s
 GREEN_B            = 35.0
 YELLOW_B           = 4.0
 RED_B_BEFORE       = PHASE_B_OFFSET                     # 39s
 RED_B_AFTER        = CYCLE_TOTAL - RED_B_BEFORE - GREEN_B - YELLOW_B  # 12s
 
+# Contraintes de securite communes aux feux groupes.
 ALL_RED_TIME       = 1.0
 MIN_GREEN_TIME     = 6.0
 MAX_GREEN_TIME     = 70.0
 
+# Rayon, en metres, utilise pour regrouper des feux proches dans un carrefour.
 INTERSECTION_RADIUS = 25.0
 
+# Conversion latitude/longitude vers metres autour de Paris.
 M_PER_DEG_LAT = 111_320.0
 M_PER_DEG_LON = 111_320.0 * math.cos(math.radians(48.85))
 
 
 class LightState(Enum):
+    """Etats possibles d un feu de circulation."""
     RED    = "red"
     GREEN  = "green"
     YELLOW = "yellow"
@@ -97,6 +102,7 @@ class TrafficLight:
     controlled_from_nodes: List[int] = field(default_factory=list)
 
     def __post_init__(self):
+        """Complete l initialisation du feu apres creation par dataclass."""
         if not self.cycle:
             self.cycle = make_cycle_A()
         self._controlled_set: set = set(self.controlled_from_nodes)
@@ -121,18 +127,21 @@ class TrafficLight:
 
     @property
     def state(self) -> LightState:
+        """Renvoie la couleur courante du feu."""
         if self._controlled_state is not None:
             return self._controlled_state
         return self.cycle[self.current_phase_index][0]
 
     @property
     def time_remaining(self) -> float:
+        """Renvoie le temps restant dans la couleur actuelle."""
         if self._controlled_state is not None:
             return self._controlled_remaining
         _, duration = self.cycle[self.current_phase_index]
         return duration - self.time_in_phase
 
     def update(self, dt: float) -> None:
+        """Avance le feu autonome dans son cycle fixe."""
         if self._controlled_state is not None:
             return
         self.time_in_phase += dt
@@ -143,11 +152,20 @@ class TrafficLight:
                 self.current_phase_index + 1) % len(self.cycle)
             _, duration = self.cycle[self.current_phase_index]
 
-    def is_green(self)  -> bool: return self.state == LightState.GREEN
-    def is_red(self)    -> bool: return self.state == LightState.RED
-    def is_yellow(self) -> bool: return self.state == LightState.YELLOW
+    def is_green(self) -> bool:
+        """Indique si le feu est vert."""
+        return self.state == LightState.GREEN
+
+    def is_red(self) -> bool:
+        """Indique si le feu est rouge."""
+        return self.state == LightState.RED
+
+    def is_yellow(self) -> bool:
+        """Indique si le feu est jaune."""
+        return self.state == LightState.YELLOW
 
     def get_color_rgb(self) -> Tuple[int, int, int]:
+        """Convertit la couleur du feu en couleur RGB pour l affichage."""
         return {
             LightState.RED:    (220, 50,  50),
             LightState.GREEN:  (50,  200, 50),
@@ -163,6 +181,7 @@ class TrafficLight:
         return from_node in self._controlled_set
 
     def force_state(self, new_state: LightState) -> None:
+        """Impose une couleur au feu en choisissant la phase correspondante."""
         self._controlled_state = None
         self._controlled_remaining = 0.0
         for i, (s, _) in enumerate(self.cycle):
@@ -218,6 +237,7 @@ class GroupSignalRuntime:
     green_bonus: float = 0.0
 
     def apply_offset(self, offset: float) -> None:
+        """Decale l horloge d un groupe pour eviter des cycles tous identiques."""
         steps = self._cycle_steps()
         total = sum(duration for _, _, duration, _ in steps)
         remaining = offset % total
@@ -232,6 +252,7 @@ class GroupSignalRuntime:
             remaining -= duration
 
     def update(self, dt: float) -> None:
+        """Avance la phase du carrefour groupe en respectant les transitions."""
         if dt <= 0.0:
             return
 
@@ -282,6 +303,7 @@ class GroupSignalRuntime:
         return self.green_bonus > old_bonus
 
     def state_for_phase(self, phase: str) -> LightState:
+        """Renvoie la couleur visible pour la phase A ou B."""
         if self.stage == "green" and phase == self.phase:
             return LightState.GREEN
         if self.stage == "yellow" and phase == self.phase:
@@ -289,9 +311,11 @@ class GroupSignalRuntime:
         return LightState.RED
 
     def time_remaining(self) -> float:
+        """Renvoie le temps restant dans l etape courante du groupe."""
         return max(0.0, self._stage_duration() - self.time_in_stage)
 
     def public_status(self) -> dict:
+        """Expose l etat du groupe sous une forme simple pour la GUI et le RL."""
         phase = self.phase if self.stage in ("green", "yellow") else "X"
         state = self.stage if self.stage in ("green", "yellow") else "red"
         return {
@@ -306,6 +330,7 @@ class GroupSignalRuntime:
         }
 
     def _can_switch_now(self) -> bool:
+        """Verifie si un changement de phase respecte le vert minimal."""
         return (
             self.switch_requested
             and self.stage == "green"
@@ -313,6 +338,7 @@ class GroupSignalRuntime:
         )
 
     def _advance_stage(self) -> None:
+        """Passe a l etape suivante du cycle de groupe."""
         if self.stage == "green":
             self._start_yellow()
         elif self.stage == "yellow":
@@ -337,12 +363,14 @@ class GroupSignalRuntime:
             self.switch_requested = False
 
     def _start_yellow(self) -> None:
+        """Lance la transition jaune avant de changer de phase."""
         self.stage = "yellow"
         self.time_in_stage = 0.0
         self.green_bonus = 0.0
         self.switch_requested = False
 
     def _stage_duration(self) -> float:
+        """Calcule la duree prevue de l etape courante."""
         if self.stage == "green":
             return self._base_green_duration() + self.green_bonus
         if self.stage == "yellow":
@@ -352,9 +380,11 @@ class GroupSignalRuntime:
         return RED_A
 
     def _base_green_duration(self) -> float:
+        """Renvoie la duree verte de base de la phase active."""
         return GREEN_A if self.phase == "A" else GREEN_B
 
     def _cycle_steps(self):
+        """Construit la sequence logique vert, jaune et tout rouge."""
         if not self.has_phase_b:
             return [
                 ("A", "green", GREEN_A, "A"),
@@ -372,12 +402,15 @@ class GroupSignalRuntime:
 
     @staticmethod
     def _other_phase(phase: str) -> str:
+        """Renvoie la phase opposee, A si B et B si A."""
         return "B" if phase == "A" else "A"
 
 
 class TrafficLightManager:
 
+    """Construit, regroupe et pilote tous les feux de la simulation."""
     def __init__(self):
+        """Prepare les index de feux, groupes et compteurs de simulation."""
         self._lights:              Dict[int, TrafficLight]      = {}
         self._lights_by_group:     Dict[int, List[TrafficLight]] = {}
         self._groups:              Dict[int, IntersectionGroup] = {}
@@ -653,6 +686,7 @@ class TrafficLightManager:
     def add_light(self, node_id: int, lat: float, lon: float,
                   offset: float = 0.0,
                   cycle: Optional[List[Tuple[LightState, float]]] = None) -> None:
+        """Ajoute un feu isole au gestionnaire."""
         light = TrafficLight(
             node_id=node_id, lat=lat, lon=lon,
             cycle=cycle or make_cycle_A(),
@@ -662,6 +696,7 @@ class TrafficLightManager:
         self._red_waiting_counts[node_id] = 0
 
     def update(self, dt: float) -> None:
+        """Avance tous les feux et tous les groupes de carrefour."""
         self._simulation_time += dt
         controlled_groups = set()
         for runtime in self._group_runtimes.values():
@@ -675,6 +710,7 @@ class TrafficLightManager:
             light.update(dt)
 
     def is_green(self, node_id: int) -> bool:
+        """Teste si le feu d un noeud est vert."""
         if node_id not in self._lights:
             return True
         return self._lights[node_id].is_green()
@@ -689,6 +725,7 @@ class TrafficLightManager:
         return light.is_green()
 
     def is_red_or_yellow(self, node_id: int) -> bool:
+        """Teste si le feu d un noeud oblige a ralentir ou a s arreter."""
         if node_id not in self._lights:
             return False
         return not self._lights[node_id].is_green()
@@ -703,32 +740,40 @@ class TrafficLightManager:
         return not light.is_green()
 
     def get_state(self, node_id: int) -> Optional[LightState]:
+        """Renvoie la couleur d un feu par son noeud."""
         if node_id not in self._lights:
             return None
         return self._lights[node_id].state
 
     def get_time_remaining(self, node_id: int) -> float:
+        """Renvoie le temps restant du feu demande."""
         if node_id not in self._lights:
             return 0.0
         return self._lights[node_id].time_remaining
 
     def get_light(self, node_id: int) -> Optional[TrafficLight]:
+        """Renvoie l objet TrafficLight associe a un noeud."""
         return self._lights.get(node_id)
 
     def get_all_lights(self) -> List[TrafficLight]:
+        """Renvoie la liste de tous les feux connus."""
         return list(self._lights.values())
 
     def has_light(self, node_id: int) -> bool:
+        """Indique si un noeud porte un feu."""
         return node_id in self._lights
 
     def record_vehicle_waiting(self, node_id: int) -> None:
+        """Compte un vehicule vu en attente devant un feu."""
         if node_id in self._red_waiting_counts:
             self._red_waiting_counts[node_id] += 1
 
     def get_waiting_stats(self) -> Dict[int, int]:
+        """Renvoie les compteurs d attente courants par feu."""
         return dict(self._red_waiting_counts)
 
     def get_light_states(self) -> Dict[int, dict]:
+        """Expose l etat detaille des feux pour les metriques."""
         return {
             nid: {
                 "state": light.state.value,
@@ -742,12 +787,14 @@ class TrafficLightManager:
         }
 
     def get_congested_lights(self, threshold: int = 10) -> List[int]:
+        """Liste les feux dont le compteur d attente depasse un seuil."""
         return [
             nid for nid, count in self._red_waiting_counts.items()
             if count >= threshold
         ]
 
     def force_green(self, node_id: int) -> None:
+        """Force un feu donne au vert pour les tests ou le debug."""
         light = self._lights.get(node_id)
         if light is None:
             return
@@ -766,6 +813,7 @@ class TrafficLightManager:
         self._apply_group_runtime(runtime)
 
     def force_red(self, node_id: int) -> None:
+        """Force un feu donne au rouge pour les tests ou le debug."""
         light = self._lights.get(node_id)
         if light is None:
             return
@@ -783,16 +831,19 @@ class TrafficLightManager:
         self._apply_group_runtime(runtime)
 
     def get_group_info(self, node_id: int) -> Optional[IntersectionGroup]:
+        """Renvoie le groupe de carrefour associe a un feu."""
         light = self._lights.get(node_id)
         if light and light.group_id is not None:
             return self._groups.get(light.group_id)
         return None
 
     def get_groups(self) -> Dict[int, IntersectionGroup]:
+        """Renvoie tous les groupes de carrefours controles."""
         return dict(self._groups)
 
     def get_group_lights(self, group_id: int,
                          phase: Optional[str] = None) -> List[TrafficLight]:
+        """Renvoie les feux d un groupe, eventuellement filtres par phase."""
         result: List[TrafficLight] = []
         for light in self._lights_by_group.get(group_id, []):
             if phase is not None and light.group_phase != phase:
@@ -842,12 +893,14 @@ class TrafficLightManager:
         return extended
 
     def get_group_status(self, group_id: int) -> Optional[dict]:
+        """Renvoie l etat public d un groupe de carrefour."""
         runtime = self._group_runtimes.get(group_id)
         if runtime is None:
             return None
         return runtime.public_status()
 
     def _apply_group_runtime(self, runtime: GroupSignalRuntime) -> None:
+        """Applique l etat du runtime aux feux physiques du groupe."""
         remaining = runtime.time_remaining()
         for light in self._lights_by_group.get(runtime.group_id, []):
             state = runtime.state_for_phase(light.group_phase)
@@ -855,15 +908,18 @@ class TrafficLightManager:
             light.apply_controlled_state(state, remaining, time_in_phase)
 
     def _group_stage(self, group_id: Optional[int]) -> Optional[str]:
+        """Renvoie l etape courante du groupe demande."""
         runtime = self._group_runtimes.get(group_id)
         return None if runtime is None else runtime.stage
 
     @property
     def simulation_time(self) -> float:
+        """Renvoie le temps simule cumule par le gestionnaire de feux."""
         return self._simulation_time
 
 
 def _haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Calcule une distance metrique entre deux points GPS."""
     R = 6_371_000.0
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
     dphi       = math.radians(lat2 - lat1)

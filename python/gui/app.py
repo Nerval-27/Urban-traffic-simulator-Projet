@@ -1,3 +1,4 @@
+"""Lance la simulation graphique avec les feux fixes ou le controleur Q-learning."""
 import argparse
 import os
 import sys
@@ -12,17 +13,27 @@ from simulation.metrics import TrafficMetrics
 from gui.renderer import Renderer
 
 
-
+# Nombre de voitures presentes des l'ouverture de la fenetre.
 INITIAL_VEHICLE_COUNT = 15
+# Limite dure pour eviter de saturer l'affichage et les calculs.
 MAX_VEHICLES          = 150
+# Delai, en secondes simulees, entre deux tentatives de creation.
 SPAWN_INTERVAL        = 3
+# Objectif total de vehicules crees pendant une session longue.
 TARGET_VEHICLES       = 1000
+
+# Reglages de vitesse de simulation accessibles avec les touches + et -.
 SIM_SPEED_DEFAULT     = 1.0
 SIM_SPEED_MIN         = 0.25
 SIM_SPEED_MAX         = 8.0
+
+# Seed fixe pour rendre les demonstrations graphiques reproductibles.
 RANDOM_SEED           = 42
+# Frequence d'echantillonnage des metriques, en secondes simulees.
 METRIC_SAMPLE_INTERVAL = 1.0
-RL_STEP_DT            = 5.0    # l'agent décide toutes les 5s simulées
+# Pas de decision du controleur RL, en secondes simulees.
+RL_STEP_DT            = 5.0
+# Emplacement standard de la Q-table lue par le mode RL.
 DEFAULT_QTABLE_PATH   = os.path.normpath(
     os.path.join(os.path.dirname(os.path.abspath(__file__)),
                  "..", "..", "results", "q_table.json")
@@ -30,6 +41,7 @@ DEFAULT_QTABLE_PATH   = os.path.normpath(
 
 
 def main():
+    """Prepare les donnees, la simulation, l affichage et lance la boucle Pygame."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=("fixed", "rl"), default="fixed",
                         help="Stratégie des feux : fixed (cycles fixes) ou rl (Q-learning)")
@@ -167,6 +179,7 @@ def main():
 
 
 def _print_final_stats(vehicle_manager, light_manager, metrics, sim_time):
+    """Affiche le bilan de fin de simulation dans le terminal."""
     stats = vehicle_manager.get_stats()
     metric_summary = metrics.summary()
     mins  = int(sim_time) // 60
@@ -206,6 +219,7 @@ def _build_rl_controller(qtable_path, light_manager, metrics):
 
 
 def _print_rl_stats(rl_controller):
+    """Affiche les decisions prises par le controleur Q-learning pendant la session."""
     stats = rl_controller.stats()
     print("Agent RL")
     print(f"  Q-table         : {stats['qtable_size']} états")
@@ -217,6 +231,7 @@ def _print_rl_stats(rl_controller):
 
 
 def _export_metrics(metrics, current_dir, mode):
+    """Ecrit les fichiers de metriques dans le dossier de resultats."""
     results_dir = os.path.normpath(os.path.join(current_dir, "..", "..", "results"))
     os.makedirs(results_dir, exist_ok=True)
 

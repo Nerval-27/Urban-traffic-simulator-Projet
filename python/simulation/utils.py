@@ -1,3 +1,4 @@
+"""Petites fonctions utilitaires communes a la simulation."""
 import json
 import sys
 import math

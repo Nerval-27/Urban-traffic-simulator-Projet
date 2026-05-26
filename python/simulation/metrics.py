@@ -23,12 +23,14 @@ APPROACH_RADIUS_M = 80.0
 # Fenetre glissante pour les debits d'arrivee / service
 RATE_WINDOW_S = 60.0
 
-# Ponderations pour le score de pression d'un feu (utilise par certaines
-# heuristiques d'analyse, pas par l'agent RL)
+# Ponderations du score de pression d'un feu. Une file compte fort,
+# les vehicules en approche comptent moins, l'attente ajoute de l'urgence,
+# et la saturation reprend l'idee lambda / mu de la theorie des files.
 QUEUE_WEIGHT = 2.0
 APPROACH_WEIGHT = 0.5
 WAIT_WEIGHT = 0.1
 SATURATION_WEIGHT = 3.0
+# Plafond numerique pour eviter qu'une saturation infinie domine tout.
 MAX_SATURATION = 9.99
 
 
@@ -64,6 +66,7 @@ class LightObservation:
     controlled_from_nodes: Optional[List[int]] = None
 
     def to_dict(self) -> dict:
+        """Convertit l observation de feu en dictionnaire JSON."""
         return {
             "light_id": self.light_id,
             "state": self.state,
@@ -90,6 +93,7 @@ class LightObservation:
 
 @dataclass
 class TrafficObservation:
+    """Resume instantane de l etat global de la circulation."""
     time: float
     active: int
     spawned: int
@@ -102,6 +106,7 @@ class TrafficObservation:
     lights: Dict[int, LightObservation]
 
     def to_dict(self) -> dict:
+        """Convertit l observation globale en dictionnaire JSON."""
         return {
             "time": round(self.time, 3),
             "active": self.active,
@@ -121,6 +126,7 @@ class TrafficObservation:
 
 @dataclass
 class MetricSnapshot:
+    """Ligne de serie temporelle ecrite pour suivre l evolution de la simulation."""
     time: float
     active: int
     spawned: int
@@ -137,6 +143,7 @@ class MetricSnapshot:
     congestion_ratio: float
 
     def to_dict(self) -> dict:
+        """Convertit un snapshot en dictionnaire pour export CSV ou JSON."""
         return {
             "time": round(self.time, 3),
             "active": self.active,
@@ -169,6 +176,7 @@ class TrafficMetrics:
 
     def __init__(self, sample_interval: float = 1.0,
                  approach_radius_m: float = APPROACH_RADIUS_M):
+        """Prepare tous les compteurs de metriques et les historiques."""
         self.sample_interval = sample_interval
         self.approach_radius_m = approach_radius_m
 
@@ -292,11 +300,13 @@ class TrafficMetrics:
         }
 
     def controller_observation(self) -> dict:
+        """Renvoie la derniere observation utilisable par un controleur de feux."""
         if self.latest_observation is None:
             return self._empty_observation().to_dict()
         return self.latest_observation.to_dict()
 
     def live_stats(self) -> dict:
+        """Renvoie quelques indicateurs rapides pour la GUI."""
         if self.latest_observation is None:
             return {
                 "avg_queue_length": 0.0,
@@ -321,14 +331,17 @@ class TrafficMetrics:
         }
 
     def write_summary_json(self, path: str) -> None:
+        """Ecrit le resume final de simulation en JSON."""
         with open(path, "w") as f:
             json.dump(self.summary(), f, indent=2)
 
     def write_observation_json(self, path: str) -> None:
+        """Ecrit la derniere observation controleur en JSON."""
         with open(path, "w") as f:
             json.dump(self.controller_observation(), f, indent=2)
 
     def write_snapshots_csv(self, path: str) -> None:
+        """Ecrit les snapshots temporels dans un fichier CSV."""
         if not self.snapshots:
             return
         with open(path, "w", newline="") as f:
@@ -339,6 +352,7 @@ class TrafficMetrics:
                 writer.writerow(snapshot.to_dict())
 
     def _record_vehicle_times(self, dt: float, stats: dict, vehicles: list) -> None:
+        """Ajoute le temps de trajet et les attentes de chaque vehicule actif."""
         active = stats.get("total", 0)
         stopped = stats.get("stopped", 0)
         waiting = stats.get("at_light", 0)
@@ -398,6 +412,7 @@ class TrafficMetrics:
 
     def _record_queue_times(self, dt: float, stats: dict,
                             queue_lengths: Dict[int, int]) -> None:
+        """Cumule le temps passe dans les files devant les feux."""
         queued = stats.get("queued", 0)
         self.queue_vehicle_time += queued * dt
         self.max_queue = max(self.max_queue, stats.get("max_queue", 0))
@@ -412,6 +427,7 @@ class TrafficMetrics:
             )
 
     def _record_light_states(self, dt: float, light_states: Dict[int, dict]) -> None:
+        """Cumule le temps passe par chaque feu dans chaque couleur."""
         for light_id, data in light_states.items():
             state = data.get("state")
             if state is None:
@@ -425,6 +441,7 @@ class TrafficMetrics:
                           light_stops: Dict[int, int],
                           vehicle_manager,
                           light_manager) -> TrafficObservation:
+        """Construit l observation complete transmise au controleur."""
         approaching, approach_keys = self._count_approaching_vehicles(
             vehicles,
             vehicle_manager,
@@ -492,6 +509,7 @@ class TrafficMetrics:
         )
 
     def _make_snapshot(self, stats: dict) -> MetricSnapshot:
+        """Construit une ligne de metriques a partir de l etat courant."""
         elapsed = max(self.elapsed, 1e-9)
         active_time = max(self.active_vehicle_time, 1e-9)
 
@@ -513,6 +531,7 @@ class TrafficMetrics:
         )
 
     def _per_light_summary(self, elapsed: float) -> Dict[int, dict]:
+        """Resume les files, attentes et couleurs par feu."""
         result = {}
         light_ids = (
             set(self.queue_time_by_light)
@@ -551,6 +570,7 @@ class TrafficMetrics:
     def _count_approaching_vehicles(self, vehicles: list,
                                     vehicle_manager,
                                     light_manager):
+        """Compte les vehicules proches d un feu et encore en approche."""
         graph = getattr(vehicle_manager, "graph", None)
         if graph is None:
             return {}, set()
@@ -586,6 +606,7 @@ class TrafficMetrics:
         return counts, active_keys
 
     def _record_approach_events(self, active_keys: set) -> None:
+        """Enregistre les arrivees de vehicules dans la zone d approche."""
         for key in active_keys:
             self._record_arrival_event(key)
 
@@ -596,6 +617,7 @@ class TrafficMetrics:
         self._active_approach_keys = set(active_keys)
 
     def _record_arrival_event(self, key: Tuple[int, int]) -> None:
+        """Enregistre le premier passage d un vehicule devant un feu."""
         if key in self._seen_light_entries:
             return
         self._seen_light_entries.add(key)
@@ -604,20 +626,24 @@ class TrafficMetrics:
         self._trim_events(self.arrival_events_by_light[light_id])
 
     def _record_service_event(self, light_id: int) -> None:
+        """Enregistre un depart de file devant un feu."""
         self.service_events_by_light.setdefault(light_id, []).append(self.elapsed)
         self._trim_events(self.service_events_by_light[light_id])
 
     def _trim_events(self, events: List[float]) -> None:
+        """Retire les evenements trop anciens de la fenetre glissante."""
         cutoff = self.elapsed - RATE_WINDOW_S
         while events and events[0] < cutoff:
             events.pop(0)
 
     def _event_rate_per_min(self, events: List[float]) -> float:
+        """Convertit une liste d evenements recents en debit par minute."""
         self._trim_events(events)
         window = min(max(self.elapsed, 1e-9), RATE_WINDOW_S)
         return len(events) * 60.0 / window
 
     def _saturation(self, arrival_rate: float, service_rate: float) -> float:
+        """Calcule rho, le rapport entre arrivees et service."""
         if arrival_rate <= 0.0:
             return 0.0
         if service_rate <= 1e-9:
@@ -625,12 +651,14 @@ class TrafficMetrics:
         return min(MAX_SATURATION, arrival_rate / service_rate)
 
     def _current_waits_by_light(self) -> Dict[int, List[float]]:
+        """Regroupe les attentes courantes des vehicules par feu."""
         waits: Dict[int, List[float]] = {}
         for (_, light_id), wait_time in self._current_light_waits.items():
             waits.setdefault(light_id, []).append(wait_time)
         return waits
 
     def _light_ratios(self, light_id: int) -> Tuple[float, float, float]:
+        """Calcule la part de temps passee en vert, jaune et rouge."""
         state_times = self.state_time_by_light.get(light_id, {})
         total = sum(state_times.values())
         if total <= 0.0:
@@ -645,6 +673,7 @@ class TrafficMetrics:
                         approaching: int,
                         oldest_wait_s: float,
                         saturation: float) -> float:
+        """Melange file, approche, attente et saturation en score de pression."""
         return (
             queue_length * QUEUE_WEIGHT
             + approaching * APPROACH_WEIGHT
@@ -653,6 +682,7 @@ class TrafficMetrics:
         )
 
     def _record_trip_time(self, vehicle_id: int, travel_time: float) -> None:
+        """Memorise une duree de trajet terminee une seule fois par vehicule."""
         if vehicle_id in self._recorded_vehicle_ids:
             return
         self._recorded_vehicle_ids.add(vehicle_id)
@@ -660,6 +690,7 @@ class TrafficMetrics:
             self.trip_times.append(travel_time)
 
     def _empty_observation(self) -> TrafficObservation:
+        """Construit une observation vide avant la premiere mesure."""
         return TrafficObservation(
             time=self.elapsed,
             active=0,
@@ -675,21 +706,26 @@ class TrafficMetrics:
 
     @staticmethod
     def _state_name(vehicle) -> str:
+        """Renvoie le nom lisible de l etat d un vehicule."""
         state = getattr(vehicle, "state", "")
         return str(getattr(state, "name", state)).lower()
 
     @staticmethod
     def _round(value: float) -> float:
+        """Arrondit une valeur numerique pour les sorties de metriques."""
         return round(float(value), 3)
 
     def _avg(self, values: List[float]) -> float:
+        """Calcule une moyenne en renvoyant zero si la liste est vide."""
         return self._round(mean(values)) if values else 0.0
 
     def _median(self, values: List[float]) -> float:
+        """Calcule une mediane en renvoyant zero si la liste est vide."""
         return self._round(median(values)) if values else 0.0
 
 
 def _distance_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Calcule la distance en metres entre deux coordonnees GPS."""
     earth_radius = 6_371_000.0
     phi1 = math.radians(lat1)
     phi2 = math.radians(lat2)

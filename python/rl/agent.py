@@ -23,6 +23,7 @@ class QLearningAgent:
     def __init__(self, alpha=0.1, gamma=0.9, epsilon=1.0,
                  epsilon_min=0.05, epsilon_decay=0.95):
         # alpha = vitesse d'apprentissage, gamma = importance du futur
+        """Initialise les parametres d apprentissage et la table de valeurs."""
         self.alpha = alpha
         self.gamma = gamma
         # epsilon decroit a chaque episode : on explore beaucoup au depart,

@@ -1,3 +1,4 @@
+"""Charge le fichier JSON nettoye et le convertit en objets Python du simulateur."""
 import json
 from simulation.models import Road, Intersection, Network, TrafficSignal, PedestrianCrossing
 
@@ -25,9 +26,11 @@ def parse_intersection(data):
     )
 
 def parse_signal(data):
+    """Convertit un feu JSON en TrafficSignal."""
     return TrafficSignal(id=data["id"], lat=data["lat"], lon=data["lon"])
 
 def parse_crossing(data):
+    """Convertit un passage pieton JSON en PedestrianCrossing."""
     return PedestrianCrossing(
         id=data["id"], 
         lat=data["lat"], 
