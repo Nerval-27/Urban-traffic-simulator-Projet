@@ -1,4 +1,15 @@
-"""Entrainement de l'agent Q-learning."""
+"""Entrainement de l'agent Q-learning.
+
+Chaque episode rejoue une simulation complete avec une seed differente,
+ce qui evite que l'agent ne s'enferme sur un cas particulier. L'agent
+apprend en ligne (un update apres chaque step) et epsilon decroit a
+la fin de chaque episode.
+
+On sauvegarde a la fois la Q-table finale et la meilleure rencontree
+pendant l'entrainement (q_table.json et q_table_best.json). C'est la
+seconde qu'on utilise en benchmark, parce que la finale peut
+correspondre a un episode malchanceux.
+"""
 
 import argparse
 import os
@@ -7,17 +18,28 @@ from rl.agent import QLearningAgent
 from rl.env import TrafficRLEnv, default_map_path
 
 
-# 4 bins file_A * 4 bins file_B * 5 phases * 3 bins temps
+# 4 bins file_A * 4 bins file_B * 5 phases * 3 bins temps = 240 etats
 TOTAL_ETATS = 4 * 4 * 5 * 3
 
 
 def episode_seed(seed_base, episode):
-    # Une seed differente par episode pour que l'agent voit des scenarios varies
+    """Seed deterministe par episode.
+
+    Une seed differente a chaque episode permet a l'agent de voir des
+    scenarios varies (trajets, ordre de spawn) plutot que de s'enfermer
+    sur un cas particulier qui passerait par hasard.
+    """
     return seed_base + episode - 1
 
 
 def train(nb_episodes=30, max_time=120.0, target_vehicles=80,
           output_path=None, best_output_path=None, seed_base=42):
+    """Boucle principale d'entrainement.
+
+    On instancie un seul environnement (le reseau OSM est lourd a parser)
+    et on change juste sa seed entre les episodes. A chaque step :
+    on choisit une action, on l'applique, on met a jour la Q-table.
+    """
 
     env = TrafficRLEnv(
         map_path=default_map_path(),
@@ -68,7 +90,10 @@ def train(nb_episodes=30, max_time=120.0, target_vehicles=80,
 
         summary = env.summary()
 
-        # Score combine pour choisir le meilleur snapshot
+        # Score combine pour comparer les episodes entre eux.
+        # Pondere la recompense brute par les vraies metriques de fin :
+        # taux d'arrivees, debit, file moyenne. Permet d'ignorer un
+        # episode qui a un beau reward mais une simulation degradee.
         episode_score = (
             score
             + 20.0 * summary.get("completion_rate", 0.0)

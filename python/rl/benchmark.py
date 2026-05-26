@@ -1,8 +1,15 @@
 """Compare la baseline (cycles fixes) avec l'agent RL.
 
-Supporte le benchmark sur plusieurs seeds (rigueur scientifique : on evite
-qu'un coup de chance sur un seul scenario ne masque la realite). Les
-metriques finales sont la moyenne sur tous les seeds.
+On joue la meme simulation deux fois par seed, on moyenne sur plusieurs
+seeds pour eviter qu'un coup de chance ne fausse le verdict. Le rapport
+affiche deux tableaux : les cibles officielles fixees au rendu
+intermediaire, et un second jeu d'indicateurs robustes au biais de
+selection (temps median, vitesse moyenne, attente aux feux), parce que
+la moyenne brute du temps de trajet peut grimper quand le RL debloque
+des longs trajets restes bloques en baseline.
+
+Le verdict final est nuance en cinq niveaux plutot que binaire pour
+refleter les cas a deux cibles atteintes sur trois, par exemple.
 """
 
 import argparse
@@ -22,10 +29,16 @@ CIBLE_DEBIT        = 0.10
 
 
 def baseline_policy(obs):
+    """Politique de reference : tous les carrefours restent en KEEP.
+
+    Les feux suivent donc strictement leur cycle fixe predefini.
+    """
     return {gid: ACTION_KEEP for gid in obs}
 
 
 def rl_policy(agent):
+    """Politique RL : pour chaque carrefour, l'agent prend l'action
+    de meilleure Q-valeur (mode greedy, pas d'exploration)."""
     def policy(obs):
         actions = {}
         for gid in obs:
@@ -35,6 +48,12 @@ def rl_policy(agent):
 
 
 def run_episode(env, policy, label, tracker):
+    """Joue une simulation complete avec la politique donnee.
+
+    Le tracker enregistre la duree de chaque phase observee, ce qui
+    permettra ensuite d'ecrire les recommandations carrefour par
+    carrefour.
+    """
     print(f"\n[{label}] simulation en cours...")
     obs = env.reset()
     tracker.reset(env.light_manager)
@@ -49,6 +68,13 @@ def run_episode(env, policy, label, tracker):
 
 
 def _row(label, key, sens, cible, baseline, rl):
+    """Construit une ligne de tableau comparatif baseline vs RL.
+
+    Le champ 'improvement' est exprime dans le sens du critere :
+    pour "lower" (file, temps) c'est l'oppose de la variation, pour
+    "higher" (debit, vitesse) c'est la variation directe. Donc une
+    amelioration est toujours positive, quel que soit le sens.
+    """
     b = float(baseline.get(key, 0.0))
     r = float(rl.get(key, 0.0))
     delta = 0.0 if b == 0.0 else (r - b) / b
@@ -196,6 +222,16 @@ def _parse_seeds(value):
 
 def benchmark(qtable_path, max_time=300.0, target_vehicles=100,
               seeds=(42,), output_path=None):
+    """Lance le benchmark complet sur plusieurs seeds.
+
+    Pour chaque seed, on joue deux fois la meme simulation : une fois
+    avec la baseline, une fois avec l'agent RL. Les metriques sont
+    ensuite moyennees, l'ecart-type est calcule, et un verdict nuance
+    est produit sur les deux panneaux (cibles officielles et robustes).
+
+    Ecrit aussi un fichier de recommandations par carrefour, base sur
+    les durees de phase observees au dernier run RL.
+    """
     if not os.path.isfile(qtable_path):
         raise FileNotFoundError(
             f"Q-table introuvable : {qtable_path}\n"

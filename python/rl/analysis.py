@@ -1,4 +1,12 @@
-"""Mesure des durees de phase + recommandations par carrefour."""
+"""Mesure des durees de phase + recommandations par carrefour.
+
+Pendant un run RL, on chronometre la duree moyenne du vert observee
+pour les phases A et B de chaque carrefour. La comparaison au vert
+fixe de 35 s donne une duree recommandee, accompagnee d'une phrase
+de verdict en francais ("phase A prolongee de 35 s a 70 s",
+"phase B raccourcie...") et du pourcentage de gain mesure sur la
+file moyenne du meme carrefour.
+"""
 
 
 GREEN_FIXE  = 35
@@ -6,7 +14,12 @@ YELLOW_FIXE = 4
 
 
 class PhaseTracker:
-    """Enregistre la duree de chaque phase observee pendant la simulation."""
+    """Chronometre les phases observees pendant un run.
+
+    Sur chaque tick on detecte les transitions green / yellow / red ;
+    quand une phase se termine, sa duree va dans une liste indexee
+    par carrefour et par lettre A ou B.
+    """
 
     def __init__(self):
         self.light_manager = None
@@ -77,6 +90,13 @@ def _stats(durations):
 
 
 def recommend(rl_phase_stats, baseline_per_light, rl_per_light, light_to_group):
+    """Construit la recommandation de cycle pour chaque carrefour.
+
+    Pour chaque carrefour, on prend la duree moyenne de vert observee
+    par l'agent sur chaque phase, on la compare au 35 s fixe de la
+    baseline, et on ecrit une phrase de verdict + le gain mesure sur
+    la file moyenne.
+    """
     queues_baseline = _queues_per_group(baseline_per_light, light_to_group)
     queues_rl       = _queues_per_group(rl_per_light, light_to_group)
 
@@ -166,6 +186,12 @@ def _by_baseline(row):
 
 
 def rank(recommendations, top_n=10):
+    """Classe les carrefours en deux palmares de taille top_n.
+
+    top_improved : les carrefours qui beneficient le plus du RL.
+    top_problematic : ceux qui ont la file baseline la plus longue,
+    donc ceux qui meritent l'attention en priorite.
+    """
     rows = []
     for key, entry in recommendations.items():
         if "performance" not in entry:

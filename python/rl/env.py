@@ -1,4 +1,10 @@
-"""Environnement RL autour de la simulation."""
+"""Environnement RL autour de la simulation.
+
+TrafficRLEnv expose une API reset / step a la maniere de Gym et sert
+pour l'entrainement et le benchmark. RLController, lui, se branche
+directement sur la boucle Pygame pour piloter les feux en temps reel
+avec une Q-table deja entrainee.
+"""
 
 import os
 import random
@@ -10,21 +16,33 @@ from simulation.metrics import TrafficMetrics
 from simulation.vehicle import VehicleManager
 
 
+# Indices des actions dans le vecteur Q-values
 ACTION_KEEP   = 0
 ACTION_SWITCH = 1
 ACTION_EXTEND = 2
 NB_ACTIONS    = 3
 
+# Quand l'agent prolonge le vert, c'est de 5s. Au-dela, lights.py impose
+# un plafond de securite (MAX_GREEN_TIME)
 EXTEND_SECONDS = 5.0
+# Seuil au-dela duquel on considere qu'un vehicule attend "longtemps" au feu.
+# Sert a alimenter une penalite supplementaire dans la fonction de reward.
 LONG_WAIT      = 30.0
 
 
 def default_map_path():
+    """Chemin par defaut vers la carte nettoyee du 13e."""
     here = os.path.dirname(os.path.abspath(__file__))
     return os.path.normpath(os.path.join(here, "..", "..", "data", "map_clean.json"))
 
 
 def _bin_queue(n):
+    """Discretise la taille d'une file en 4 categories.
+
+    Le calcul d'etat global donne 4 * 4 * 5 * 3 = 240 combinaisons,
+    ce qui se couvre vite a l'entrainement. Garder l'entier brut
+    nous donnerait des milliers d'etats pratiquement jamais revisites.
+    """
     if n == 0: return 0
     if n <= 2: return 1
     if n <= 5: return 2
@@ -32,12 +50,17 @@ def _bin_queue(n):
 
 
 def _bin_time(t):
+    """Discretise le temps passe dans la phase en court / moyen / long."""
     if t <= 10.0: return 0
     if t <= 25.0: return 1
     return 2
 
 
 def _phase_code(phase, state):
+    """Code (phase A/B, etat vert/jaune/rouge) en un entier de 0 a 4.
+
+    La valeur 4 sert pour la transition tout rouge entre deux phases.
+    """
     if phase == "A" and state == "green":  return 0
     if phase == "A" and state == "yellow": return 1
     if phase == "B" and state == "green":  return 2
@@ -46,6 +69,12 @@ def _phase_code(phase, state):
 
 
 def _dominant_phase(lights_A, lights_B):
+    """Resume l'etat d'un carrefour entier en une seule phase.
+
+    Un carrefour peut avoir plusieurs feux dans la meme phase ; on prend
+    le premier vert ou jaune rencontre. Si tout est rouge (transition
+    all-red), on renvoie "X".
+    """
     for light in lights_A:
         if light.state == LightState.GREEN:
             return "A", "green", light.time_in_phase
@@ -61,6 +90,12 @@ def _dominant_phase(lights_A, lights_B):
 
 
 def observe(light_manager, metrics, group_ids):
+    """Construit l'observation passee a l'agent, carrefour par carrefour.
+
+    Retourne un dict { group_id : observation }. Chaque observation contient
+    les champs lisibles (queue_A, phase, etc.) et le state_tuple compact
+    de 4 entiers utilise comme cle dans la Q-table.
+    """
     observations = {}
     if metrics.latest_observation is None:
         return observations
@@ -101,6 +136,12 @@ def observe(light_manager, metrics, group_ids):
 
 
 class TrafficRLEnv:
+    """Environnement RL style Gym pour l'entrainement et le benchmark.
+
+    Chaque appel a step() avance la simulation de step_dt secondes en
+    plusieurs sous-pas de sub_dt. L'agent decide donc toutes les 5s
+    simulees, mais la physique avance par pas de 0.1s pour rester realiste.
+    """
 
     def __init__(self, map_path, step_dt=5.0, sub_dt=0.1, max_time=300.0,
                  initial_vehicles=15, target_vehicles=100, max_vehicles=150,
@@ -115,7 +156,8 @@ class TrafficRLEnv:
         self.spawn_interval   = spawn_interval
         self.random_seed      = random_seed
 
-        # Le reseau OSM est lourd a parser, on le charge une fois
+        # Le reseau OSM est lourd a parser : on le charge une seule fois ici
+        # et on reconstruit graphe/feux/vehicules a chaque reset().
         self._network = load_network(map_path)
 
         self.graph           = None
@@ -129,6 +171,12 @@ class TrafficRLEnv:
         self._group_ids           = []
 
     def reset(self):
+        """Repart d'une simulation neuve.
+
+        On reconstruit le graphe, les feux et les vehicules, on remet
+        l'horloge a zero et on spawne le batch initial. La seed sert
+        a rendre l'experience reproductible d'un episode a l'autre.
+        """
         self.graph = RoadGraph()
         self.graph.build_from_network(self._network)
 
@@ -153,6 +201,14 @@ class TrafficRLEnv:
         return observe(self.light_manager, self.metrics, self._group_ids)
 
     def step(self, actions, on_tick=None):
+        """Applique les actions de l'agent puis avance la simulation.
+
+        actions est un dict { group_id : action }. SWITCH demande un
+        changement de phase (refuse si le vert minimum n'est pas atteint),
+        EXTEND prolonge le vert courant. KEEP ne fait rien.
+
+        Retourne (observations, rewards, done, info) comme l'API Gym.
+        """
         if self.light_manager is None:
             raise RuntimeError("env.reset() doit etre appele avant step().")
 
@@ -192,6 +248,11 @@ class TrafficRLEnv:
         return self.metrics.summary() if self.metrics else {}
 
     def _spawn_more(self):
+        """Ajoute des vehicules pour rester proche de target_vehicles.
+
+        On respawne par paquets de 10 max toutes les spawn_interval
+        secondes, sans depasser le plafond max_vehicles.
+        """
         if self._spawn_timer < self.spawn_interval:
             return
         self._spawn_timer = 0.0
@@ -203,8 +264,20 @@ class TrafficRLEnv:
             self.vehicle_manager.spawn_batch(budget)
 
     def _rewards(self, observations):
-        # On penalise surtout la file qui attend au rouge (la ou un SWITCH
-        # aurait un impact direct), pas celle qui passe deja au vert.
+        """Recompense par carrefour, directionnelle.
+
+        On penalise surtout la file qui attend au rouge (celle qu'un
+        SWITCH ou un EXTEND peut debloquer), beaucoup moins celle qui
+        passe deja au vert. Sans cette distinction, l'agent maximise
+        le total de la file et oublie la direction du gain.
+
+        Penalites :
+          2.5 * file au rouge,
+          0.2 * file au vert,
+          1.0 * voitures qui attendent depuis plus de 30 s.
+        Bonus :
+          0.5 * voitures arrivees a destination pendant le pas.
+        """
         arrived = self.vehicle_manager.total_arrived - self._arrived_before_step
         bonus = 0.5 * arrived
 
@@ -223,7 +296,13 @@ class TrafficRLEnv:
 
 
 class RLController:
-    """Branche un agent entraine sur la simulation Pygame."""
+    """Branche un agent entraine sur la simulation Pygame.
+
+    Contrairement a TrafficRLEnv qui pilote la simulation lui-meme,
+    ici on s'inscrit dans la boucle existante via tick(dt) appele
+    a chaque frame. L'agent decide toutes les step_dt secondes seulement,
+    pas a chaque frame.
+    """
 
     def __init__(self, agent, light_manager, metrics, step_dt=5.0):
         self.agent         = agent
@@ -235,12 +314,20 @@ class RLController:
         self._sim_time    = 0.0
         self._group_ids   = sorted(light_manager.get_groups().keys())
 
+        # Stats affichees dans le HUD : combien de KEEP / SWITCH / EXTEND
+        # l'agent a pris depuis le debut, plus l'historique recent des
+        # carrefours qu'il vient de toucher (cercle bleu dans la GUI).
         self.last_actions       = {}
         self.action_count       = {ACTION_KEEP: 0, ACTION_SWITCH: 0, ACTION_EXTEND: 0}
         self.recent_switches    = {}
         self.last_decision_time = 0.0
 
     def tick(self, dt):
+        """Cumule le temps ecoule et declenche une decision tous les step_dt.
+
+        Appele a chaque frame de la GUI. Tant que le timer n'a pas
+        atteint step_dt, on ne fait rien.
+        """
         self._sim_time += dt
         self._timer    += dt
         if self._timer < self.step_dt:

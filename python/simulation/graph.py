@@ -1,9 +1,20 @@
+"""Graphe routier de la simulation.
+
+Construit a partir d'un Network OSM deja nettoye : un noeud par point
+geographique, une arete orientee par segment de rue, ponderee par le
+temps de parcours. La methode dijkstra accepte une fonction de
+penalite par arete : le VehicleManager s'en sert pour eviter aux
+nouveaux trajets de retomber sur les memes axes satures.
+"""
+
 import heapq
 import math
 from dataclasses import dataclass, field
 from typing import Callable, Dict, List, Optional, Tuple
 from simulation.models import Network, Road
 
+# Un feu OSM mal place est rattache au noeud routier le plus proche
+# dans cette limite metrique
 TRAFFIC_SIGNAL_ATTACH_MAX_DIST = 25.0
 
 
@@ -31,6 +42,13 @@ class GraphEdge:
 
 
 class RoadGraph:
+    """Graphe oriente du reseau routier.
+
+    nodes : dict des noeuds (lat/lon, presence d'un feu).
+    edges : adjacence sortante de chaque noeud.
+    all_edges : meme liste a plat, pour les iterations completes.
+    """
+
     def __init__(self):
         self.nodes: Dict[int, GraphNode] = {}
         self.edges: Dict[int, List[GraphEdge]] = {}  # adjacence
@@ -39,6 +57,12 @@ class RoadGraph:
 
 
     def build_from_network(self, network):
+        """Construit le graphe a partir d'un Network OSM.
+
+        On garde les noeuds reellement utilises par les routes, on cree
+        les aretes (avec leur inverse si la route est a double sens),
+        puis on rattache les feux OSM aux noeuds du graphe.
+        """
         # nodes utilises par les routes
         road_node_ids: set = set()
         for road in network.roads:
@@ -119,6 +143,16 @@ class RoadGraph:
 
     def dijkstra(self, source, target,
                  edge_penalty: Optional[Callable[[GraphEdge], float]] = None):
+        """Plus court chemin entre source et target.
+
+        Implementation classique avec un tas binaire. Le cout d'une arete
+        est son temps de parcours (longueur / vitesse) auquel s'ajoute
+        la penalite donnee par edge_penalty (utilisee pour eviter les
+        zones congestionnees lors du spawn d'un nouveau vehicule).
+
+        Retourne la liste des noeuds traverses ou None si aucun chemin
+        n'existe.
+        """
         if source not in self.nodes or target not in self.nodes:
             return None
 
@@ -263,6 +297,10 @@ class RoadGraph:
 
 
 def haversine(lat1, lon1, lat2, lon2) -> float:
+    """Distance en metres entre deux points (lat, lon) sur la Terre.
+
+    Formule de Haversine, rayon terrestre 6371 km.
+    """
     R = 6371000
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
     dphi = math.radians(lat2 - lat1)

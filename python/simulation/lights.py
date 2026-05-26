@@ -1,4 +1,17 @@
-"""Gestion des feux de circulation."""
+"""Gestion des feux de circulation.
+
+Un TrafficLight represente un feu pose sur un noeud du graphe (c'est
+ce qui s'affiche dans la GUI). Quand plusieurs feux appartiennent au
+meme carrefour physique, on les regroupe et un GroupSignalRuntime
+joue le role d'horloge commune : il applique les contraintes
+physiques (vert minimal, jaune obligatoire, courte phase tout rouge
+entre deux verts) que l'agent RL ne peut pas contourner.
+
+Le TrafficLightManager fait le pont avec le reste : il construit les
+feux a partir du graphe, decoupe chaque carrefour en deux phases A
+et B selon l'axe d'approche, et expose request_phase_switch et
+extend_green pour l'agent.
+"""
 
 import math
 from dataclasses import dataclass, field
@@ -56,6 +69,17 @@ def make_cycle_B() -> List[Tuple[LightState, float]]:
 
 @dataclass
 class TrafficLight:
+    """Un feu unique pose sur un noeud du graphe.
+
+    Son cycle est une liste de paires (etat, duree). En mode autonome
+    le feu avance dans son cycle a chaque update(dt). En mode "controle"
+    (champ _controlled_state non None), c'est le GroupSignalRuntime du
+    carrefour qui impose l'etat, et update() ne fait plus rien.
+
+    controlled_from_nodes liste les noeuds amont dont les vehicules
+    sont concernes par ce feu (par exemple, sur un carrefour en croix,
+    chaque feu ne stoppe que les voitures venant d'une direction).
+    """
     node_id: int
     lat: float
     lon: float
@@ -177,6 +201,11 @@ class GroupSignalRuntime:
 
     Le RL peut demander une action, mais cette classe garde les transitions
     physiques : vert minimal, jaune, tout rouge, puis autre phase.
+
+    Quatre stages possibles : green, yellow, all_red, red. Les passages
+    se font dans l'ordre, et un SWITCH ne prend effet qu'apres
+    MIN_GREEN_TIME secondes de vert. Un EXTEND ajoute un bonus au vert
+    courant, plafonne par MAX_GREEN_TIME.
     """
     group_id: int
     has_phase_b: bool
@@ -221,6 +250,13 @@ class GroupSignalRuntime:
             guard += 1
 
     def request_switch(self) -> bool:
+        """Demande un passage anticipe a la phase suivante.
+
+        Si on est deja en jaune ou rouge, ou si le carrefour n'a qu'une
+        phase, on refuse. Si on est au vert depuis moins de MIN_GREEN_TIME
+        secondes, on memorise la demande et on basculera des qu'on a
+        atteint le minimum.
+        """
         if not self.has_phase_b or self.stage != "green":
             return False
 
@@ -230,6 +266,12 @@ class GroupSignalRuntime:
         return True
 
     def extend_green(self, seconds: float) -> bool:
+        """Ajoute un bonus a la duree du vert courant, plafonne.
+
+        On refuse si on n'est pas au vert. Le bonus s'ajoute a la duree
+        de base sans depasser MAX_GREEN_TIME au total, pour eviter que
+        l'agent ne maintienne un vert indefiniment.
+        """
         if self.stage != "green" or seconds <= 0.0:
             return False
 
@@ -421,8 +463,12 @@ class TrafficLightManager:
         )
 
     def _cluster_lights(self, light_nodes, graph) -> List[IntersectionGroup]:
-        """
-        Regroupe les feux proches sans former de carrefours trop larges.
+        """Regroupe les feux proches sans former de carrefours trop larges.
+
+        Un feu rejoint un cluster existant si la distance au centre du
+        cluster ET aux autres feux deja dedans reste inferieure a
+        INTERSECTION_RADIUS. Si aucun cluster ne convient, on en cree
+        un nouveau. Le centre du cluster est recalcule a chaque ajout.
         """
         nids  = [n[0] for n in light_nodes]
         nodes = {n[0]: n[1] for n in light_nodes}
@@ -491,7 +537,14 @@ class TrafficLightManager:
 
     def _assign_phases(self, grp: IntersectionGroup,
                        members: List[int], nodes, graph) -> None:
-        """Répartit les feux d'un carrefour en deux phases."""
+        """Répartit les feux d'un carrefour en deux phases.
+
+        Pour chaque feu, on calcule l'angle de l'axe d'approche. Les
+        feux a moins de 45 degres du premier vont en phase A, les
+        autres en phase B. Si tous tombent sur le meme axe (T-jonction
+        par exemple), on coupe le groupe en deux pour qu'il y ait
+        quand meme alternance.
+        """
         angles: Dict[int, float] = {}
         for nid in members:
             incoming = [
@@ -537,7 +590,13 @@ class TrafficLightManager:
 
     def _compute_controlled_from(self, nid: int, phase: str,
                                   grp: "IntersectionGroup", graph) -> List[int]:
-        """Indique quelles arrivées sont contrôlées par ce feu."""
+        """Indique quelles arrivées sont contrôlées par ce feu.
+
+        Sur un carrefour multi-voies, chaque feu ne stoppe que les
+        vehicules venant de l'axe qui le concerne. On calcule l'axe
+        moyen des feux de la meme phase et on lui rattache toutes les
+        aretes entrantes qui partagent cet axe a 50 degres pres.
+        """
         incoming_edges = [
             e
             for edges_list in graph.edges.values()

@@ -1,4 +1,15 @@
-"""Coordination générale des véhicules de la simulation."""
+"""Coordination générale des véhicules de la simulation.
+
+Le VehicleManager orchestre le spawn, l'avancement et les statistiques.
+Les regles fines sont reparties dans trois mixins pour ne pas tout
+mettre dans le meme fichier : vehicle_queues pour l'empilement devant
+les feux, vehicle_intersections pour les conflits aux croisements,
+vehicle_motion pour le suivi entre vehicules.
+
+Quand on spawn un nouveau vehicule, Dijkstra recoit une penalite par
+arete proportionnelle a la congestion locale, ce qui repartit le
+trafic plutot que de l'envoyer toujours sur le meme axe.
+"""
 
 import random
 from typing import Dict, List, Optional, Set, Tuple
@@ -26,6 +37,14 @@ from simulation.vehicle_queues import VehicleQueueMixin
 class VehicleManager(VehicleQueueMixin,
                      VehicleIntersectionMixin,
                      VehicleMotionMixin):
+    """Coordonne tous les vehicules de la simulation.
+
+    Gere le cycle de vie complet : spawn (Dijkstra avec penalite de
+    congestion), avancement par pas de dt, arrivee a destination,
+    statistiques agregees. Les conflits entre vehicules sont resolus
+    par les mixins (files, tokens d'intersection, suivi).
+    """
+
     def __init__(self, graph: RoadGraph, light_manager: TrafficLightManager,
                  rng: Optional[random.Random] = None):
         self.graph = graph
@@ -43,6 +62,14 @@ class VehicleManager(VehicleQueueMixin,
         self._incoming_cache: Optional[Dict[int, Set[int]]] = None
 
     def build_edge_index(self) -> None:
+        """Pre-calcule deux index sur le graphe.
+
+        - road_oneway : si une route est a sens unique (aucune arete
+          inverse de meme road_id n'existe).
+        - incoming_cache : pour chaque noeud, l'ensemble des noeuds
+          amont. Sert a accelerer les recherches d'intersections
+          conflictuelles.
+        """
         existing: Set[Tuple[int, int, int]] = set()
         road_fwd: Dict[int, List[Tuple[int, int]]] = {}
 
@@ -74,6 +101,14 @@ class VehicleManager(VehicleQueueMixin,
     def spawn_vehicle(self,
                       origin_node: Optional[int] = None,
                       dest_node: Optional[int] = None) -> Optional[Vehicle]:
+        """Cree un vehicule avec un trajet aleatoire.
+
+        On tire une origine et une destination dans les noeuds spawnables,
+        on calcule l'itineraire par Dijkstra avec la penalite de
+        congestion courante, puis on verifie que le point de spawn est
+        libre. Si l'une de ces etapes echoue, on retourne None : le
+        spawn_batch suivant essaiera ailleurs.
+        """
         pool = self.graph.get_spawn_nodes()
         if len(pool) < 2:
             return None
@@ -133,6 +168,13 @@ class VehicleManager(VehicleQueueMixin,
         return created
 
     def _make_congestion_penalty(self):
+        """Fonction de penalite injectee dans Dijkstra au spawn.
+
+        Plus une arete contient de vehicules, plus son cout monte ; les
+        voitures a l'arret ou en file comptent plus que les voitures qui
+        roulent. Les nouveaux trajets contournent ainsi les zones deja
+        saturees.
+        """
         edge_penalties: Dict[Tuple[int, int], float] = {}
         road_penalties: Dict[int, float] = {}
 
@@ -175,6 +217,12 @@ class VehicleManager(VehicleQueueMixin,
         return penalty
 
     def update(self, dt: float) -> None:
+        """Avance chaque vehicule de dt secondes.
+
+        Apres l'avancement individuel, on resout les chevauchements
+        residuels (deux vehicules au meme endroit) en separant ceux
+        qui sont sur le meme segment et ceux sur des segments adjacents.
+        """
         to_remove = []
         for vehicle_id, vehicle in self.vehicles.items():
             if vehicle.state in (VehicleState.ARRIVED, VehicleState.NO_PATH):
@@ -258,6 +306,17 @@ class VehicleManager(VehicleQueueMixin,
 
     def _tick(self, vehicle: Vehicle, target_nid: int,
               target_node, dist: float, dt: float) -> Tuple[float, bool]:
+        """Calcule la vitesse souhaitee du vehicule pour ce sous-pas.
+
+        La vitesse cible est le minimum de quatre contraintes :
+        - vitesse max de la route ;
+        - vitesse compatible avec le gap au leader (suivi entre vehicules) ;
+        - approche prudente d'un feu rouge proche ;
+        - reservation de token pour traverser l'intersection.
+
+        Si le vehicule est deja en file ou stoppe par un rouge,
+        on retourne sans le faire avancer.
+        """
         if self._handle_queue(vehicle, target_nid, dist, dt):
             return dt, False
 

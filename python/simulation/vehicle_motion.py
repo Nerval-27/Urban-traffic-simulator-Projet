@@ -1,4 +1,12 @@
-"""Déplacement des véhicules et règles de distance."""
+"""Déplacement des véhicules et règles de distance.
+
+Chaque vehicule regarde le vehicule devant lui : il freine quand le
+gap descend sous BRAKE_DISTANCE et garde toujours au moins SAFE_GAP
+de marge. On y ajoute l'approche prudente d'un feu rouge a moins de
+LIGHT_BRAKE_DIST metres, et un controle de capacite du segment
+suivant (RECEIVING_SEGMENT_FILL_RATIO) pour ne pas pousser une
+voiture dans un segment deja sature.
+"""
 
 import math
 from typing import Dict, List, Tuple
@@ -22,8 +30,16 @@ from simulation.vehicle_model import Vehicle, VehicleState
 
 
 class VehicleMotionMixin:
+    """Mixin du VehicleManager pour le modele de suivi et l'approche feux."""
+
     def _gap_to_leader(self, v: Vehicle, target_nid: int,
                        my_dist: float) -> float:
+        """Distance au vehicule de devant le plus proche.
+
+        On scanne le segment courant et le segment suivant. Si aucun
+        leader n'est trouve, on retourne math.inf, ce qui signifie
+        "plein gaz autorise".
+        """
         best = math.inf
         target_node = self.graph.nodes.get(target_nid)
         fn_node = self.graph.nodes.get(v.seg_from)

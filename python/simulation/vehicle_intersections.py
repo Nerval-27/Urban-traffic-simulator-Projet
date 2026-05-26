@@ -1,4 +1,14 @@
-"""Gestion des priorités et conflits aux intersections."""
+"""Gestion des priorités et conflits aux intersections.
+
+Sur les carrefours sans feu, on serialise les passages avec un
+systeme de jetons : pour franchir un noeud, un vehicule doit reserver
+celui-ci, et il cede le passage si un autre jeton est actif sur une
+trajectoire qui croise la sienne.
+
+Un timeout (INTER_YIELD_TIMEOUT) finit par debloquer les voitures
+qui cedent depuis trop longtemps, pour qu'on ne se retrouve jamais
+avec deux vehicules qui s'attendent indefiniment.
+"""
 
 import math
 from typing import List, Set
@@ -18,8 +28,21 @@ from simulation.vehicle_model import Vehicle, VehicleState
 
 
 class VehicleIntersectionMixin:
+    """Mixin du VehicleManager pour la resolution des conflits a un croisement.
+
+    Sur un carrefour sans feu, deux vehicules venant d'axes
+    perpendiculaires ne doivent pas traverser en meme temps.
+    L'approche par tokens serialise les passages.
+    """
+
     def _intersection_token_speed(self, v: Vehicle, target_nid: int,
                                   dist: float, dt: float) -> float:
+        """Renvoie la vitesse compatible avec la reservation du noeud.
+
+        Si le vehicule a deja le token, plein gaz. Sinon, on regarde
+        s'il y a conflit avec les tokens deja actifs et on cede si
+        besoin, ou on freine pour s'arreter avant le noeud.
+        """
         if v.queue_light_node != -1:
             return v.max_speed
 

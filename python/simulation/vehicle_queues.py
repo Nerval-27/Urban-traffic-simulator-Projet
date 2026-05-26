@@ -1,4 +1,12 @@
-"""Gestion des files devant les feux."""
+"""Gestion des files devant les feux.
+
+Un vehicule qui arrive sur un feu rouge rejoint la file de l'arete
+entrante. Les places sont espacees de QUEUE_SLOT metres, le premier
+s'arretant a STOP_LINE_DIST du feu. Au passage au vert on libere
+voiture par voiture en respectant un petit cooldown
+(QUEUE_RELEASE_COOLDOWN), sinon elles redemarrent quasiment toutes
+en meme temps et finissent par se chevaucher.
+"""
 
 import math
 from typing import List, Tuple
@@ -19,8 +27,20 @@ from simulation.vehicle_model import Vehicle, VehicleState
 
 
 class VehicleQueueMixin:
+    """Mixin du VehicleManager pour la gestion des files.
+
+    Les files sont indexees par (noeud du feu, noeud d'origine du segment)
+    pour qu'un meme feu serve plusieurs directions independantes.
+    """
+
     def _handle_queue(self, v: Vehicle, target_nid: int,
                       dist: float, dt: float) -> bool:
+        """Met le vehicule en file si necessaire, le libere si vert.
+
+        Retourne True si le vehicule est en attente (le tick n'a plus
+        besoin de calculer sa vitesse). Retourne False si le vehicule
+        peut continuer normalement.
+        """
         if v.queue_light_node != -1:
             key = (v.queue_light_node, v.queue_seg_from)
             if v.vehicle_id not in self._queues.get(key, []):

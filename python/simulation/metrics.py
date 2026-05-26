@@ -1,4 +1,13 @@
-"""Mesures de circulation pour comparer les stratégies de feux."""
+"""Mesures de circulation pour comparer les strategies de feux.
+
+Au plus fin, on calcule pour chaque feu sa longueur de file, son debit
+d'arrivee lambda, son debit de service mu et la saturation rho =
+lambda / mu (plafonnee a MAX_SATURATION pour qu'un mu proche de zero
+ne fasse pas exploser le chiffre). Ces observations alimentent
+TrafficMetrics, qui ecrit aussi des snapshots toutes les sample_interval
+secondes (le CSV de debug) et un resume final servant a comparer la
+baseline et le RL.
+"""
 
 import csv
 import json
@@ -8,9 +17,14 @@ from statistics import mean, median
 from typing import Dict, List, Optional, Tuple
 
 
+# Distance d'approche : un vehicule a moins de 80 m d'un feu est
+# considere comme "en approche" pour les statistiques
 APPROACH_RADIUS_M = 80.0
+# Fenetre glissante pour les debits d'arrivee / service
 RATE_WINDOW_S = 60.0
 
+# Ponderations pour le score de pression d'un feu (utilise par certaines
+# heuristiques d'analyse, pas par l'agent RL)
 QUEUE_WEIGHT = 2.0
 APPROACH_WEIGHT = 0.5
 WAIT_WEIGHT = 0.1
@@ -20,6 +34,14 @@ MAX_SATURATION = 9.99
 
 @dataclass
 class LightObservation:
+    """Snapshot instantane d'un feu.
+
+    Regroupe la couleur courante, l'occupation locale (file, vehicules
+    en approche, en attente) et les indicateurs issus de la theorie
+    des files : arrival_rate (lambda), service_rate (mu) et saturation
+    (rho = lambda / mu). Les *_ratio donnent la repartition du temps
+    passe en vert, jaune ou rouge.
+    """
     light_id: int
     state: Optional[str]
     time_remaining: float
@@ -134,6 +156,17 @@ class MetricSnapshot:
 
 
 class TrafficMetrics:
+    """Collecte continue des mesures de trafic pendant la simulation.
+
+    Tient a jour deux niveaux de granularite : un snapshot complet
+    toutes les sample_interval secondes (pour les CSV), et les
+    accumulateurs continus utilises par summary() en fin de simulation.
+
+    Les listes par feu (queue_time_by_light, etc.) permettent ensuite
+    a l'analyse RL de classer les carrefours et d'ecrire les
+    recommandations carrefour par carrefour.
+    """
+
     def __init__(self, sample_interval: float = 1.0,
                  approach_radius_m: float = APPROACH_RADIUS_M):
         self.sample_interval = sample_interval
@@ -176,6 +209,13 @@ class TrafficMetrics:
         self._seen_light_entries: set = set()
 
     def update(self, dt: float, vehicle_manager, light_manager) -> TrafficObservation:
+        """Avance les compteurs de dt secondes et construit l'observation courante.
+
+        Appele a chaque sous-tick. Cumule les temps passes en file, en
+        attente d'un feu, a l'arret ; enregistre les transitions d'etat
+        des feux ; calcule les debits d'arrivee et de service sur la
+        fenetre glissante RATE_WINDOW_S.
+        """
         if dt <= 0.0:
             return self.latest_observation or self._empty_observation()
 
@@ -215,6 +255,16 @@ class TrafficMetrics:
         return self.latest_observation
 
     def summary(self) -> dict:
+        """Resume final d'une simulation, base de comparaison baseline / RL.
+
+        Toutes les valeurs sont normalisees par le temps ou le nombre de
+        vehicules spawnes pour rester comparables d'un run a l'autre,
+        meme si la duree ou le volume de trafic differe legerement.
+
+        per_light contient le detail par feu, utilise par
+        rl/analysis.recommend pour ecrire les recommandations carrefour
+        par carrefour.
+        """
         elapsed = max(self.elapsed, 1e-9)
         spawned = max(self.latest_stats.get("spawned", 0), 1)
         active_time = max(self.active_vehicle_time, 1e-9)
